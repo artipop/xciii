@@ -262,9 +262,9 @@ func TestTemplateBoardCarriesTheShippedAutomation(t *testing.T) {
 		}
 	}
 	wantActions := map[string]string{
-		strings.ToLower(cfg.TriggerColumn): FlowActionAgent,
-		strings.ToLower(cfg.DeployColumn):  FlowActionDeploy,
-		strings.ToLower(cfg.TestColumn):    FlowActionTest,
+		strings.ToLower(TemplateWorkColumn):   FlowActionAgent,
+		strings.ToLower(TemplateDeployColumn): FlowActionDeploy,
+		strings.ToLower(TemplateTestColumn):   FlowActionTest,
 	}
 	if len(columns) != len(wantActions) {
 		t.Fatalf("the template ships %d columns: %+v", len(columns), columns)

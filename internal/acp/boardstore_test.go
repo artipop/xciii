@@ -82,7 +82,7 @@ func TestDeletingARouteReachesTheBoard(t *testing.T) {
 	if _, err := m.AddFlow(FlowEntry{BoardID: "board1", Name: "Фича", Nodes: []FlowNode{{ID: "a", Column: "В работе"}}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.RemoveFlow("board1", "Фича"); err != nil {
+	if err := m.RemoveFlow("board1", m.Flows()[0].ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -95,57 +95,31 @@ func TestDeletingARouteReachesTheBoard(t *testing.T) {
 	}
 }
 
-// An install that predates this keeps its automation in config.json. It moves
-// onto the boards at startup, once, and the file stops carrying it.
-func TestTheFilesAutomationMovesOntoItsBoards(t *testing.T) {
-	m, meta, cfgPath := storeManager(t)
-	m.cfg.Columns = []ColumnSpec{
-		{BoardID: "board1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
-		{Property: "Статус", Column: "In Progress", Action: FlowActionAgent}, // no board: the machine's own
-	}
-	m.cfg.Flows = []FlowEntry{{BoardID: "board2", Name: "Хотфикс", Nodes: []FlowNode{{ID: "a", Column: "В работе"}}}}
-
-	m.moveAutomationToBoards()
-
-	if meta.written["board1"] == nil || meta.written["board2"] == nil {
-		t.Fatalf("boards written: %v", meta.written)
-	}
-	stored := storedConfig(t, cfgPath)
-	if len(stored.Columns) != 1 || stored.Columns[0].Column != "In Progress" {
-		t.Errorf("the file should keep only what belongs to no board, kept %+v", stored.Columns)
-	}
-	if len(stored.Flows) != 0 {
-		t.Errorf("the file still carries routes: %+v", stored.Flows)
-	}
-
-	// The registry itself is unchanged: what runs is still everything.
-	if len(m.cfg.Columns) != 2 || len(m.cfg.Flows) != 1 {
-		t.Errorf("the move changed what the engine reads: %+v %+v", m.cfg.Columns, m.cfg.Flows)
-	}
-}
-
-// A board that cannot be written to must not lose what somebody drew: the file
-// keeps it until a write gets through.
-func TestAutomationStaysInTheFileWhileTheBoardRefusesIt(t *testing.T) {
-	m, meta, cfgPath := storeManager(t)
+// A board that cannot be written to right now must not lose what somebody drew.
+// It is not in config.json any more, so what has to survive is the registry
+// this run reads — and the next edit has to reach the board.
+func TestARefusedBoardKeepsTheEditForTheRun(t *testing.T) {
+	m, meta, _ := storeManager(t)
 	meta.fail = errors.New("board store is not ready")
 
 	if _, err := m.SaveColumn(ColumnSpec{BoardID: "board1", Property: "Статус", Column: "В работе", Action: FlowActionAgent}); err != nil {
 		t.Fatal(err)
 	}
-
-	stored := storedConfig(t, cfgPath)
-	if len(stored.Columns) != 1 {
-		t.Fatalf("the column was dropped from the file with no board to hold it: %+v", stored.Columns)
+	if len(m.cfg.Columns) != 1 {
+		t.Fatalf("the column was dropped with no board to hold it: %+v", m.cfg.Columns)
 	}
 
-	// And it moves the moment the board can take it.
+	// And it reaches the board the moment the board can take it.
 	meta.fail = nil
 	if _, err := m.SaveColumn(ColumnSpec{BoardID: "board1", Property: "Статус", Column: "В работе", Action: FlowActionDeploy}); err != nil {
 		t.Fatal(err)
 	}
-	if len(storedConfig(t, cfgPath).Columns) != 0 {
-		t.Error("the file still carries the column after the board took it")
+	columns, _, err := parseBoardAutomation(meta.written["board1"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(columns) != 1 || columns[0].Action != FlowActionDeploy {
+		t.Errorf("the board did not get the column after it could take it: %+v", columns)
 	}
 }
 
@@ -243,27 +217,6 @@ func TestTheBoardsInstructionsAreTakenFromTheBoard(t *testing.T) {
 	}
 }
 
-// An install that predates this keeps the instruction in config.json, keyed by
-// a board that has neither columns nor routes. It has to move too, or the one
-// board whose prompt was the whole reason for the key would lose it.
-func TestTheFilesInstructionsMoveOntoTheirBoards(t *testing.T) {
-	m, meta, cfgPath := storeManager(t)
-	m.cfg.BoardPrompts = map[string]string{"board1": "Отвечай по-русски."}
-
-	m.moveAutomationToBoards()
-
-	if got := meta.written["board1"][BoardPropPrompt]; got != "Отвечай по-русски." {
-		t.Fatalf("the board was told %q", got)
-	}
-	if got := storedConfig(t, cfgPath).BoardPrompts["board1"]; got != "" {
-		t.Errorf("the file still carries the instruction: %q", got)
-	}
-	// The registry itself is unchanged: what a session is told is still there.
-	if got := m.BoardPrompt("board1"); got != "Отвечай по-русски." {
-		t.Errorf("the move changed what a session is told: %q", got)
-	}
-}
-
 // fakeCardState is the board seen as a place to keep one key per card.
 type fakeCardState struct {
 	state map[string]FlowState
@@ -304,18 +257,17 @@ func (f *fakeCardState) BoardCardFlows(_ context.Context, boardID string) ([]Flo
 // branches to poll, so a card nobody indexed is a card waiting on a branch
 // nobody is watching.
 func TestParkedCardsOfANewBoardAreIndexedFromIt(t *testing.T) {
-	store, err := OpenStore(filepath.Join(t.TempDir(), "acp.db"))
+	store, err := newTestStore(t, filepath.Join(t.TempDir(), "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = store.Close() })
 
 	cfg := DefaultConfig(t.TempDir())
 	m := NewManager(cfg, filepath.Join(t.TempDir(), "config.json"), store, newFakeWriter(), &fakeEmitter{}, nil)
 	m.rootCtx = context.Background()
 	m.SetBoardMeta(&fakeBoardMeta{props: map[string]any{BoardPropPrompt: "Отвечай по-русски."}})
 	m.SetBoardCardState(&fakeCardState{
-		state: map[string]FlowState{"cardOne": {CardID: "cardOne", Flow: "Фича", NodeID: "review", Branch: "feat/x", WorkdirPath: "/tmp/p"}},
+		state: map[string]FlowState{"cardOne": {CardID: "cardOne", FlowID: "flow-feature", NodeID: "review", Branch: "feat/x", WorkdirPath: "/tmp/p"}},
 		board: map[string]string{"cardOne": "board1"},
 	})
 

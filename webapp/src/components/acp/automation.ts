@@ -23,8 +23,15 @@ export type FlowNode = {
     // Empty means "whatever the column does"; 'none' means the stage runs
     // nothing and waits for an event.
     action: string
-    agentNames?: string[]
-    deployName?: string
+
+    // The crew for this stage, by registry id: renaming an agent used to empty
+    // the crew of every stage on every board.
+    agentIds?: string[]
+
+    // The deploy target this stage publishes to, by the registry entry's id.
+    // It used to be the entry's name, and renaming a target then unpinned every
+    // stage that sent work to it (docs/model-graph.md, contradiction 8).
+    deployId?: string
 
     // The stage's own instructions, said to whoever works it here — overriding
     // the column's (ColumnSpec.prompt). Empty inherits.
@@ -71,9 +78,16 @@ export type EdgeCond = {
 }
 
 export type Flow = {
+
+    // The route's own id, given by Go. It is what an edit is matched on, so a
+    // route read from the board must be sent back with it — renaming one used
+    // to lose the place of every card standing on it.
+    id?: string
     name: string
     boardId?: string
-    projectName?: string
+
+    // The folder this route is tied to, by registry id.
+    workspaceId?: string
     property?: string
     nodes: FlowNode[]
     edges: FlowEdge[]
@@ -96,8 +110,8 @@ export type ColumnSpec = {
     property: string
     column: string
     action: string
-    agents?: string[]
-    deployName?: string
+    agentIds?: string[]
+    deployId?: string
     maxRunning?: number
 
     // What working in this column means, said to the agent: the reviewer's
@@ -174,11 +188,8 @@ export function columnProperty(board: Board, name?: string): IPropertyTemplate |
 // which is a fact about the order somebody added fields in, and would have the
 // editor draw one property's options while the engine runs another's.
 //
-// The editor used to offer a dropdown to fix that by hand. It stood at the end
-// of the row of route tabs showing one bare word, with its caption («Колонки —
-// это») only in the aria-label, so the control that decides what the whole
-// canvas is made of read as another tab. The answer is not a preference — it is
-// a fact about the board, and this is where it is read.
+// It is not a preference and there is no control for it: it is a fact about the
+// board, read here.
 export function automationProperty(board: Board, automation?: Automation): IPropertyTemplate | undefined {
     const properties = selectProperties(board)
     for (const spec of automation?.columns || []) {

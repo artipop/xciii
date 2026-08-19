@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/web"
 )
@@ -53,10 +52,6 @@ func (a *API) handleGetTeams(w http.ResponseWriter, r *http.Request) {
 		a.errorResponse(w, r, err)
 	}
 
-	auditRec := a.makeAuditRecord(r, "getTeams", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("teamCount", len(teams))
-
 	data, err := json.Marshal(teams)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -64,7 +59,6 @@ func (a *API) handleGetTeams(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }
 
 func (a *API) handleGetTeam(w http.ResponseWriter, r *http.Request) {
@@ -120,10 +114,6 @@ func (a *API) handleGetTeam(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := a.makeAuditRecord(r, "getTeam", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("resultTeamID", team.ID)
-
 	data, err := json.Marshal(team)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -131,7 +121,6 @@ func (a *API) handleGetTeam(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }
 
 func (a *API) handlePostTeamRegenerateSignupToken(w http.ResponseWriter, r *http.Request) {
@@ -168,9 +157,6 @@ func (a *API) handlePostTeamRegenerateSignupToken(w http.ResponseWriter, r *http
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "regenerateSignupToken", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
 	team.SignupToken = utils.NewID(utils.IDTypeToken)
 
 	if err = a.app.UpsertTeamSignupToken(*team); err != nil {
@@ -179,7 +165,6 @@ func (a *API) handlePostTeamRegenerateSignupToken(w http.ResponseWriter, r *http
 	}
 
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }
 
 func (a *API) handleGetTeamUsers(w http.ResponseWriter, r *http.Request) {
@@ -231,9 +216,6 @@ func (a *API) handleGetTeamUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "getUsers", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-
 	isGuest, err := a.userIsGuest(userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -258,8 +240,6 @@ func (a *API) handleGetTeamUsers(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.AddMeta("userCount", len(users))
-	auditRec.Success()
 }
 
 func (a *API) handleGetTeamUsersByID(w http.ResponseWriter, r *http.Request) {
@@ -306,9 +286,6 @@ func (a *API) handleGetTeamUsersByID(w http.ResponseWriter, r *http.Request) {
 		a.errorResponse(w, r, err)
 		return
 	}
-
-	auditRec := a.makeAuditRecord(r, "getTeamUsersByID", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
 
 	teamID := r.PathValue("teamID")
 	userID := getUserID(r)
@@ -384,5 +361,4 @@ func (a *API) handleGetTeamUsersByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonStringResponse(w, http.StatusOK, string(usersList))
-	auditRec.Success()
 }

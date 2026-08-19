@@ -8,11 +8,10 @@ import (
 
 func openTestStore(t *testing.T) *Store {
 	t.Helper()
-	st, err := OpenStore(filepath.Join(t.TempDir(), "acp.db"))
+	st, err := newTestStore(t, filepath.Join(t.TempDir(), "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { st.Close() })
 	return st
 }
 
@@ -25,7 +24,7 @@ func TestStoreSessionRoundTrip(t *testing.T) {
 	if err := st.InsertSession(rec); err != nil {
 		t.Fatal(err)
 	}
-	if err := st.AppendEvent("s1", 1, "chunk", map[string]any{"text": "hi"}); err != nil {
+	if err := st.AppendEvent("s1", "chunk", map[string]any{"text": "hi"}); err != nil {
 		t.Fatal(err)
 	}
 	if err := st.SetSessionStatus("s1", StatusDone, ""); err != nil {
@@ -84,20 +83,6 @@ func TestClaimIdempotency(t *testing.T) {
 	if err != nil || !fresh {
 		t.Fatalf("expired key should be claimable: fresh=%v err=%v", fresh, err)
 	}
-}
-
-func TestOpenStoreIdempotentMigration(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "acp.db")
-	st, err := OpenStore(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	st.Close()
-	st, err = OpenStore(path)
-	if err != nil {
-		t.Fatalf("second open failed: %v", err)
-	}
-	st.Close()
 }
 
 // The board draws a paused terminal button on cards whose conversation was cut
@@ -164,41 +149,8 @@ func TestANewerReasonReplacesTheKindToo(t *testing.T) {
 	}
 }
 
-// A database written before the column existed must open and keep working: an
-// install is somebody's boards, and a schema change is not a reason to ask them
-// to delete it.
-func TestAStallTableFromBeforeTheKindColumnStillOpens(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "acp.db")
-	st, err := OpenStore(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := st.db.Exec(`DROP TABLE card_stall`); err != nil {
-		t.Fatal(err)
-	}
-	// The table exactly as it shipped, without kind.
-	if _, err := st.db.Exec(`CREATE TABLE card_stall (
-		card_id TEXT PRIMARY KEY,
-		node_id TEXT NOT NULL DEFAULT '',
-		reason TEXT NOT NULL,
-		created_at INTEGER NOT NULL)`); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := st.db.Exec(`INSERT INTO card_stall VALUES ('c1','n1','нет перехода',0)`); err != nil {
-		t.Fatal(err)
-	}
-	st.Close()
-
-	st, err = OpenStore(path)
-	if err != nil {
-		t.Fatalf("an older database would not open: %v", err)
-	}
-	t.Cleanup(func() { st.Close() })
-	r, ok, err := st.Stall("c1")
-	if err != nil || !ok {
-		t.Fatalf("the reason recorded before the migration is gone: %v %v", ok, err)
-	}
-	if r.Kind != "" {
-		t.Errorf("a reason from before the column reads as kind %q", r.Kind)
-	}
-}
+// What used to stand here: a test that a database written before card_stall
+// grew its `kind` column still opened, because this package added the column
+// itself on every open. It no longer does — the schema is a rung on the board's
+// own migration ladder, and evolving it is the migration engine's job, tested
+// where that engine lives (server/services/store/sqlstore).

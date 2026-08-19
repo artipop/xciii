@@ -29,7 +29,7 @@ const (
 
 // Target is one branch somebody is waiting on.
 type Target struct {
-	WorkdirPath string   // local git project
+	WorkdirPath string   // the folder on this machine, as the registry has it
 	Branch      string   // branch the card is about
 	Remote      string   // remote to consult; empty means "origin"
 	Triggers    []string // event kinds the caller cares about
@@ -79,6 +79,6 @@ type Watcher interface {
 	// Name identifies the watcher in logs.
 	Name() string
 	// Poll reports what it can see for one target. An error is transient by
-	// nature (network, a project being rewritten) and only gets logged.
+	// nature (network, a repository being rewritten) and only gets logged.
 	Poll(ctx context.Context, t Target) ([]Event, error)
 }

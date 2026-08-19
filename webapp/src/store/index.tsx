@@ -12,7 +12,6 @@ import octoClient from '../octoClient'
 import type {StoreContext, StoreDeps} from './context'
 import {UsersState, initialUsersState, createUsersActions} from './users'
 import {TeamsState, initialTeamsState, createTeamsActions} from './teams'
-import {ChannelsState, initialChannelsState, createChannelsActions} from './channels'
 import {LanguageState, initialLanguageState, createLanguageActions} from './language'
 import {GlobalTemplatesState, initialGlobalTemplatesState, createGlobalTemplatesActions} from './globalTemplates'
 import {BoardsState, initialBoardsState, createBoardsActions} from './boards'
@@ -24,14 +23,12 @@ import {SearchTextState, initialSearchTextState, createSearchTextActions} from '
 import {GlobalErrorState, initialGlobalErrorState, createGlobalErrorActions} from './globalError'
 import {ClientConfigState, initialClientConfigState, createClientConfigActions} from './clientConfig'
 import {SidebarState, initialSidebarState, createSidebarActions} from './sidebar'
-import {LimitsState, initialLimitsState, createLimitsActions} from './limits'
 import {AttachmentsState, initialAttachmentsState, createAttachmentsActions} from './attachments'
 import {createInitialLoadActions} from './initialLoad'
 
 export type RootState = {
     users: UsersState
     teams: TeamsState
-    channels: ChannelsState
     language: LanguageState
     globalTemplates: GlobalTemplatesState
     boards: BoardsState
@@ -43,14 +40,12 @@ export type RootState = {
     globalError: GlobalErrorState
     clientConfig: ClientConfigState
     sidebar: SidebarState
-    limits: LimitsState
     attachments: AttachmentsState
 }
 
 export const initialRootState = (): RootState => ({
     users: initialUsersState(),
     teams: initialTeamsState(),
-    channels: initialChannelsState(),
     language: initialLanguageState(),
     globalTemplates: initialGlobalTemplatesState(),
     boards: initialBoardsState(),
@@ -62,7 +57,6 @@ export const initialRootState = (): RootState => ({
     globalError: initialGlobalErrorState(),
     clientConfig: initialClientConfigState(),
     sidebar: initialSidebarState(),
-    limits: initialLimitsState(),
     attachments: initialAttachmentsState(),
 })
 
@@ -78,7 +72,6 @@ const createActions = (ctx: StoreContext) => {
     return {
         users,
         teams: createTeamsActions(ctx),
-        channels: createChannelsActions(ctx),
         language: createLanguageActions(ctx),
         globalTemplates: createGlobalTemplatesActions(ctx),
 
@@ -99,7 +92,6 @@ const createActions = (ctx: StoreContext) => {
         globalError: createGlobalErrorActions(ctx),
         clientConfig: createClientConfigActions(ctx),
         sidebar: createSidebarActions(ctx),
-        limits: createLimitsActions(ctx),
         attachments: createAttachmentsActions(ctx),
         load: createInitialLoadActions(ctx),
     }

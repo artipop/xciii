@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
 	"github.com/artipop/xciii/server/mlog"
@@ -113,14 +112,6 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := a.makeAuditRecord(r, "getBlocks", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("parentID", parentID)
-	auditRec.AddMeta("blockType", blockType)
-	auditRec.AddMeta("all", all)
-	auditRec.AddMeta("blockID", blockID)
-
 	var blocks []*model.Block
 	var block *model.Block
 	switch {
@@ -167,8 +158,6 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytesResponse(w, http.StatusOK, json)
 
-	auditRec.AddMeta("blockCount", len(blocks))
-	auditRec.Success()
 }
 
 func (a *API) handlePostBlocks(w http.ResponseWriter, r *http.Request) {
@@ -284,14 +273,10 @@ func (a *API) handlePostBlocks(w http.ResponseWriter, r *http.Request) {
 
 	blocks = model.GenerateBlockIDs(blocks, a.logger)
 
-	auditRec := a.makeAuditRecord(r, "postBlocks", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("disable_notify", disableNotify)
-
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
 
-	model.StampModificationMetadata(userID, blocks, auditRec)
+	model.StampModificationMetadata(userID, blocks)
 
 	// this query param exists when creating template from board, or board from template
 	sourceBoardID := r.URL.Query().Get("sourceBoardID")
@@ -321,8 +306,6 @@ func (a *API) handlePostBlocks(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytesResponse(w, http.StatusOK, json)
 
-	auditRec.AddMeta("blockCount", len(blocks))
-	auditRec.Success()
 }
 
 func (a *API) handleDeleteBlock(w http.ResponseWriter, r *http.Request) {
@@ -384,11 +367,6 @@ func (a *API) handleDeleteBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "deleteBlock", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("blockID", blockID)
-
 	err = a.app.DeleteBlockAndNotify(blockID, userID, disableNotify)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -398,7 +376,6 @@ func (a *API) handleDeleteBlock(w http.ResponseWriter, r *http.Request) {
 	a.logger.Debug("DELETE Block", mlog.String("boardID", boardID), mlog.String("blockID", blockID))
 	jsonStringResponse(w, http.StatusOK, "{}")
 
-	auditRec.Success()
 }
 
 func (a *API) handleUndeleteBlock(w http.ResponseWriter, r *http.Request) {
@@ -464,10 +441,6 @@ func (a *API) handleUndeleteBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "undeleteBlock", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("blockID", blockID)
-
 	undeletedBlock, err := a.app.UndeleteBlock(blockID, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -483,7 +456,6 @@ func (a *API) handleUndeleteBlock(w http.ResponseWriter, r *http.Request) {
 	a.logger.Debug("UNDELETE Block", mlog.String("blockID", blockID))
 	jsonBytesResponse(w, http.StatusOK, undeletedBlockData)
 
-	auditRec.Success()
 }
 
 func (a *API) handlePatchBlock(w http.ResponseWriter, r *http.Request) {
@@ -564,11 +536,6 @@ func (a *API) handlePatchBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "patchBlock", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("blockID", blockID)
-
 	if _, err = a.app.PatchBlockAndNotify(blockID, patch, userID, disableNotify); err != nil {
 		a.errorResponse(w, r, err)
 		return
@@ -577,7 +544,6 @@ func (a *API) handlePatchBlock(w http.ResponseWriter, r *http.Request) {
 	a.logger.Debug("PATCH Block", mlog.String("boardID", boardID), mlog.String("blockID", blockID))
 	jsonStringResponse(w, http.StatusOK, "{}")
 
-	auditRec.Success()
 }
 
 func (a *API) handlePatchBlocks(w http.ResponseWriter, r *http.Request) {
@@ -637,12 +603,6 @@ func (a *API) handlePatchBlocks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "patchBlocks", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	for i := range patches.BlockIDs {
-		auditRec.AddMeta("block_"+strconv.FormatInt(int64(i), 10), patches.BlockIDs[i])
-	}
-
 	for _, blockID := range patches.BlockIDs {
 		var block *model.Block
 		block, err = a.app.GetBlockByID(blockID)
@@ -665,7 +625,6 @@ func (a *API) handlePatchBlocks(w http.ResponseWriter, r *http.Request) {
 	a.logger.Debug("PATCH Blocks", mlog.String("patches", strconv.Itoa(len(patches.BlockIDs))))
 	jsonStringResponse(w, http.StatusOK, "{}")
 
-	auditRec.Success()
 }
 
 func (a *API) handleDuplicateBlock(w http.ResponseWriter, r *http.Request) {
@@ -744,11 +703,6 @@ func (a *API) handleDuplicateBlock(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := a.makeAuditRecord(r, "duplicateBlock", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("blockID", blockID)
-
 	a.logger.Debug("DuplicateBlock",
 		mlog.String("boardID", boardID),
 		mlog.String("blockID", blockID),
@@ -769,5 +723,4 @@ func (a *API) handleDuplicateBlock(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }

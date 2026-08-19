@@ -36,7 +36,6 @@ const AddViewTourStep = (): JSX.Element => {
             title={title}
             punchout={punchout()}
             classname='AddViewTourStep'
-            telemetryTag='tourPoint3a'
             placement={'bottom-start'}
             imageURL={Utils.buildURL(changeViews, true)}
             hideBackdrop={false}

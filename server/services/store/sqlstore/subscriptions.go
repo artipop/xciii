@@ -69,7 +69,7 @@ func (s *SQLStore) createSubscription(db sq.BaseRunner, sub *model.Subscription)
 	subAdd.DeleteAt = 0
 
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix + "subscriptions").
+		Insert("subscriptions").
 		Columns(subscriptionFields...).
 		Values(valuesForSubscription(&subAdd)...)
 
@@ -95,7 +95,7 @@ func (s *SQLStore) deleteSubscription(db sq.BaseRunner, blockID string, subscrib
 	now := model.GetMillis()
 
 	query := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"subscriptions").
+		Update("subscriptions").
 		Set("delete_at", now).
 		Where(sq.Eq{"block_id": blockID}).
 		Where(sq.Eq{"subscriber_id": subscriberID})
@@ -122,7 +122,7 @@ func (s *SQLStore) deleteSubscription(db sq.BaseRunner, blockID string, subscrib
 func (s *SQLStore) getSubscription(db sq.BaseRunner, blockID string, subscriberID string) (*model.Subscription, error) {
 	query := s.getQueryBuilder(db).
 		Select(subscriptionFields...).
-		From(s.tablePrefix + "subscriptions").
+		From("subscriptions").
 		Where(sq.Eq{"block_id": blockID}).
 		Where(sq.Eq{"subscriber_id": subscriberID}).
 		Where(sq.Eq{"delete_at": 0})
@@ -158,7 +158,7 @@ func (s *SQLStore) getSubscription(db sq.BaseRunner, blockID string, subscriberI
 func (s *SQLStore) getSubscriptions(db sq.BaseRunner, subscriberID string) ([]*model.Subscription, error) {
 	query := s.getQueryBuilder(db).
 		Select(subscriptionFields...).
-		From(s.tablePrefix + "subscriptions").
+		From("subscriptions").
 		Where(sq.Eq{"subscriber_id": subscriberID}).
 		Where(sq.Eq{"delete_at": 0})
 
@@ -183,7 +183,7 @@ func (s *SQLStore) getSubscribersForBlock(db sq.BaseRunner, blockID string) ([]*
 			"subscriber_id",
 			"notified_at",
 		).
-		From(s.tablePrefix + "subscriptions").
+		From("subscriptions").
 		Where(sq.Eq{"block_id": blockID}).
 		Where(sq.Eq{"delete_at": 0}).
 		OrderBy("notified_at")
@@ -219,7 +219,7 @@ func (s *SQLStore) getSubscribersForBlock(db sq.BaseRunner, blockID string) ([]*
 func (s *SQLStore) getSubscribersCountForBlock(db sq.BaseRunner, blockID string) (int, error) {
 	query := s.getQueryBuilder(db).
 		Select("count(subscriber_id)").
-		From(s.tablePrefix + "subscriptions").
+		From("subscriptions").
 		Where(sq.Eq{"block_id": blockID}).
 		Where(sq.Eq{"delete_at": 0})
 
@@ -240,7 +240,7 @@ func (s *SQLStore) getSubscribersCountForBlock(db sq.BaseRunner, blockID string)
 // updateSubscribersNotifiedAt updates the notified_at field of all subscribers for a block.
 func (s *SQLStore) updateSubscribersNotifiedAt(db sq.BaseRunner, blockID string, notifiedAt int64) error {
 	query := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"subscriptions").
+		Update("subscriptions").
 		Set("notified_at", notifiedAt).
 		Where(sq.Eq{"block_id": blockID}).
 		Where(sq.Eq{"delete_at": 0})

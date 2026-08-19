@@ -8,6 +8,9 @@ bin
 # `go build .` with no -o leaves a binary named after this directory. Anchored
 # to the root: unanchored it also swallowed site/xciii, a page of the landing.
 /xciii
+# `go build ./tools/...` does the same for the schema generator, and drops it in
+# the module root rather than beside its package.
+/schemagen
 # The webapp is its own npm project. So are the landing and the guide site.
 node_modules
 # VitePress' own working directory. The guide builds into site/dist instead, so

@@ -43,8 +43,8 @@ const installKept = new Set<string>([
 ])
 
 // The Wails bindings, when this bundle runs in the desktop app — the same
-// bundle also runs in a plain browser and as a Mattermost plugin, where
-// localStorage is the whole memory and these are absent.
+// bundle also runs in a plain browser, where localStorage is the whole memory
+// and these are absent.
 const preferenceBindings = () => (window as any).go?.main?.App
 
 // hydrateUserSettings fills localStorage with what the install remembers,

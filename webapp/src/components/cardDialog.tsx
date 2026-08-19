@@ -14,7 +14,6 @@ import {getCard} from '../store/cards'
 import {getCardComments} from '../store/comments'
 import {getCardContents} from '../store/contents'
 import {useAppSelector, useAppStore} from '../store/hooks'
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../telemetry/telemetryClient'
 import {Utils} from '../utils'
 import CompassIcon from '../widgets/icons/compassIcon'
 import Menu from '../widgets/menu'
@@ -68,7 +67,6 @@ const CardDialog = (props: Props): JSX.Element => {
             return
         }
 
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.AddTemplateFromCard, {board: props.board.id, view: props.activeView.id, card: props.cardId})
         await mutator.duplicateCard(
             props.cardId,
             props.board.id,
@@ -90,7 +88,6 @@ const CardDialog = (props: Props): JSX.Element => {
             Utils.assertFailure()
             return
         }
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, view: props.activeView.id, card: currentCard.id})
         await mutator.deleteBlock(currentCard, 'delete card')
         props.onClose()
     }
@@ -247,7 +244,7 @@ const CardDialog = (props: Props): JSX.Element => {
     // A card already worked keeps its terminal button whatever the registry
     // says today — the worktree is still there to go back to. Everything else
     // waits for there to be an agent to run at all.
-    const offersTerminal = () => isCardTerminalAvailable() && Boolean(card()) && !props.readonly && !card()?.limited &&
+    const offersTerminal = () => isCardTerminalAvailable() && Boolean(card()) && !props.readonly &&
         Boolean(agentState().running || agentState().resume?.available || (registeredAgents() || 0) > 0)
 
     const terminalBtn = (): JSX.Element => (
@@ -270,7 +267,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 title={<div/>}
                 class='cardDialog'
                 onClose={props.onClose}
-                toolsMenu={!props.readonly && !card()?.limited && menu()}
+                toolsMenu={!props.readonly && menu()}
                 toolbar={<>{terminalBtn()}{attachBtn()}</>}
             >
                 <Show when={isTemplate()}>

@@ -4,18 +4,63 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/google/uuid"
 )
 
-// Store persists sessions, their event log and idempotency keys in a SQLite
-// database separate from the board's own DB.
+// Store is what this application knows about a card: its conversations, its
+// place on a route, why it is standing still, the workspace it holds.
+//
+// It lives in the board's own database so that a foreign key has somewhere to
+// point: deleting a card is a real DELETE FROM blocks, and nothing tells this
+// side about it, so the keys are what stop a deleted card leaving its
+// conversations and its queue place behind. They are enforced — `foreign_keys`
+// travels in the DSN the board opens the handle with (server.NewStore).
+//
+// It does not own the handle. On SQLite it is one connection for the whole
+// application, which is what lets a card moving, its route being recorded and
+// its stall being lifted become one transaction.
 type Store struct {
 	db *sql.DB
+
+	// board and carriedSessions belong to the one-off import of a pre-move
+	// acp.db (legacystore.go) and are nil at every other moment. They sit on
+	// the store rather than being threaded through ten carry functions, which
+	// would be ten signatures carrying something none of them is about.
+	board           *presence
+	carriedSessions map[string]bool
+}
+
+// NewStore wraps the board's database handle. It creates nothing: the tables
+// are rungs on the board's own migration ladder.
+func NewStore(db *sql.DB) *Store {
+	return &Store{db: db}
+}
+
+func (s *Store) exec(query string, args ...any) (sql.Result, error) {
+	return s.db.Exec(query, args...)
+}
+
+func (s *Store) query(q string, args ...any) (*sql.Rows, error) {
+	return s.db.Query(q, args...)
+}
+
+func (s *Store) queryRow(q string, args ...any) *sql.Row {
+	return s.db.QueryRow(q, args...)
+}
+
+// newID is what a row of ours is called: UUIDv7, which sorts by the time it was
+// made, so `ORDER BY id` means "as it happened" in the journals and no dialect
+// needs its own spelling of AUTO_INCREMENT.
+func newID() string {
+	id, err := uuid.NewV7()
+	if err != nil {
+		// A worse order, never a refused write: the caller is recording
+		// something that already happened.
+		return uuid.NewString()
+	}
+	return id.String()
 }
 
 // SessionRecord mirrors one agent_session row.
@@ -34,165 +79,15 @@ type SessionRecord struct {
 	ErrorText    string        `json:"errorText,omitempty"`
 }
 
-// SessionEventRecord mirrors one session_event row.
+// SessionEventRecord mirrors one session_event row. There is no `seq`: the id
+// is a UUIDv7 and so already sorts by the moment the event was recorded, which
+// is the only thing the sequence number ever meant.
 type SessionEventRecord struct {
-	ID        int64           `json:"id"`
+	ID        string          `json:"id"`
 	SessionID string          `json:"sessionId"`
-	Seq       int64           `json:"seq"`
 	Kind      string          `json:"kind"`
 	Payload   json.RawMessage `json:"payload"`
 	CreatedAt time.Time       `json:"createdAt"`
-}
-
-// OpenStore opens (creating if needed) the ACP database at path.
-func OpenStore(path string) (*Store, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return nil, err
-	}
-	db, err := sql.Open("sqlite3", path+"?_busy_timeout=5000&_journal_mode=WAL")
-	if err != nil {
-		return nil, err
-	}
-	s := &Store{db: db}
-	if err := s.migrate(); err != nil {
-		db.Close()
-		return nil, err
-	}
-	return s, nil
-}
-
-func (s *Store) migrate() error {
-	_, err := s.db.Exec(`
-CREATE TABLE IF NOT EXISTS agent_session (
-	id TEXT PRIMARY KEY,
-	card_id TEXT NOT NULL,
-	board_id TEXT NOT NULL,
-	agent_kind TEXT NOT NULL,
-	acp_session_id TEXT NOT NULL DEFAULT '',
-	status TEXT NOT NULL,
-	cwd TEXT NOT NULL DEFAULT '',
-	worktree_path TEXT NOT NULL DEFAULT '',
-	branch TEXT NOT NULL DEFAULT '',
-	started_at INTEGER NOT NULL,
-	finished_at INTEGER,
-	error_text TEXT NOT NULL DEFAULT ''
-);
-CREATE INDEX IF NOT EXISTS idx_agent_session_card ON agent_session(card_id);
-CREATE TABLE IF NOT EXISTS session_event (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	session_id TEXT NOT NULL,
-	seq INTEGER NOT NULL,
-	kind TEXT NOT NULL,
-	payload_json TEXT NOT NULL DEFAULT '',
-	created_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_session_event_session ON session_event(session_id, seq);
-CREATE TABLE IF NOT EXISTS terminal_session (
-	id TEXT PRIMARY KEY,
-	card_id TEXT NOT NULL DEFAULT '',
-	node_id TEXT NOT NULL DEFAULT '',
-	column_name TEXT NOT NULL DEFAULT '',
-	board_id TEXT NOT NULL DEFAULT '',
-	title TEXT NOT NULL DEFAULT '',
-	repo_path TEXT NOT NULL DEFAULT '',
-	cwd TEXT NOT NULL DEFAULT '',
-	branch TEXT NOT NULL DEFAULT '',
-	agent TEXT NOT NULL DEFAULT '',
-	kind TEXT NOT NULL DEFAULT '',
-	summary TEXT NOT NULL DEFAULT '',
-	started_at INTEGER NOT NULL,
-	ended_at INTEGER,
-	exit_code INTEGER NOT NULL DEFAULT 0
-);
-CREATE INDEX IF NOT EXISTS idx_terminal_session_card ON terminal_session(card_id, started_at);
-CREATE INDEX IF NOT EXISTS idx_terminal_session_card_node ON terminal_session(card_id, node_id, started_at);
-CREATE TABLE IF NOT EXISTS idempotency (
-	key TEXT PRIMARY KEY,
-	session_id TEXT NOT NULL,
-	created_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS flow_state (
-	card_id TEXT PRIMARY KEY,
-	board_id TEXT NOT NULL DEFAULT '',
-	flow TEXT NOT NULL,
-	node_id TEXT NOT NULL,
-	branch TEXT NOT NULL DEFAULT '',
-	repo_path TEXT NOT NULL DEFAULT '',
-	entered_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS flow_event (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	card_id TEXT NOT NULL,
-	flow TEXT NOT NULL,
-	from_node TEXT NOT NULL DEFAULT '',
-	to_node TEXT NOT NULL,
-	on_kind TEXT NOT NULL,
-	detail TEXT NOT NULL DEFAULT '',
-	said TEXT NOT NULL DEFAULT '',
-	created_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_flow_event_card ON flow_event(card_id, id);
-CREATE TABLE IF NOT EXISTS card_stall (
-	card_id TEXT PRIMARY KEY,
-	node_id TEXT NOT NULL DEFAULT '',
-	kind TEXT NOT NULL DEFAULT '',
-	reason TEXT NOT NULL,
-	created_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS stage_queue (
-	card_id TEXT PRIMARY KEY,
-	board_id TEXT NOT NULL DEFAULT '',
-	column_key TEXT NOT NULL,
-	flow TEXT NOT NULL DEFAULT '',
-	node_id TEXT NOT NULL DEFAULT '',
-	queued_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_stage_queue_column ON stage_queue(column_key, queued_at);
-CREATE TABLE IF NOT EXISTS board_setup (
-	board_id TEXT NOT NULL,
-	step TEXT NOT NULL,
-	status TEXT NOT NULL,
-	at INTEGER NOT NULL,
-	PRIMARY KEY (board_id, step)
-);
-CREATE TABLE IF NOT EXISTS vcs_seen (
-	project TEXT NOT NULL,
-	branch TEXT NOT NULL,
-	kind TEXT NOT NULL,
-	marker TEXT NOT NULL DEFAULT '',
-	created_at INTEGER NOT NULL,
-	PRIMARY KEY (project, branch, kind)
-);
-CREATE TABLE IF NOT EXISTS workdir_claim (
-	workdir TEXT NOT NULL,
-	owner TEXT NOT NULL,
-	mode TEXT NOT NULL,
-	branch TEXT NOT NULL DEFAULT '',
-	path TEXT NOT NULL DEFAULT '',
-	base TEXT NOT NULL DEFAULT '',
-	created_at INTEGER NOT NULL,
-	released_at INTEGER,
-	PRIMARY KEY (workdir, owner)
-);
-CREATE INDEX IF NOT EXISTS idx_workdir_claim_live ON workdir_claim(workdir, released_at);`)
-	if err != nil {
-		return err
-	}
-	// card_stall.kind arrived after the table did, and CREATE TABLE IF NOT
-	// EXISTS leaves a table that is already there exactly as it was. The schema
-	// still changes in place pre-release (below), but a column read on every
-	// board render is not worth a database somebody has to delete, so this one
-	// column is added the way the ladder below will add the rest.
-	if _, err := s.db.Exec(`ALTER TABLE card_stall ADD COLUMN kind TEXT NOT NULL DEFAULT ''`); err != nil &&
-		!strings.Contains(err.Error(), "duplicate column name") {
-		return err
-	}
-	// The version the schema above *is*. Nothing reads it yet: it exists so the
-	// first post-release change can be a `PRAGMA user_version` ladder of ALTERs
-	// (docs/db-schema-review.md) instead of another CREATE-only migration —
-	// pre-release, the schema changes in place and databases are recreated.
-	_, err = s.db.Exec(`PRAGMA user_version = 1`)
-	return err
 }
 
 // SaveSetupStep records what was done with one step of a board's setup. It
@@ -203,16 +98,16 @@ func (s *Store) SaveSetupStep(st SetupStepState) error {
 	if st.At.IsZero() {
 		st.At = time.Now()
 	}
-	_, err := s.db.Exec(`INSERT INTO board_setup (board_id, step, status, at)
+	_, err := s.exec(`INSERT INTO board_setup (board_id, step, status, changed_at)
 		VALUES (?,?,?,?)
-		ON CONFLICT(board_id, step) DO UPDATE SET status=excluded.status, at=excluded.at`,
+		ON CONFLICT(board_id, step) DO UPDATE SET status=excluded.status, changed_at=excluded.changed_at`,
 		st.BoardID, st.Step, st.Status, st.At.UnixMilli())
 	return err
 }
 
 // SetupSteps returns what is recorded about a board's setup.
 func (s *Store) SetupSteps(boardID string) ([]SetupStepState, error) {
-	rows, err := s.db.Query(`SELECT board_id, step, status, at FROM board_setup WHERE board_id=?`, boardID)
+	rows, err := s.query(`SELECT board_id, step, status, changed_at FROM board_setup WHERE board_id=?`, boardID)
 	if err != nil {
 		return nil, err
 	}
@@ -233,10 +128,10 @@ func (s *Store) SetupSteps(boardID string) ([]SetupStepState, error) {
 // ClaimVCSEvent reports whether a folder event is new, and remembers it. A
 // watcher sees the same state on every poll — the branch stays merged — so the
 // event fires once per marker (the commit it refers to) instead of once a minute.
-func (s *Store) ClaimVCSEvent(project, branch, kind, marker string) (bool, error) {
+func (s *Store) ClaimVCSEvent(workspaceID, branch, kind, marker string) (bool, error) {
 	var seen string
-	err := s.db.QueryRow(`SELECT marker FROM vcs_seen WHERE project=? AND branch=? AND kind=?`,
-		project, branch, kind).Scan(&seen)
+	err := s.queryRow(`SELECT COALESCE(marker,'') FROM vcs_seen WHERE workspace_id=? AND branch=? AND kind=?`,
+		workspaceID, branch, kind).Scan(&seen)
 	switch {
 	case err == sql.ErrNoRows:
 	case err != nil:
@@ -244,9 +139,9 @@ func (s *Store) ClaimVCSEvent(project, branch, kind, marker string) (bool, error
 	case seen == marker:
 		return false, nil
 	}
-	_, err = s.db.Exec(`INSERT INTO vcs_seen (project, branch, kind, marker, created_at) VALUES (?,?,?,?,?)
-		ON CONFLICT(project, branch, kind) DO UPDATE SET marker=excluded.marker, created_at=excluded.created_at`,
-		project, branch, kind, marker, time.Now().UnixMilli())
+	_, err = s.exec(`INSERT INTO vcs_seen (workspace_id, branch, kind, marker, created_at) VALUES (?,?,?,?,?)
+		ON CONFLICT(workspace_id, branch, kind) DO UPDATE SET marker=excluded.marker, created_at=excluded.created_at`,
+		workspaceID, branch, kind, marker, time.Now().UnixMilli())
 	if err != nil {
 		return false, err
 	}
@@ -261,9 +156,15 @@ func (s *Store) ClaimVCSEvent(project, branch, kind, marker string) (bool, error
 // cards at once. The card is the truth — it is what an export carries and an
 // import renumbers — and the table is refilled from it.
 type FlowState struct {
-	CardID      string    `json:"cardId"`
-	BoardID     string    `json:"boardId"`
-	Flow        string    `json:"flow"`
+	CardID  string `json:"cardId"`
+	BoardID string `json:"boardId"`
+	// FlowID is the route, by its id: the name is what somebody renames, and
+	// renaming a route used to lose the place of every card on it.
+	FlowID string `json:"flowId"`
+	// Flow is what the route used to be recorded as, on the card and in this
+	// machine's index. Read once and folded into FlowID (flowStateFlowID);
+	// never written back.
+	Flow        string    `json:"flow,omitempty"`
 	NodeID      string    `json:"nodeId"`
 	Branch      string    `json:"branch"`
 	WorkdirPath string    `json:"workdirPath"`
@@ -278,9 +179,9 @@ type FlowState struct {
 
 // FlowEventRecord is one transition, kept as the card's route history.
 type FlowEventRecord struct {
-	ID       int64  `json:"id"`
+	ID       string `json:"id"`
 	CardID   string `json:"cardId"`
-	Flow     string `json:"flow"`
+	FlowID   string `json:"flowId"`
 	FromNode string `json:"fromNode"`
 	ToNode   string `json:"toNode"`
 	On       string `json:"on"`
@@ -297,18 +198,18 @@ func (s *Store) SaveFlowState(st FlowState) error {
 	if st.EnteredAt.IsZero() {
 		st.EnteredAt = time.Now()
 	}
-	_, err := s.db.Exec(`INSERT INTO flow_state (card_id, board_id, flow, node_id, branch, repo_path, entered_at)
+	_, err := s.exec(`INSERT INTO flow_state (card_id, board_id, flow_id, node_id, branch, workdir_path, entered_at)
 		VALUES (?,?,?,?,?,?,?)
 		ON CONFLICT(card_id) DO UPDATE SET
-			board_id=excluded.board_id, flow=excluded.flow, node_id=excluded.node_id,
-			branch=excluded.branch, repo_path=excluded.repo_path, entered_at=excluded.entered_at`,
-		st.CardID, st.BoardID, st.Flow, st.NodeID, st.Branch, st.WorkdirPath, st.EnteredAt.UnixMilli())
+			board_id=excluded.board_id, flow_id=excluded.flow_id, node_id=excluded.node_id,
+			branch=excluded.branch, workdir_path=excluded.workdir_path, entered_at=excluded.entered_at`,
+		st.CardID, nullable(st.BoardID), st.FlowID, st.NodeID, st.Branch, st.WorkdirPath, st.EnteredAt.UnixMilli())
 	return err
 }
 
 // FlowStateForCard returns the card's position, if it is on a route at all.
 func (s *Store) FlowStateForCard(cardID string) (FlowState, bool, error) {
-	row := s.db.QueryRow(`SELECT card_id, board_id, flow, node_id, branch, repo_path, entered_at
+	row := s.queryRow(`SELECT card_id, COALESCE(board_id,''), COALESCE(flow_id,''), node_id, COALESCE(branch,''), COALESCE(workdir_path,''), entered_at
 		FROM flow_state WHERE card_id=?`, cardID)
 	st, err := scanFlowState(row)
 	if err == sql.ErrNoRows {
@@ -323,7 +224,7 @@ func (s *Store) FlowStateForCard(cardID string) (FlowState, bool, error) {
 // FlowStates returns every card currently on a route — the input the VCS
 // watcher builds its poll targets from.
 func (s *Store) FlowStates() ([]FlowState, error) {
-	rows, err := s.db.Query(`SELECT card_id, board_id, flow, node_id, branch, repo_path, entered_at FROM flow_state`)
+	rows, err := s.query(`SELECT card_id, COALESCE(board_id,''), COALESCE(flow_id,''), node_id, COALESCE(branch,''), COALESCE(workdir_path,''), entered_at FROM flow_state`)
 	if err != nil {
 		return nil, err
 	}
@@ -341,21 +242,21 @@ func (s *Store) FlowStates() ([]FlowState, error) {
 
 // ClearFlowState forgets a card's position (it left its route).
 func (s *Store) ClearFlowState(cardID string) error {
-	_, err := s.db.Exec(`DELETE FROM flow_state WHERE card_id=?`, cardID)
+	_, err := s.exec(`DELETE FROM flow_state WHERE card_id=?`, cardID)
 	return err
 }
 
 // AppendFlowEvent records one transition.
 func (s *Store) AppendFlowEvent(r FlowEventRecord) error {
-	_, err := s.db.Exec(`INSERT INTO flow_event (card_id, flow, from_node, to_node, on_kind, detail, said, created_at)
-		VALUES (?,?,?,?,?,?,?,?)`,
-		r.CardID, r.Flow, r.FromNode, r.ToNode, r.On, r.Detail, r.Said, time.Now().UnixMilli())
+	_, err := s.exec(`INSERT INTO flow_event (id, card_id, flow_id, from_node, to_node, on_kind, detail, said, created_at)
+		VALUES (?,?,?,?,?,?,?,?,?)`,
+		newID(), r.CardID, r.FlowID, r.FromNode, r.ToNode, r.On, r.Detail, r.Said, time.Now().UnixMilli())
 	return err
 }
 
 // FlowEvents returns a card's route history, oldest first.
 func (s *Store) FlowEvents(cardID string) ([]FlowEventRecord, error) {
-	rows, err := s.db.Query(`SELECT id, card_id, flow, from_node, to_node, on_kind, detail, said, created_at
+	rows, err := s.query(`SELECT id, card_id, COALESCE(flow_id,''), COALESCE(from_node,''), to_node, on_kind, COALESCE(detail,''), COALESCE(said,''), created_at
 		FROM flow_event WHERE card_id=? ORDER BY id`, cardID)
 	if err != nil {
 		return nil, err
@@ -365,7 +266,7 @@ func (s *Store) FlowEvents(cardID string) ([]FlowEventRecord, error) {
 	for rows.Next() {
 		var r FlowEventRecord
 		var created int64
-		if err := rows.Scan(&r.ID, &r.CardID, &r.Flow, &r.FromNode, &r.ToNode, &r.On, &r.Detail, &r.Said, &created); err != nil {
+		if err := rows.Scan(&r.ID, &r.CardID, &r.FlowID, &r.FromNode, &r.ToNode, &r.On, &r.Detail, &r.Said, &created); err != nil {
 			return nil, err
 		}
 		r.CreatedAt = time.UnixMilli(created)
@@ -399,7 +300,7 @@ const StallKindConversation = "conversation"
 
 // SetStall records the reason, replacing whatever was there.
 func (s *Store) SetStall(r StallRecord) error {
-	_, err := s.db.Exec(`INSERT INTO card_stall (card_id, node_id, kind, reason, created_at)
+	_, err := s.exec(`INSERT INTO card_stall (card_id, node_id, kind, reason, created_at)
 		VALUES (?,?,?,?,?)
 		ON CONFLICT(card_id) DO UPDATE SET
 			node_id=excluded.node_id, kind=excluded.kind, reason=excluded.reason, created_at=excluded.created_at`,
@@ -411,7 +312,7 @@ func (s *Store) SetStall(r StallRecord) error {
 // → reason. One query rather than one per card, for the same reason
 // LiveTerminals is one call: the board draws this on every card it has.
 func (s *Store) StallsOfKind(kind string) (map[string]string, error) {
-	rows, err := s.db.Query(`SELECT card_id, reason FROM card_stall WHERE kind=?`, kind)
+	rows, err := s.query(`SELECT card_id, reason FROM card_stall WHERE kind=?`, kind)
 	if err != nil {
 		return nil, err
 	}
@@ -430,7 +331,7 @@ func (s *Store) StallsOfKind(kind string) (map[string]string, error) {
 // ClearStall forgets the reason and reports whether there was one — the caller
 // only announces a change that happened.
 func (s *Store) ClearStall(cardID string) (bool, error) {
-	res, err := s.db.Exec(`DELETE FROM card_stall WHERE card_id=?`, cardID)
+	res, err := s.exec(`DELETE FROM card_stall WHERE card_id=?`, cardID)
 	if err != nil {
 		return false, err
 	}
@@ -440,7 +341,7 @@ func (s *Store) ClearStall(cardID string) (bool, error) {
 
 // Stall returns the card's recorded reason, if it has one.
 func (s *Store) Stall(cardID string) (StallRecord, bool, error) {
-	row := s.db.QueryRow(`SELECT card_id, node_id, kind, reason, created_at FROM card_stall WHERE card_id=?`, cardID)
+	row := s.queryRow(`SELECT card_id, COALESCE(node_id,''), COALESCE(kind,''), reason, created_at FROM card_stall WHERE card_id=?`, cardID)
 	var r StallRecord
 	var created int64
 	err := row.Scan(&r.CardID, &r.NodeID, &r.Kind, &r.Reason, &created)
@@ -460,21 +361,19 @@ type scanner interface{ Scan(dest ...any) error }
 func scanFlowState(row scanner) (FlowState, error) {
 	var st FlowState
 	var entered int64
-	if err := row.Scan(&st.CardID, &st.BoardID, &st.Flow, &st.NodeID, &st.Branch, &st.WorkdirPath, &entered); err != nil {
+	if err := row.Scan(&st.CardID, &st.BoardID, &st.FlowID, &st.NodeID, &st.Branch, &st.WorkdirPath, &entered); err != nil {
 		return FlowState{}, err
 	}
 	st.EnteredAt = time.UnixMilli(entered)
 	return st, nil
 }
 
-func (s *Store) Close() error { return s.db.Close() }
-
 // InsertSession stores a new session row.
 func (s *Store) InsertSession(r SessionRecord) error {
-	_, err := s.db.Exec(`INSERT INTO agent_session
+	_, err := s.exec(`INSERT INTO agent_session
 		(id, card_id, board_id, agent_kind, acp_session_id, status, cwd, worktree_path, branch, started_at, error_text)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-		r.ID, r.CardID, r.BoardID, r.AgentKind, r.ACPSessionID, string(r.Status),
+		r.ID, nullable(r.CardID), nullable(r.BoardID), r.AgentKind, r.ACPSessionID, string(r.Status),
 		r.Cwd, r.WorktreePath, r.Branch, r.StartedAt.UnixMilli(), r.ErrorText)
 	return err
 }
@@ -485,7 +384,7 @@ func (s *Store) UpdateSession(id string, status SessionStatus, acpSessionID, cwd
 	if finishedAt != nil {
 		fin = finishedAt.UnixMilli()
 	}
-	_, err := s.db.Exec(`UPDATE agent_session
+	_, err := s.exec(`UPDATE agent_session
 		SET status=?, acp_session_id=?, cwd=?, worktree_path=?, branch=?, error_text=?, finished_at=?
 		WHERE id=?`,
 		string(status), acpSessionID, cwd, worktreePath, branch, errorText, fin, id)
@@ -498,25 +397,26 @@ func (s *Store) SetSessionStatus(id string, status SessionStatus, errorText stri
 	if status.Terminal() {
 		fin = time.Now().UnixMilli()
 	}
-	_, err := s.db.Exec(`UPDATE agent_session SET status=?, error_text=?, finished_at=COALESCE(?, finished_at) WHERE id=?`,
+	_, err := s.exec(`UPDATE agent_session SET status=?, error_text=?, finished_at=COALESCE(?, finished_at) WHERE id=?`,
 		string(status), errorText, fin, id)
 	return err
 }
 
 // AppendEvent stores one session event.
-func (s *Store) AppendEvent(sessionID string, seq int64, kind string, payload any) error {
+func (s *Store) AppendEvent(sessionID, kind string, payload any) error {
 	b, err := json.Marshal(payload)
 	if err != nil {
 		b = []byte(fmt.Sprintf("%q", fmt.Sprint(payload)))
 	}
-	_, err = s.db.Exec(`INSERT INTO session_event (session_id, seq, kind, payload_json, created_at) VALUES (?,?,?,?,?)`,
-		sessionID, seq, kind, string(b), time.Now().UnixMilli())
+	_, err = s.exec(`INSERT INTO session_event (id, session_id, kind, payload_json, created_at) VALUES (?,?,?,?,?)`,
+		newID(), sessionID, kind, string(b), time.Now().UnixMilli())
 	return err
 }
 
 // SessionsForCard returns all sessions of a card, newest first, with events.
 func (s *Store) SessionsForCard(cardID string) ([]SessionRecord, []SessionEventRecord, error) {
-	rows, err := s.db.Query(`SELECT id, card_id, board_id, agent_kind, acp_session_id, status, cwd, worktree_path, branch, started_at, finished_at, error_text
+	rows, err := s.query(`SELECT id, COALESCE(card_id,''), COALESCE(board_id,''), agent_kind, COALESCE(acp_session_id,''), status,
+		COALESCE(cwd,''), COALESCE(worktree_path,''), COALESCE(branch,''), started_at, finished_at, COALESCE(error_text,'')
 		FROM agent_session WHERE card_id=? ORDER BY started_at DESC`, cardID)
 	if err != nil {
 		return nil, nil, err
@@ -535,8 +435,8 @@ func (s *Store) SessionsForCard(cardID string) ([]SessionRecord, []SessionEventR
 	}
 	var events []SessionEventRecord
 	for _, sess := range sessions {
-		evRows, err := s.db.Query(`SELECT id, session_id, seq, kind, payload_json, created_at
-			FROM session_event WHERE session_id=? ORDER BY seq`, sess.ID)
+		evRows, err := s.query(`SELECT id, session_id, kind, payload_json, created_at
+			FROM session_event WHERE session_id=? ORDER BY id`, sess.ID)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -544,7 +444,7 @@ func (s *Store) SessionsForCard(cardID string) ([]SessionRecord, []SessionEventR
 			var ev SessionEventRecord
 			var payload string
 			var created int64
-			if err := evRows.Scan(&ev.ID, &ev.SessionID, &ev.Seq, &ev.Kind, &payload, &created); err != nil {
+			if err := evRows.Scan(&ev.ID, &ev.SessionID, &ev.Kind, &payload, &created); err != nil {
 				evRows.Close()
 				return nil, nil, err
 			}
@@ -563,7 +463,8 @@ func (s *Store) SessionsForCard(cardID string) ([]SessionRecord, []SessionEventR
 // StaleSessions returns sessions left in a non-terminal state (e.g. after an
 // app crash/restart).
 func (s *Store) StaleSessions() ([]SessionRecord, error) {
-	rows, err := s.db.Query(`SELECT id, card_id, board_id, agent_kind, acp_session_id, status, cwd, worktree_path, branch, started_at, finished_at, error_text
+	rows, err := s.query(`SELECT id, COALESCE(card_id,''), COALESCE(board_id,''), agent_kind, COALESCE(acp_session_id,''), status,
+		COALESCE(cwd,''), COALESCE(worktree_path,''), COALESCE(branch,''), started_at, finished_at, COALESCE(error_text,'')
 		FROM agent_session WHERE status IN (?,?,?)`,
 		string(StatusQueued), string(StatusRunning), string(StatusWaitingPermission))
 	if err != nil {
@@ -585,10 +486,10 @@ func (s *Store) StaleSessions() ([]SessionRecord, error) {
 // claim within the window; false = duplicate). Expired keys are purged first.
 func (s *Store) ClaimIdempotency(key, sessionID string, window time.Duration) (bool, error) {
 	cutoff := time.Now().Add(-window).UnixMilli()
-	if _, err := s.db.Exec(`DELETE FROM idempotency WHERE created_at < ?`, cutoff); err != nil {
+	if _, err := s.exec(`DELETE FROM idempotency WHERE created_at < ?`, cutoff); err != nil {
 		return false, err
 	}
-	res, err := s.db.Exec(`INSERT OR IGNORE INTO idempotency (key, session_id, created_at) VALUES (?,?,?)`,
+	res, err := s.exec(`INSERT INTO idempotency (token, session_id, created_at) VALUES (?,?,?) ON CONFLICT(token) DO NOTHING`,
 		key, sessionID, time.Now().UnixMilli())
 	if err != nil {
 		return false, err
@@ -623,7 +524,7 @@ type QueuedStage struct {
 	CardID    string    `json:"cardId"`
 	BoardID   string    `json:"boardId"`
 	ColumnKey string    `json:"columnKey"`
-	Flow      string    `json:"flow,omitempty"`
+	FlowID    string    `json:"flowId,omitempty"`
 	NodeID    string    `json:"nodeId,omitempty"`
 	QueuedAt  time.Time `json:"queuedAt"`
 }
@@ -632,9 +533,9 @@ type QueuedStage struct {
 // Queueing the same card again keeps its original position: waiting longer must
 // not cost it its turn.
 func (s *Store) EnqueueStage(q QueuedStage) (bool, error) {
-	res, err := s.db.Exec(`INSERT INTO stage_queue (card_id, board_id, column_key, flow, node_id, queued_at)
+	res, err := s.exec(`INSERT INTO stage_queue (card_id, board_id, column_key, flow_id, node_id, queued_at)
 		VALUES (?,?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
-		q.CardID, q.BoardID, q.ColumnKey, q.Flow, q.NodeID, time.Now().UnixMilli())
+		q.CardID, nullable(q.BoardID), q.ColumnKey, q.FlowID, q.NodeID, time.Now().UnixMilli())
 	if err != nil {
 		return false, err
 	}
@@ -644,11 +545,11 @@ func (s *Store) EnqueueStage(q QueuedStage) (bool, error) {
 
 // NextQueuedStage is the card that has waited longest for this column.
 func (s *Store) NextQueuedStage(columnKey string) (QueuedStage, bool, error) {
-	row := s.db.QueryRow(`SELECT card_id, board_id, column_key, flow, node_id, queued_at
+	row := s.queryRow(`SELECT card_id, COALESCE(board_id,''), column_key, COALESCE(flow_id,''), COALESCE(node_id,''), queued_at
 		FROM stage_queue WHERE column_key=? ORDER BY queued_at LIMIT 1`, columnKey)
 	var q QueuedStage
 	var at int64
-	err := row.Scan(&q.CardID, &q.BoardID, &q.ColumnKey, &q.Flow, &q.NodeID, &at)
+	err := row.Scan(&q.CardID, &q.BoardID, &q.ColumnKey, &q.FlowID, &q.NodeID, &at)
 	if err == sql.ErrNoRows {
 		return QueuedStage{}, false, nil
 	}
@@ -661,7 +562,7 @@ func (s *Store) NextQueuedStage(columnKey string) (QueuedStage, bool, error) {
 
 // DequeueStage forgets a waiting card — it started, or it left the column.
 func (s *Store) DequeueStage(cardID string) error {
-	_, err := s.db.Exec(`DELETE FROM stage_queue WHERE card_id=?`, cardID)
+	_, err := s.exec(`DELETE FROM stage_queue WHERE card_id=?`, cardID)
 	return err
 }
 
@@ -671,7 +572,7 @@ func (s *Store) DequeueStage(cardID string) error {
 // so this is where anything watching the folder has to ask.
 func (s *Store) LatestBranchForCard(cardID string) (string, error) {
 	var branch string
-	err := s.db.QueryRow(`SELECT branch FROM agent_session
+	err := s.queryRow(`SELECT branch FROM agent_session
 		WHERE card_id=? AND branch<>'' ORDER BY started_at DESC LIMIT 1`, cardID).Scan(&branch)
 	if err == sql.ErrNoRows {
 		return "", nil
@@ -713,10 +614,10 @@ type TerminalRecord struct {
 
 // InsertTerminal records a terminal session as it starts.
 func (s *Store) InsertTerminal(r TerminalRecord) error {
-	_, err := s.db.Exec(`INSERT INTO terminal_session
-		(id, card_id, node_id, column_name, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at)
+	_, err := s.exec(`INSERT INTO conversation
+		(id, card_id, node_id, column_name, board_id, title, workdir_path, cwd, branch, agent, kind, summary, started_at)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-		r.ID, r.CardID, r.NodeID, r.ColumnName, r.BoardID, r.Title, r.WorkdirPath, r.Cwd, r.Branch, r.Agent, r.Kind,
+		r.ID, nullable(r.CardID), r.NodeID, r.ColumnName, nullable(r.BoardID), r.Title, r.WorkdirPath, r.Cwd, r.Branch, r.Agent, r.Kind,
 		r.Summary, r.StartedAt.UnixMilli())
 	return err
 }
@@ -724,13 +625,13 @@ func (s *Store) InsertTerminal(r TerminalRecord) error {
 // RenameTerminal records what a person called a conversation, so the name comes
 // back when the conversation is resumed.
 func (s *Store) RenameTerminal(id, title string) error {
-	_, err := s.db.Exec(`UPDATE terminal_session SET title=? WHERE id=?`, title, id)
+	_, err := s.exec(`UPDATE conversation SET title=? WHERE id=?`, title, id)
 	return err
 }
 
 // SetTerminalSummary records what the agent said the conversation is about.
 func (s *Store) SetTerminalSummary(id, summary string) error {
-	_, err := s.db.Exec(`UPDATE terminal_session SET summary=? WHERE id=?`, summary, id)
+	_, err := s.exec(`UPDATE conversation SET summary=? WHERE id=?`, summary, id)
 	return err
 }
 
@@ -739,18 +640,24 @@ func (s *Store) SetTerminalSummary(id, summary string) error {
 // is whichever record is newest. This is what a person deleting a conversation
 // asks for: the CLI is ended beside it, and the next one starts fresh.
 func (s *Store) DeleteTerminalsForCardNode(cardID, nodeID string) error {
-	_, err := s.db.Exec(`DELETE FROM terminal_session WHERE card_id=? AND node_id=?`, cardID, nodeID)
+	_, err := s.exec(`DELETE FROM conversation WHERE card_id=? AND node_id=?`, cardID, nodeID)
 	return err
 }
 
 // FinishTerminal records how a terminal session ended.
 func (s *Store) FinishTerminal(id string, endedAt time.Time, exitCode int) error {
-	_, err := s.db.Exec(`UPDATE terminal_session SET ended_at=?, exit_code=? WHERE id=?`,
+	_, err := s.exec(`UPDATE conversation SET ended_at=?, exit_code=? WHERE id=?`,
 		endedAt.UnixMilli(), exitCode, id)
 	return err
 }
 
-const terminalColumns = `id, card_id, node_id, column_name, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at, ended_at, exit_code`
+// terminalColumns reads a conversation back. The COALESCEs are where a column
+// that means "there is none" — a planning conversation's card, a CLI that has
+// not exited — meets Go, which spells absence with a zero value here. NULL is
+// what the database has to hold, because a foreign key cannot point at ”.
+const terminalColumns = `id, COALESCE(card_id,''), node_id, COALESCE(column_name,''), COALESCE(board_id,''),
+	COALESCE(title,''), COALESCE(workdir_path,''), COALESCE(cwd,''), COALESCE(branch,''),
+	COALESCE(agent,''), COALESCE(kind,''), COALESCE(summary,''), started_at, ended_at, COALESCE(exit_code,0)`
 
 // LastTerminalForCardNode is the most recent conversation on one node of the
 // card — the one a new terminal there continues.
@@ -759,8 +666,8 @@ func (s *Store) LastTerminalForCardNode(cardID, nodeID string) (TerminalRecord, 
 }
 
 func (s *Store) lastTerminal(cardID, nodeID string) (TerminalRecord, bool, error) {
-	row := s.db.QueryRow(`SELECT `+terminalColumns+`
-		FROM terminal_session WHERE card_id=? AND node_id=? ORDER BY started_at DESC LIMIT 1`, cardID, nodeID)
+	row := s.queryRow(`SELECT `+terminalColumns+`
+		FROM conversation WHERE card_id=? AND node_id=? ORDER BY started_at DESC LIMIT 1`, cardID, nodeID)
 	rec, err := scanTerminal(row)
 	if err == sql.ErrNoRows {
 		return TerminalRecord{}, false, nil
@@ -774,8 +681,8 @@ func (s *Store) lastTerminal(cardID, nodeID string) (TerminalRecord, bool, error
 // LastTerminalForCard is the card's most recent conversation on any stage —
 // what "this card has been worked in a terminal" means.
 func (s *Store) LastTerminalForCard(cardID string) (TerminalRecord, bool, error) {
-	row := s.db.QueryRow(`SELECT `+terminalColumns+`
-		FROM terminal_session WHERE card_id=? ORDER BY started_at DESC LIMIT 1`, cardID)
+	row := s.queryRow(`SELECT `+terminalColumns+`
+		FROM conversation WHERE card_id=? ORDER BY started_at DESC LIMIT 1`, cardID)
 	rec, err := scanTerminal(row)
 	if err == sql.ErrNoRows {
 		return TerminalRecord{}, false, nil
@@ -789,10 +696,10 @@ func (s *Store) LastTerminalForCard(cardID string) (TerminalRecord, bool, error)
 // TerminalsForCard is the card's conversations, one per stage — the latest
 // record of each. Newest first, which is the order a person left them in.
 func (s *Store) TerminalsForCard(cardID string) ([]TerminalRecord, error) {
-	rows, err := s.db.Query(`SELECT `+terminalColumns+` FROM terminal_session
-		WHERE card_id=? AND started_at = (
-			SELECT MAX(started_at) FROM terminal_session t2
-			WHERE t2.card_id = terminal_session.card_id AND t2.node_id = terminal_session.node_id)
+	rows, err := s.query(`SELECT `+terminalColumns+` FROM conversation c
+		WHERE c.card_id=? AND c.started_at = (
+			SELECT MAX(started_at) FROM conversation t2
+			WHERE t2.card_id = c.card_id AND t2.node_id = c.node_id)
 		ORDER BY started_at DESC`, cardID)
 	if err != nil {
 		return nil, err
@@ -827,104 +734,149 @@ func scanTerminal(row scanner) (TerminalRecord, error) {
 	return rec, nil
 }
 
-// WorkspaceClaim is a folder handed to one owner: which branch was made for it,
-// which directory the work happens in, and what it was cut from. A row exists
-// only for a folder that is a repository — an ordinary folder creates nothing
-// and so has nothing to record.
+// Checkout is the git state of one owner's work in one workspace: which branch
+// was made for it, which directory the work happens in, and what it was cut
+// from. A row exists only where the workspace is a repository — an ordinary
+// folder creates nothing and so has nothing to record, which is why this is
+// called a checkout at all.
 //
-// The owner is a card, or "board:<id>" for a conversation with no card. It is
-// what makes a workspace outlive the run that made it: the second stage of a
+// The owner is a card, or a board for a conversation with no card, and they are
+// two columns because a foreign key cannot point at two tables through one. It
+// is what makes a checkout outlive the run that made it: the second stage of a
 // route, and the terminal a person opens beside it, get the same branch and the
 // same directory as the first, instead of each making its own.
-type WorkspaceClaim struct {
-	Workdir   string
-	Owner     string
-	Mode      string
-	Branch    string
-	Path      string
-	Base      string
-	CreatedAt time.Time
+type Checkout struct {
+	WorkspaceID string
+	CardID      string
+	BoardID     string
+	Mode        string
+	Branch      string
+	Path        string
+	Base        string
+	CreatedAt   time.Time
 }
 
-// ClaimWorkdir records a workspace. Called once, when it is created.
-func (s *Store) ClaimWorkdir(c WorkspaceClaim) error {
+// Owner names whoever holds this checkout, for a message a person reads. It is
+// not a key and nothing looks anything up by it.
+func (c Checkout) Owner() string {
+	if c.CardID != "" {
+		return c.CardID
+	}
+	if c.BoardID != "" {
+		return BoardOwner(c.BoardID)
+	}
+	return ""
+}
+
+// SaveCheckout records one. Called when it is created, and again when an owner
+// that had released it takes it back.
+func (s *Store) SaveCheckout(c Checkout) error {
 	if c.CreatedAt.IsZero() {
 		c.CreatedAt = time.Now()
 	}
-	_, err := s.db.Exec(`INSERT INTO workdir_claim (workdir, owner, mode, branch, path, base, created_at, released_at)
-		VALUES (?,?,?,?,?,?,?,NULL)
-		ON CONFLICT(workdir, owner) DO UPDATE SET
+	// Upserted on the owner rather than on the id: the id is ours and a second
+	// claim by the same owner is the same checkout, not another one.
+	column, value := "card_id", any(c.CardID)
+	if c.CardID == "" {
+		column, value = "board_id", any(nullable(c.BoardID))
+	}
+	var id string
+	err := s.queryRow(`SELECT id FROM checkout WHERE workspace_id=? AND `+column+`=?`,
+		c.WorkspaceID, value).Scan(&id)
+	switch {
+	case err == sql.ErrNoRows:
+		id = newID()
+	case err != nil:
+		return err
+	}
+	_, err = s.exec(`INSERT INTO checkout
+		(id, workspace_id, card_id, board_id, mode, branch, path, base, created_at, released_at)
+		VALUES (?,?,?,?,?,?,?,?,?,NULL)
+		ON CONFLICT(id) DO UPDATE SET
 			mode=excluded.mode, branch=excluded.branch, path=excluded.path,
 			base=excluded.base, created_at=excluded.created_at, released_at=NULL`,
-		c.Workdir, c.Owner, c.Mode, c.Branch, c.Path, c.Base, c.CreatedAt.UnixMilli())
+		id, c.WorkspaceID, nullable(c.CardID), nullable(c.BoardID), c.Mode,
+		nullable(c.Branch), nullable(c.Path), nullable(c.Base), c.CreatedAt.UnixMilli())
 	return err
 }
 
-// WorkspaceOf is the workspace this owner holds in this folder, if it still
-// holds one.
-func (s *Store) WorkspaceOf(workdir, owner string) (WorkspaceClaim, bool, error) {
-	row := s.db.QueryRow(`SELECT workdir, owner, mode, branch, path, base, created_at
-		FROM workdir_claim WHERE workdir=? AND owner=? AND released_at IS NULL`, workdir, owner)
-	return scanClaim(row)
+const checkoutColumns = `workspace_id, COALESCE(card_id,''), COALESCE(board_id,''), mode,
+	COALESCE(branch,''), COALESCE(path,''), COALESCE(base,''), created_at`
+
+// CheckoutOf is what this owner holds in this workspace, if it still holds
+// anything.
+func (s *Store) CheckoutOf(workspaceID, cardID, boardID string) (Checkout, bool, error) {
+	column, value := "card_id", any(cardID)
+	if cardID == "" {
+		column, value = "board_id", any(nullable(boardID))
+	}
+	row := s.queryRow(`SELECT `+checkoutColumns+` FROM checkout
+		WHERE workspace_id=? AND `+column+`=? AND released_at IS NULL`, workspaceID, value)
+	return scanCheckout(row)
 }
 
-// WorkdirHeldBy is whoever holds this folder now — and only a branch in the
-// folder itself holds one. A copy per card holds nothing: that is the whole
-// point of it, and counting those claims made a card that had finished months
-// ago keep every later card out of a folder it was never standing in.
-func (s *Store) WorkdirHeldBy(workdir string) (WorkspaceClaim, bool, error) {
-	row := s.db.QueryRow(`SELECT workdir, owner, mode, branch, path, base, created_at
-		FROM workdir_claim WHERE workdir=? AND released_at IS NULL AND mode=?
-		ORDER BY created_at LIMIT 1`, workdir, WorkModeBranch)
-	return scanClaim(row)
+// WorkspaceHeldBy is whoever holds this workspace now — and only a branch in
+// the folder itself holds one. A copy per card holds nothing, which is the
+// whole point of it.
+func (s *Store) WorkspaceHeldBy(workspaceID string) (Checkout, bool, error) {
+	row := s.queryRow(`SELECT `+checkoutColumns+` FROM checkout
+		WHERE workspace_id=? AND released_at IS NULL AND mode=?
+		ORDER BY created_at LIMIT 1`, workspaceID, WorkModeBranch)
+	return scanCheckout(row)
 }
 
-// ReleaseWorkdir gives a folder back. The row stays: what branch a card worked
-// on is worth remembering after the folder is free again.
-func (s *Store) ReleaseWorkdir(workdir, owner string) error {
-	_, err := s.db.Exec(`UPDATE workdir_claim SET released_at=?
-		WHERE workdir=? AND owner=? AND released_at IS NULL`,
-		time.Now().UnixMilli(), workdir, owner)
+// ReleaseCheckout gives a workspace back. The row stays: which branch a card
+// worked on is worth remembering after the folder is free again.
+func (s *Store) ReleaseCheckout(workspaceID, cardID, boardID string) error {
+	column, value := "card_id", any(cardID)
+	if cardID == "" {
+		column, value = "board_id", any(nullable(boardID))
+	}
+	_, err := s.exec(`UPDATE checkout SET released_at=?
+		WHERE workspace_id=? AND `+column+`=? AND released_at IS NULL`,
+		time.Now().UnixMilli(), workspaceID, value)
 	return err
 }
 
-// ReleaseBranch gives back whatever workspace was on this branch, whoever holds
-// it — how a merge frees the folder for the next card.
-func (s *Store) ReleaseBranch(workdir, branch string) (string, error) {
-	row := s.db.QueryRow(`SELECT owner FROM workdir_claim
-		WHERE workdir=? AND branch=? AND released_at IS NULL`, workdir, branch)
-	var owner string
-	switch err := row.Scan(&owner); {
+// ReleaseBranch gives back whatever checkout was on this branch, whoever holds
+// it — how a merge frees the folder for the next card. It answers with the
+// owner, for the line that says so in the log.
+func (s *Store) ReleaseBranch(workspaceID, branch string) (string, error) {
+	row := s.queryRow(`SELECT COALESCE(card_id,''), COALESCE(board_id,'') FROM checkout
+		WHERE workspace_id=? AND branch=? AND released_at IS NULL`, workspaceID, branch)
+	var cardID, boardID string
+	switch err := row.Scan(&cardID, &boardID); {
 	case err == sql.ErrNoRows:
 		return "", nil
 	case err != nil:
 		return "", err
 	}
-	return owner, s.ReleaseWorkdir(workdir, owner)
+	owner := Checkout{CardID: cardID, BoardID: boardID}.Owner()
+	return owner, s.ReleaseCheckout(workspaceID, cardID, boardID)
 }
 
-func scanClaim(row scanner) (WorkspaceClaim, bool, error) {
+func scanCheckout(row scanner) (Checkout, bool, error) {
 	var (
-		c       WorkspaceClaim
+		c       Checkout
 		created int64
 	)
-	switch err := row.Scan(&c.Workdir, &c.Owner, &c.Mode, &c.Branch, &c.Path, &c.Base, &created); {
+	switch err := row.Scan(&c.WorkspaceID, &c.CardID, &c.BoardID, &c.Mode,
+		&c.Branch, &c.Path, &c.Base, &created); {
 	case err == sql.ErrNoRows:
-		return WorkspaceClaim{}, false, nil
+		return Checkout{}, false, nil
 	case err != nil:
-		return WorkspaceClaim{}, false, err
+		return Checkout{}, false, err
 	}
 	c.CreatedAt = time.UnixMilli(created)
 	return c, true, nil
 }
 
-// BranchForOwner is the branch this owner works on, in whichever folder it
-// holds one — the card's own workspace, in other words. What a deploy
-// publishes when the card names no branch itself.
-func (s *Store) BranchForOwner(owner string) (string, error) {
-	row := s.db.QueryRow(`SELECT branch FROM workdir_claim
-		WHERE owner=? AND released_at IS NULL AND branch<>''
-		ORDER BY created_at DESC LIMIT 1`, owner)
+// BranchForCard is the branch this card works on, in whichever workspace it
+// holds one. What a deploy publishes when the card names no branch itself.
+func (s *Store) BranchForCard(cardID string) (string, error) {
+	row := s.queryRow(`SELECT branch FROM checkout
+		WHERE card_id=? AND released_at IS NULL AND branch IS NOT NULL AND branch<>''
+		ORDER BY created_at DESC LIMIT 1`, cardID)
 	var branch string
 	switch err := row.Scan(&branch); {
 	case err == sql.ErrNoRows:
@@ -935,14 +887,14 @@ func (s *Store) BranchForOwner(owner string) (string, error) {
 	return branch, nil
 }
 
-// WorkspaceModeForOwner is how the owner's live workspace is arranged —
-// "worktree" or "branch" — or "" when it holds none. The card's stamp names
-// its line after it: a person who set «отдельная копия» should read worktree
-// off the card, not a bare branch label that spells the *other* setting.
-func (s *Store) WorkspaceModeForOwner(owner string) (mode, branch, base string, err error) {
-	row := s.db.QueryRow(`SELECT mode, branch, base FROM workdir_claim
-		WHERE owner=? AND released_at IS NULL
-		ORDER BY created_at DESC LIMIT 1`, owner)
+// CheckoutModeForCard is how the card's live checkout is arranged — "worktree"
+// or "branch" — or "" when it holds none. The card's stamp names its line after
+// it: a person who set «отдельная копия» should read worktree off the card, not
+// a bare branch label that spells the *other* setting.
+func (s *Store) CheckoutModeForCard(cardID string) (mode, branch, base string, err error) {
+	row := s.queryRow(`SELECT mode, COALESCE(branch,''), COALESCE(base,'') FROM checkout
+		WHERE card_id=? AND released_at IS NULL
+		ORDER BY created_at DESC LIMIT 1`, cardID)
 	switch err := row.Scan(&mode, &branch, &base); {
 	case err == sql.ErrNoRows:
 		return "", "", "", nil

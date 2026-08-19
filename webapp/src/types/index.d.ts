@@ -1,9 +1,5 @@
-type TelemetryProps = {
-    trackingLocation: string
-}
 export interface IAppWindow extends Window {
     baseURL?: string
-    frontendBaseURL?: string
 
     // Absolute base URL the WebSocket client should connect to, overriding the
     // page origin. Set by native desktop wrappers (e.g. the Wails macOS app)
@@ -99,7 +95,7 @@ export interface IAppWindow extends Window {
                 ListSetupSteps(): Promise<string>
                 AddFlow(entryJSON: string): Promise<string>
                 UpdateFlow(entryJSON: string): Promise<string>
-                RemoveFlow(boardId: string, name: string): Promise<void>
+                RemoveFlow(boardId: string, flowId: string): Promise<void>
                 ExportBoardAutomation?(boardId: string): Promise<string>
 
                 GetBoardPrompt?(boardId: string): Promise<string>
@@ -215,16 +211,5 @@ export interface IAppWindow extends Window {
         EventsOn(event: string, callback: (...data: any[]) => void): () => void
     }
     webkit?: {messageHandlers: {nativeApp?: {postMessage: <T>(message: T) => void}}}
-    openPricingModal?: () => (telemetry: TelemetryProps) => void
 }
 
-// SuiteWindow documents all custom properties
-// which may be defined on global
-// window object when operating in
-// the Mattermost suite environment
-export type SuiteWindow = Window & {
-    getCurrentTeamId?: () => string
-    baseURL?: string
-    frontendBaseURL?: string
-    WebappUtils?: any
-}

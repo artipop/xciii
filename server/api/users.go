@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/web"
 )
@@ -58,9 +57,6 @@ func (a *API) handleGetUsersList(w http.ResponseWriter, r *http.Request) {
 		a.errorResponse(w, r, err)
 		return
 	}
-
-	auditRec := a.makeAuditRecord(r, "getUsersList", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelAuth, auditRec)
 
 	var users []*model.User
 	var error error
@@ -139,7 +135,6 @@ func (a *API) handleGetUsersList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonStringResponse(w, http.StatusOK, string(usersList))
-	auditRec.Success()
 }
 
 func (a *API) handleGetMe(w http.ResponseWriter, r *http.Request) {
@@ -181,9 +176,6 @@ func (a *API) handleGetMe(w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	var err error
 
-	auditRec := a.makeAuditRecord(r, "getMe", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-
 	if userID == model.SingleUser {
 		ws, _ := a.app.GetRootTeam()
 		now := utils.GetMillis()
@@ -221,8 +213,6 @@ func (a *API) handleGetMe(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonBytesResponse(w, http.StatusOK, userData)
 
-	auditRec.AddMeta("userID", user.ID)
-	auditRec.Success()
 }
 
 func (a *API) handleGetMyMemberships(w http.ResponseWriter, r *http.Request) {
@@ -249,10 +239,6 @@ func (a *API) handleGetMyMemberships(w http.ResponseWriter, r *http.Request) {
 
 	userID := getUserID(r)
 
-	auditRec := a.makeAuditRecord(r, "getMyBoardMemberships", audit.Fail)
-	auditRec.AddMeta("userID", userID)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-
 	members, err := a.app.GetMembersForUser(userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -267,7 +253,6 @@ func (a *API) handleGetMyMemberships(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytesResponse(w, http.StatusOK, membersData)
 
-	auditRec.Success()
 }
 
 func (a *API) handleGetUser(w http.ResponseWriter, r *http.Request) {
@@ -297,10 +282,6 @@ func (a *API) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := r.PathValue("userID")
-
-	auditRec := a.makeAuditRecord(r, "postBlocks", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("userID", userID)
 
 	user, err := a.app.GetUser(userID)
 	if err != nil {
@@ -334,7 +315,6 @@ func (a *API) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, userData)
-	auditRec.Success()
 }
 
 func (a *API) handleUpdateUserConfig(w http.ResponseWriter, r *http.Request) {
@@ -385,9 +365,6 @@ func (a *API) handleUpdateUserConfig(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
 
-	auditRec := a.makeAuditRecord(r, "updateUserConfig", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
 	// a user can update only own config
 	if userID != session.UserID {
 		a.errorResponse(w, r, model.NewErrForbidden(""))
@@ -407,7 +384,6 @@ func (a *API) handleUpdateUserConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }
 
 func (a *API) handleGetUserPreferences(w http.ResponseWriter, r *http.Request) {
@@ -432,9 +408,6 @@ func (a *API) handleGetUserPreferences(w http.ResponseWriter, r *http.Request) {
 
 	userID := getUserID(r)
 
-	auditRec := a.makeAuditRecord(r, "getUserConfig", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-
 	preferences, err := a.app.GetUserPreferences(userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -448,5 +421,4 @@ func (a *API) handleGetUserPreferences(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }

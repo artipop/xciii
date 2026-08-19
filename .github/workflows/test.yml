@@ -1,0 +1,80 @@
+name: Tests
+
+# What this is for: "the same code works on SQLite, MySQL and Postgres" used to
+# be an assertion. The fork's fixture could always be pointed at a MySQL or a
+# Postgres, but nothing ever pointed it at one — no compose file, no job here —
+# so every run took the SQLite branch and passed, and the eighteen
+# dialect-specific branches in the store were never executed on two of the three
+# vendors they exist for. The generated MySQL and Postgres DDL had never been
+# executed at all.
+#
+# The containers are started by the tests themselves (internal/dbtest,
+# testcontainers-go), so this job sets one environment variable and runs
+# `go test`. There is nothing here to keep in step with a compose file.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    name: go / ${{ matrix.db }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # sqlite3 is what the desktop application runs on and needs no
+        # container; the other two are the claim this matrix exists to check.
+        db: [sqlite3, mysql, postgres]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # webapp/pack is what go:embed reads under the `frontend` tag. These jobs
+      # do not build the page, so the directory only has to exist — a committed
+      # .gitkeep holds it open, and this is here as the reminder of why.
+      - name: Check the embed directory is there
+        run: test -d webapp/pack
+
+      - name: Vet
+        run: go vet -tags "json1 sqlite3" ./...
+
+      # The whole suite on SQLite; on the other two, the packages that talk to a
+      # database. The rest is the agent integration and the page's Go side,
+      # which have no SQL of their own and would only pay the container's
+      # startup twice over.
+      - name: Test
+        env:
+          FOCALBOARD_STORE_TEST_DB_TYPE: ${{ matrix.db }}
+        run: |
+          if [ "${{ matrix.db }}" = "sqlite3" ]; then
+            go test -count=1 -tags "json1 sqlite3" ./...
+          else
+            go test -count=1 -tags "json1 sqlite3" \
+              ./server/services/store/... ./server/integrationtests/...
+          fi
+
+  webapp:
+    name: webapp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+      - run: npm ci
+        working-directory: webapp
+      - run: npm test -- --coverage.enabled=false
+        working-directory: webapp

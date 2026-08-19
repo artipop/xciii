@@ -19,7 +19,6 @@ import (
 	"github.com/artipop/xciii/server/utils"
 
 	"github.com/artipop/xciii/server/mlog"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -53,14 +52,6 @@ var (
 	userGuestID        = userGuest
 )
 
-type LicenseType int
-
-const (
-	LicenseNone         LicenseType = iota // 0
-	LicenseProfessional                    // 1
-	LicenseEnterprise                      // 2
-)
-
 type TestHelper struct {
 	T       *testing.T
 	Server  *server.Server
@@ -72,11 +63,11 @@ type TestHelper struct {
 
 type FakePermissionPluginAPI struct{}
 
-func (*FakePermissionPluginAPI) HasPermissionTo(userID string, permission *mmModel.Permission) bool {
+func (*FakePermissionPluginAPI) HasPermissionTo(userID string, permission *model.Permission) bool {
 	return userID == userAdmin
 }
 
-func (*FakePermissionPluginAPI) HasPermissionToTeam(userID string, teamID string, permission *mmModel.Permission) bool {
+func (*FakePermissionPluginAPI) HasPermissionToTeam(userID string, teamID string, permission *model.Permission) bool {
 	if permission.Id == model.PermissionManageTeam.Id {
 		return false
 	}
@@ -89,7 +80,7 @@ func (*FakePermissionPluginAPI) HasPermissionToTeam(userID string, teamID string
 	return true
 }
 
-func (*FakePermissionPluginAPI) HasPermissionToChannel(userID string, channelID string, permission *mmModel.Permission) bool {
+func (*FakePermissionPluginAPI) HasPermissionToChannel(userID string, channelID string, permission *model.Permission) bool {
 	return channelID == "valid-channel-id" || channelID == "valid-channel-id-2"
 }
 
@@ -126,7 +117,6 @@ func getTestConfig() (*config.Configuration, error) {
 		Port:              8888,
 		DBType:            dbType,
 		DBConfigString:    connectionString,
-		DBTablePrefix:     "test_",
 		WebPath:           "./pack",
 		FilesDriver:       "local",
 		FilesPath:         "./files",
@@ -137,10 +127,6 @@ func getTestConfig() (*config.Configuration, error) {
 }
 
 func newTestServer(singleUserToken string) *server.Server {
-	return newTestServerWithLicense(singleUserToken, LicenseNone)
-}
-
-func newTestServerWithLicense(singleUserToken string, licenseType LicenseType) *server.Server {
 	cfg, err := getTestConfig()
 	if err != nil {
 		panic(err)
@@ -151,23 +137,12 @@ func newTestServerWithLicense(singleUserToken string, licenseType LicenseType) *
 		panic(err)
 	}
 	singleUser := len(singleUserToken) > 0
-	innerStore, err := server.NewStore(cfg, singleUser, logger)
+	innerStore, _, err := server.NewStore(cfg, singleUser, logger)
 	if err != nil {
 		panic(err)
 	}
 
-	var db store.Store
-
-	switch licenseType {
-	case LicenseProfessional:
-		db = NewTestProfessionalStore(innerStore)
-	case LicenseEnterprise:
-		db = NewTestEnterpriseStore(innerStore)
-	case LicenseNone:
-		fallthrough
-	default:
-		db = innerStore
-	}
+	var db store.Store = innerStore
 
 	permissionsService := localpermissions.New(db, logger)
 
@@ -199,7 +174,7 @@ func newTestServerLocalMode() *server.Server {
 		panic(err)
 	}
 
-	db, err := server.NewStore(cfg, false, logger)
+	db, _, err := server.NewStore(cfg, false, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -241,10 +216,6 @@ func SetupTestHelperWithToken(t *testing.T) *TestHelper {
 	return th
 }
 
-func SetupTestHelper(t *testing.T) *TestHelper {
-	return SetupTestHelperWithLicense(t, LicenseNone)
-}
-
 func SetupTestHelperLocalMode(t *testing.T) *TestHelper {
 	origUnitTesting := os.Getenv("FOCALBOARD_UNIT_TESTING")
 	os.Setenv("FOCALBOARD_UNIT_TESTING", "1")
@@ -259,7 +230,7 @@ func SetupTestHelperLocalMode(t *testing.T) *TestHelper {
 	return th
 }
 
-func SetupTestHelperWithLicense(t *testing.T, licenseType LicenseType) *TestHelper {
+func SetupTestHelper(t *testing.T) *TestHelper {
 	origUnitTesting := os.Getenv("FOCALBOARD_UNIT_TESTING")
 	os.Setenv("FOCALBOARD_UNIT_TESTING", "1")
 
@@ -268,7 +239,7 @@ func SetupTestHelperWithLicense(t *testing.T, licenseType LicenseType) *TestHelp
 		origEnvUnitTesting: origUnitTesting,
 	}
 
-	th.Server = newTestServerWithLicense("", licenseType)
+	th.Server = newTestServer("")
 	th.Client = client.NewClient(th.Server.Config().ServerRoot, "")
 	th.Client2 = client.NewClient(th.Server.Config().ServerRoot, "")
 	return th

@@ -32,45 +32,11 @@ func (a *App) GetBoardCount() (int64, error) {
 	return a.store.GetBoardCount()
 }
 
-func (a *App) GetBoardMetadata(boardID string) (*model.Board, *model.BoardMetadata, error) {
-	license := a.store.GetLicense()
-	if license == nil || !(*license.Features.Compliance) {
-		return nil, nil, model.ErrInsufficientLicense
-	}
+// What used to stand here: GetBoardMetadata, which reported who last changed a
+// board and when, from behind a licence check. This product has no licence —
+// the store answers nil — so it returned "appropriate license required" every
+// time it was called, and the page never called it.
 
-	board, err := a.GetBoard(boardID)
-	if model.IsErrNotFound(err) {
-		// Board may have been deleted, retrieve most recent history instead
-		board, err = a.getBoardHistory(boardID, true)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-
-	earliestTime, _, err := a.getBoardDescendantModifiedInfo(boardID, false)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	latestTime, lastModifiedBy, err := a.getBoardDescendantModifiedInfo(boardID, true)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	boardMetadata := model.BoardMetadata{
-		BoardID:                 boardID,
-		DescendantFirstUpdateAt: earliestTime,
-		DescendantLastUpdateAt:  latestTime,
-		CreatedBy:               board.CreatedBy,
-		LastModifiedBy:          lastModifiedBy,
-	}
-	return board, &boardMetadata, nil
-}
-
-// getBoardForBlock returns the board that owns the specified block.
 func (a *App) getBoardForBlock(blockID string) (*model.Board, error) {
 	block, err := a.GetBlockByID(blockID)
 	if err != nil {

@@ -541,9 +541,9 @@ func TestCardTerminalStillRefusesABrokenProject(t *testing.T) {
 		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
 	})
 	m.SetBoardReader(&fakeReader{ev: CardMoved{
-		BoardID: "board1",
-		Title:   "Сломанный проект",
-		Props:   map[string]string{"repo_path": "/no/such/dir"},
+		BoardID:     "board1",
+		Title:       "Сломанный проект",
+		OptionNames: []string{"нет такой папки"},
 	}})
 
 	if _, err := m.StartCardTerminal("card-broken", "", ""); err == nil {
@@ -784,7 +784,7 @@ func TestAClosedTerminalDoesNotComeBack(t *testing.T) {
 
 	term, err := m.startTerminal(terminalSpec{
 		cardID: "card-closed", boardID: "board1", title: "Закрытый терминал",
-		workdirPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		workdirPath: project, agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -884,7 +884,7 @@ func TestPlanningTerminalTalksInTheBoardsFolder(t *testing.T) {
 func TestTheCardsConversationOpensWithTheCard(t *testing.T) {
 	fakeCLIOnPath(t, "claude", "sleep 30")
 	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
-		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+		cfg.Agents = []AgentEntry{{ID: newID(), Name: "cl", Kind: AgentKindClaude}}
 	})
 	m.SetOrigin("http://127.0.0.1:8088/")
 
@@ -912,7 +912,7 @@ func TestTheCardsConversationOpensWithTheCard(t *testing.T) {
 func TestAResumedConversationIsNotToldTheCardAgain(t *testing.T) {
 	fakeCLIOnPath(t, "claude", "sleep 30")
 	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
-		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+		cfg.Agents = []AgentEntry{{ID: newID(), Name: "cl", Kind: AgentKindClaude}}
 	})
 	m.SetOrigin("http://127.0.0.1:8088/")
 
@@ -940,7 +940,7 @@ func TestAResumedConversationIsNotToldTheCardAgain(t *testing.T) {
 func TestADiscardedConversationIsForgottenQuietly(t *testing.T) {
 	fakeCLIOnPath(t, "claude", "sleep 30")
 	m, writer, _, _ := testManager(t, "idle", func(cfg *Config) {
-		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+		cfg.Agents = []AgentEntry{{ID: newID(), Name: "cl", Kind: AgentKindClaude}}
 	})
 	m.SetOrigin("http://127.0.0.1:8088/")
 
@@ -1007,7 +1007,7 @@ func TestTheAgentIsAskedToNameTheConversation(t *testing.T) {
 
 	term, err := m.startTerminal(terminalSpec{
 		cardID: "card-name", boardID: "board1", title: "Починить окно",
-		workdirPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		workdirPath: project, agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1067,7 +1067,7 @@ func TestACLIWithNoToolsIsNotAskedForAName(t *testing.T) {
 func TestTheCardsOwnConversationIsNotTheWorkOnIt(t *testing.T) {
 	fakeCLIOnPath(t, "claude", "sleep 30")
 	m, _, _, project := testManager(t, "idle", func(cfg *Config) {
-		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+		cfg.Agents = []AgentEntry{{ID: newID(), Name: "cl", Kind: AgentKindClaude}}
 	})
 	m.SetOrigin("http://127.0.0.1:8088/")
 
@@ -1089,7 +1089,7 @@ func TestTheCardsOwnConversationIsNotTheWorkOnIt(t *testing.T) {
 	stage, err := m.startStageTerminal(&Session{
 		CardID: "card-talk", BoardID: "board1", NodeID: "opt-work", ColumnName: "В работе",
 		Title: "Test task", PromptText: "Task: Test task",
-		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		WorkdirPath: project, Agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -1115,7 +1115,7 @@ func TestTheCardsOwnConversationIsNotTheWorkOnIt(t *testing.T) {
 func TestConversationsOnTwoNodesAreTwoDifferentRows(t *testing.T) {
 	fakeCLIOnPath(t, "claude", "sleep 30")
 	m, _, _, project := testManager(t, "idle", func(cfg *Config) {
-		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+		cfg.Agents = []AgentEntry{{ID: newID(), Name: "cl", Kind: AgentKindClaude}}
 	})
 	m.SetOrigin("http://127.0.0.1:8088/")
 
@@ -1132,7 +1132,7 @@ func TestConversationsOnTwoNodesAreTwoDifferentRows(t *testing.T) {
 	stage, err := m.startStageTerminal(&Session{
 		CardID: "card-two", BoardID: "board1", NodeID: "opt-work", ColumnName: "В работе",
 		Title: "Test task", PromptText: "Task: Test task",
-		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		WorkdirPath: project, Agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)

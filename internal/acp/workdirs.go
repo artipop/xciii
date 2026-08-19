@@ -23,6 +23,20 @@ func (m *Manager) Workdirs() []WorkdirEntry {
 	return append([]WorkdirEntry(nil), m.cfg.Workdirs...)
 }
 
+// workdirPaths is every registered folder's directory, for the jobs that sweep
+// the disk rather than answer a question about a card.
+func (m *Manager) workdirPaths() []string {
+	m.cfgMu.RLock()
+	defer m.cfgMu.RUnlock()
+	out := make([]string, 0, len(m.cfg.Workdirs))
+	for _, e := range m.cfg.Workdirs {
+		if e.Path != "" {
+			out = append(out, e.Path)
+		}
+	}
+	return out
+}
+
 // WorkdirsForBoard is the registry as one board sees it: its own folders and
 // the ones marked global. An empty boardID asks for all of them, which is what
 // a place with no board behind it (the planning dialog) gets.
@@ -40,12 +54,10 @@ func (m *Manager) WorkdirsForBoard(boardID string) []WorkdirEntry {
 // basename) and persists the config. Any folder will do — see IsGitWorkdir for
 // what being under git adds.
 //
-// kind is what the person adding it was asked for, and the only value with a
-// meaning is WorkdirGit: the setup step of a board that publishes a branch or
-// waits for one demands a repository, so answering it with a folder that has
-// no git is refused here, where the answer is given, rather than three days
-// later when a card cannot find a branch. Everywhere else passes "" — what a
-// folder is gets asked when it matters, so a folder that becomes a repository
+// kind is what the person adding it was asked for, and only WorkdirGit means
+// anything: a board whose setup step demands a repository refuses a folder with
+// no git here, where the answer is given, rather than when a card cannot find a
+// branch. Everywhere else passes "", so a folder that becomes a repository
 // later needs nobody to re-add it.
 //
 // TODO: validate the name as a hostname label. A deploy target names its apps
@@ -282,22 +294,23 @@ func (m *Manager) RemoveWorkdir(name string) error {
 }
 
 func (m *Manager) persistConfigLocked() error {
+	// The registries live in tables now (registrymove.go), so they are saved
+	// whether or not there is a settings file to write — which is also what
+	// gives a test a registry that survives a restart without one.
+	if err := m.persistRegistriesLocked(); err != nil {
+		m.log.Error("acp: failed to persist the registries", "err", err)
+		return fmt.Errorf("не удалось сохранить реестры: %w", err)
+	}
 	if m.cfgPath == "" {
 		return nil // tests / ephemeral configs
 	}
-	if err := SaveConfig(m.cfgPath, m.configToStore()); err != nil {
+	if err := SaveConfig(m.cfgPath, m.cfg); err != nil {
 		m.log.Error("acp: failed to persist config", "err", err)
 		return fmt.Errorf("не удалось сохранить конфиг: %w", err)
 	}
 	return nil
 }
 
-// resolveWorkdir maps a trigger event to a folder path. Priority:
-//  1. explicit repo_path card property (validated against whitelist+registry);
-//  2. a select/multiSelect option name (tag) matching a registry entry;
-//  3. the name of the column the card was dragged out of — supports boards
-//     whose trigger property has one lane per folder.
-//
 // resolveNamedWorkdir looks a registry entry up by name. Opening a console on a
 // card that carries no folder tag would otherwise be a dead end: the card
 // is not going to grow one just because someone wants to talk about it.
@@ -314,23 +327,6 @@ func (m *Manager) resolveNamedWorkdir(name string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("папка %q не найдена в реестре (%s)", name, workdirNames(workdirs))
-}
-
-// cardWorkdirPathProps are the card fields that name a path outright, newest
-// first. `repo_path` is what the field was called before folders were called
-// folders, and a card that already carries one keeps working: a board is
-// somebody's data, and renaming a field under them would quietly stop their
-// cards from finding anywhere to run.
-var cardWorkdirPathProps = []string{"project_path", "repo_path"}
-
-// firstProp returns the first of the named card fields that has a value.
-func firstProp(props map[string]string, names []string) string {
-	for _, name := range names {
-		if v := strings.TrimSpace(props[name]); v != "" {
-			return v
-		}
-	}
-	return ""
 }
 
 // errNoWorkdir marks the refusals that mean "the card names no folder" — as
@@ -362,14 +358,17 @@ func (m *Manager) CardFolder(cardID string) (string, bool) {
 	return path, true
 }
 
+// resolveWorkdir maps a trigger event to a folder path.
+//
+// There used to be a step in front of this one: a card could name a directory
+// outright, in a `project_path` or `repo_path` field, and that path won over
+// the folder field. It was the second way to say the same thing (contradiction
+// 6 of docs/model-graph.md) and the worse one — nothing creates such a field,
+// it means nothing on another machine, and being a path rather than a reference
+// it tied to no registry entry, so the only thing standing between a card and
+// any directory on the disk was a whitelist in the settings file. Both are
+// gone; a card says where it works by naming a folder, and only that.
 func (m *Manager) resolveWorkdir(ev CardMoved) (string, error) {
-	if explicit := firstProp(ev.Props, cardWorkdirPathProps); explicit != "" {
-		m.cfgMu.RLock()
-		cfg := m.cfg
-		m.cfgMu.RUnlock()
-		return cfg.ValidateWorkdirPath(explicit)
-	}
-
 	// Only what this board offers: a folder another board added must not take an
 	// agent into a checkout this board knows nothing about.
 	workdirs := m.WorkdirsForBoard(ev.BoardID)
@@ -397,17 +396,13 @@ func (m *Manager) resolveWorkdir(ev CardMoved) (string, error) {
 // cardWorkdir is the registry entry a card points at, among the ones this board
 // offers.
 //
-// The option's **id** is the entry's id: the board's folder options are created
-// under it (workdirSync.ts), so a card that names a folder is a card holding
-// that id, and what the folder is called is free to change — or to stop being a
-// folder name at all, which is where this is going: a place to work need not be
-// a directory on this disk.
+// The option's **id** is the entry's id (workdirSync.ts), so a card naming a
+// folder holds that id and the folder's name is free to change — or to stop
+// being a folder name at all: a place to work need not be a directory here.
 //
-// Two fallbacks, both for data that predates the id. An option made before this
-// carries an id of the board's own, so the entry is matched by the option's
-// *name*; and a board that never recorded which property holds the folder gets
-// the old scan across everything selected on the card, which is the only thing
-// such a board can say.
+// Two fallbacks for data that predates the id: an option made before it is
+// matched by *name*, and a board that recorded no folder property gets a scan
+// across everything selected on the card, which is all such a board can say.
 func (m *Manager) cardWorkdir(ev CardMoved, workdirs []WorkdirEntry) (WorkdirEntry, bool) {
 	if propID := m.boardProperty(ev.BoardID, BoardPropProject); propID != "" {
 		for _, sel := range ev.SelectedOptions {

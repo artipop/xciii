@@ -206,7 +206,7 @@ func (s *SQLStore) getBoardsByCondition(db sq.BaseRunner, conditions ...interfac
 func (s *SQLStore) getBoardsFieldsByCondition(db sq.BaseRunner, fields []string, conditions ...interface{}) ([]*model.Board, error) {
 	query := s.getQueryBuilder(db).
 		Select(fields...).
-		From(s.tablePrefix + "boards")
+		From("boards")
 	for _, c := range conditions {
 		query = query.Where(c)
 	}
@@ -238,8 +238,8 @@ func (s *SQLStore) getBoardsForUserAndTeam(db sq.BaseRunner, userID, teamID stri
 	query := s.getQueryBuilder(db).
 		Select(boardFields("b.")...).
 		Distinct().
-		From(s.tablePrefix + "boards as b").
-		LeftJoin(s.tablePrefix + "board_members as bm on b.id=bm.board_id").
+		From("boards as b").
+		LeftJoin("board_members as bm on b.id=bm.board_id").
 		Where(sq.Eq{"b.team_id": teamID}).
 		Where(sq.Eq{"b.is_template": false})
 
@@ -267,7 +267,7 @@ func (s *SQLStore) getBoardsForUserAndTeam(db sq.BaseRunner, userID, teamID stri
 func (s *SQLStore) getBoardsInTeamByIds(db sq.BaseRunner, boardIDs []string, teamID string) ([]*model.Board, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardFields("b.")...).
-		From(s.tablePrefix + "boards as b").
+		From("boards as b").
 		Where(sq.Eq{"b.team_id": teamID}).
 		Where(sq.Eq{"b.id": boardIDs})
 
@@ -337,6 +337,7 @@ func (s *SQLStore) insertBoard(db sq.BaseRunner, board *model.Board, userID stri
 	board.UpdateAt = now
 
 	insertQueryValues := map[string]interface{}{
+		"insert_at":        utils.NextInsertAt(),
 		"id":               board.ID,
 		"team_id":          board.TeamID,
 		"channel_id":       board.ChannelID,
@@ -358,7 +359,7 @@ func (s *SQLStore) insertBoard(db sq.BaseRunner, board *model.Board, userID stri
 	}
 
 	if existingBoard != nil {
-		query := s.getQueryBuilder(db).Update(s.tablePrefix+"boards").
+		query := s.getQueryBuilder(db).Update("boards").
 			Where(sq.Eq{"id": board.ID}).
 			Set("modified_by", board.ModifiedBy).
 			Set("type", board.Type).
@@ -385,14 +386,14 @@ func (s *SQLStore) insertBoard(db sq.BaseRunner, board *model.Board, userID stri
 		insertQueryValues["created_by"] = board.CreatedBy
 		insertQueryValues["create_at"] = board.CreateAt
 
-		query := insertQuery.SetMap(insertQueryValues).Into(s.tablePrefix + "boards")
+		query := insertQuery.SetMap(insertQueryValues).Into("boards")
 		if _, err := query.Exec(); err != nil {
 			return nil, fmt.Errorf("insertBoard error occurred while inserting board %s: %w", board.ID, err)
 		}
 	}
 
 	// writing board history
-	query := insertQuery.SetMap(insertQueryValues).Into(s.tablePrefix + "boards_history")
+	query := insertQuery.SetMap(insertQueryValues).Into("boards_history")
 	if _, err := query.Exec(); err != nil {
 		s.logger.Error("failed to insert board history", mlog.String("board_id", board.ID), mlog.Err(err))
 		return nil, fmt.Errorf("failed to insert board %s history: %w", board.ID, err)
@@ -433,6 +434,7 @@ func (s *SQLStore) deleteBoardAndChildren(db sq.BaseRunner, boardID, userID stri
 	}
 
 	insertQueryValues := map[string]interface{}{
+		"insert_at":        utils.NextInsertAt(),
 		"id":               board.ID,
 		"team_id":          board.TeamID,
 		"channel_id":       board.ChannelID,
@@ -457,13 +459,13 @@ func (s *SQLStore) deleteBoardAndChildren(db sq.BaseRunner, boardID, userID stri
 	insertQuery := s.getQueryBuilder(db).Insert("").
 		Columns(boardHistoryFields()...)
 
-	query := insertQuery.SetMap(insertQueryValues).Into(s.tablePrefix + "boards_history")
+	query := insertQuery.SetMap(insertQueryValues).Into("boards_history")
 	if _, err := query.Exec(); err != nil {
 		return err
 	}
 
 	deleteQuery := s.getQueryBuilder(db).
-		Delete(s.tablePrefix + "boards").
+		Delete("boards").
 		Where(sq.Eq{"id": boardID}).
 		Where(sq.Eq{"COALESCE(team_id, '0')": board.TeamID})
 
@@ -516,7 +518,7 @@ func (s *SQLStore) saveMember(db sq.BaseRunner, bm *model.BoardMember) (*model.B
 	}
 
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix + "board_members").
+		Insert("board_members").
 		SetMap(queryValues)
 
 	if s.dbType == model.MysqlDBType {
@@ -537,9 +539,9 @@ func (s *SQLStore) saveMember(db sq.BaseRunner, bm *model.BoardMember) (*model.B
 
 	if oldMember == nil {
 		addToMembersHistory := s.getQueryBuilder(db).
-			Insert(s.tablePrefix+"board_members_history").
-			Columns("board_id", "user_id", "action").
-			Values(bm.BoardID, bm.UserID, "created")
+			Insert("board_members_history").
+			Columns("board_id", "user_id", "action", "insert_at").
+			Values(bm.BoardID, bm.UserID, "created", utils.NextInsertAt())
 
 		if _, err := addToMembersHistory.Exec(); err != nil {
 			return nil, err
@@ -551,7 +553,7 @@ func (s *SQLStore) saveMember(db sq.BaseRunner, bm *model.BoardMember) (*model.B
 
 func (s *SQLStore) deleteMember(db sq.BaseRunner, boardID, userID string) error {
 	deleteQuery := s.getQueryBuilder(db).
-		Delete(s.tablePrefix + "board_members").
+		Delete("board_members").
 		Where(sq.Eq{"board_id": boardID}).
 		Where(sq.Eq{"user_id": userID})
 
@@ -567,9 +569,9 @@ func (s *SQLStore) deleteMember(db sq.BaseRunner, boardID, userID string) error 
 
 	if rowsAffected > 0 {
 		addToMembersHistory := s.getQueryBuilder(db).
-			Insert(s.tablePrefix+"board_members_history").
-			Columns("board_id", "user_id", "action").
-			Values(boardID, userID, "deleted")
+			Insert("board_members_history").
+			Columns("board_id", "user_id", "action", "insert_at").
+			Values(boardID, userID, "deleted", utils.NextInsertAt())
 
 		if _, err := addToMembersHistory.Exec(); err != nil {
 			return err
@@ -582,8 +584,8 @@ func (s *SQLStore) deleteMember(db sq.BaseRunner, boardID, userID string) error 
 func (s *SQLStore) getMemberForBoard(db sq.BaseRunner, boardID, userID string) (*model.BoardMember, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardMemberFields...).
-		From(s.tablePrefix + "board_members AS BM").
-		LeftJoin(s.tablePrefix + "boards AS B ON B.id=BM.board_id").
+		From("board_members AS BM").
+		LeftJoin("boards AS B ON B.id=BM.board_id").
 		Where(sq.Eq{"BM.board_id": boardID}).
 		Where(sq.Eq{"BM.user_id": userID})
 
@@ -610,8 +612,8 @@ func (s *SQLStore) getMemberForBoard(db sq.BaseRunner, boardID, userID string) (
 func (s *SQLStore) getMembersForUser(db sq.BaseRunner, userID string) ([]*model.BoardMember, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardMemberFields...).
-		From(s.tablePrefix + "board_members AS BM").
-		LeftJoin(s.tablePrefix + "boards AS B ON B.id=BM.board_id").
+		From("board_members AS BM").
+		LeftJoin("boards AS B ON B.id=BM.board_id").
 		Where(sq.Eq{"BM.user_id": userID})
 
 	rows, err := query.Query()
@@ -632,8 +634,8 @@ func (s *SQLStore) getMembersForUser(db sq.BaseRunner, userID string) ([]*model.
 func (s *SQLStore) getMembersForBoard(db sq.BaseRunner, boardID string) ([]*model.BoardMember, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardMemberFields...).
-		From(s.tablePrefix + "board_members AS BM").
-		LeftJoin(s.tablePrefix + "boards AS B ON B.id=BM.board_id").
+		From("board_members AS BM").
+		LeftJoin("boards AS B ON B.id=BM.board_id").
 		Where(sq.Eq{"BM.board_id": boardID})
 
 	rows, err := query.Query()
@@ -654,8 +656,8 @@ func (s *SQLStore) searchBoardsForUser(db sq.BaseRunner, term string, searchFiel
 	query := s.getQueryBuilder(db).
 		Select(boardFields("b.")...).
 		Distinct().
-		From(s.tablePrefix + "boards as b").
-		LeftJoin(s.tablePrefix + "board_members as bm on b.id=bm.board_id").
+		From("boards as b").
+		LeftJoin("board_members as bm on b.id=bm.board_id").
 		Where(sq.Eq{"b.is_template": false})
 
 	if includePublicBoards {
@@ -673,7 +675,18 @@ func (s *SQLStore) searchBoardsForUser(db sq.BaseRunner, term string, searchFiel
 		if searchField == model.BoardSearchFieldPropertyName {
 			switch s.dbType {
 			case model.PostgresDBType:
-				where := "b.properties->? is not null"
+				// The cast is not decoration: `properties` is a text column in
+				// all three dialects (tools/schemagen, KindJSON), and Postgres
+				// has no `->` for text — this branch answered
+				// "operator does not exist: text -> unknown" for every search
+				// by property name. Nobody saw it because nothing ever ran the
+				// store against a Postgres. NULLIF because a board that has
+				// never had properties holds '', which is not a JSON document
+				// and would make the cast throw rather than match nothing.
+				//
+				// The column wanting to *be* json is a separate change: the
+				// writers have to stop putting '' there first (step 0).
+				where := "NULLIF(b.properties, '')::json->? is not null"
 				query = query.Where(where, term)
 			case model.MysqlDBType, model.SqliteDBType:
 				where := "JSON_EXTRACT(b.properties, ?) IS NOT NULL"
@@ -714,8 +727,8 @@ func (s *SQLStore) searchBoardsForUserInTeam(db sq.BaseRunner, teamID, term, use
 	query := s.getQueryBuilder(db).
 		Select(boardFields("b.")...).
 		Distinct().
-		From(s.tablePrefix + "boards as b").
-		LeftJoin(s.tablePrefix + "board_members as bm on b.id=bm.board_id").
+		From("boards as b").
+		LeftJoin("board_members as bm on b.id=bm.board_id").
 		Where(sq.Eq{"b.is_template": false}).
 		Where(sq.Eq{"b.team_id": teamID}).
 		Where(sq.Or{
@@ -760,7 +773,7 @@ func (s *SQLStore) getBoardHistory(db sq.BaseRunner, boardID string, opts model.
 
 	query := s.getQueryBuilder(db).
 		Select(boardHistoryFields()...).
-		From(s.tablePrefix + "boards_history").
+		From("boards_history").
 		Where(sq.Eq{"id": boardID}).
 		OrderBy("insert_at " + order + ", update_at" + order)
 
@@ -833,6 +846,7 @@ func (s *SQLStore) undeleteBoard(db sq.BaseRunner, boardID string, modifiedBy st
 		"create_at",
 		"update_at",
 		"delete_at",
+		"insert_at",
 	}
 
 	values := []interface{}{
@@ -854,11 +868,12 @@ func (s *SQLStore) undeleteBoard(db sq.BaseRunner, boardID string, modifiedBy st
 		board.CreateAt,
 		now,
 		0,
+		utils.NextInsertAt(),
 	}
-	insertHistoryQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "boards_history").
+	insertHistoryQuery := s.getQueryBuilder(db).Insert("boards_history").
 		Columns(columns...).
 		Values(values...)
-	insertQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "boards").
+	insertQuery := s.getQueryBuilder(db).Insert("boards").
 		Columns(columns...).
 		Values(values...)
 
@@ -876,7 +891,7 @@ func (s *SQLStore) undeleteBoard(db sq.BaseRunner, boardID string, modifiedBy st
 func (s *SQLStore) getBoardMemberHistory(db sq.BaseRunner, boardID, userID string, limit uint64) ([]*model.BoardMemberHistoryEntry, error) {
 	query := s.getQueryBuilder(db).
 		Select("board_id", "user_id", "action", "insert_at").
-		From(s.tablePrefix + "board_members_history").
+		From("board_members_history").
 		Where(sq.Eq{"board_id": boardID}).
 		Where(sq.Eq{"user_id": userID}).
 		OrderBy("insert_at DESC")

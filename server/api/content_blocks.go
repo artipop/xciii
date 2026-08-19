@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 )
 
@@ -85,11 +84,6 @@ func (a *API) handleMoveBlockTo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "moveBlockTo", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("blockID", blockID)
-	auditRec.AddMeta("dstBlockID", dstBlockID)
-
 	err = a.app.MoveContentBlock(block, dstBlock, where, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -99,5 +93,4 @@ func (a *API) handleMoveBlockTo(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonStringResponse(w, http.StatusOK, "{}")
 
-	auditRec.Success()
 }

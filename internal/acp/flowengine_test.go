@@ -10,12 +10,13 @@ import (
 // flowEvent is a card move onto a named column of the flow property.
 func flowEvent(cardID, project, from, to string) CardMoved {
 	return CardMoved{
-		EventID: "ev-" + cardID + "-" + to,
-		CardID:  cardID,
-		BoardID: "board1",
-		Title:   "Test task",
-		Body:    "Do nothing useful.",
-		Props:   map[string]string{"repo_path": project, "branch": flowTestBranch},
+		EventID:     "ev-" + cardID + "-" + to,
+		CardID:      cardID,
+		BoardID:     "board1",
+		Title:       "Test task",
+		Body:        "Do nothing useful.",
+		Props:       map[string]string{"branch": flowTestBranch},
+		OptionNames: []string{testWorkdirName},
 		FromColumn: Column{PropertyID: "p1", PropertyName: "Status",
 			OptionID: "opt-" + strings.ToLower(from), Name: from},
 		ToColumn: Column{PropertyID: "p1", PropertyName: "Status",
@@ -27,13 +28,26 @@ func flowEvent(cardID, project, from, to string) CardMoved {
 // flowManager is testManager with one route registered.
 func flowManager(t *testing.T, scenario string, flow FlowEntry) (*Manager, *fakeWriter, *fakeEvents, string) {
 	t.Helper()
-	m, w, ev, project := testManager(t, scenario, func(c *Config) { c.Flows = []FlowEntry{flow} })
+	return flowManagerWith(t, scenario, flow, nil)
+}
+
+// flowManagerWith is flowManager for a test that also has to say what the
+// registry holds: the route is validated against it while the manager is built.
+func flowManagerWith(t *testing.T, scenario string, flow FlowEntry, mutate func(*Config)) (*Manager, *fakeWriter, *fakeEvents, string) {
+	t.Helper()
+	m, w, ev, project := testManager(t, scenario, func(c *Config) {
+		c.Flows = []FlowEntry{flow}
+		if mutate != nil {
+			mutate(c)
+		}
+	})
 	// Re-reading a card gives back what it says, branch included — the real
 	// reader does, and the route asks it again on every transition.
 	m.SetBoardReader(&fakeReader{ev: CardMoved{
-		BoardID: "board1",
-		Title:   "Test task",
-		Props:   map[string]string{"repo_path": project, "branch": flowTestBranch},
+		BoardID:     "board1",
+		Title:       "Test task",
+		Props:       map[string]string{"branch": flowTestBranch},
+		OptionNames: []string{testWorkdirName},
 	}})
 	// The cards below name the branch their work lives on, and a session bases
 	// its worktree on it — so it has to exist, as it would on a real board.
@@ -66,13 +80,13 @@ func TestFlowAdvancesOnSessionSuccess(t *testing.T) {
 	if err != nil || len(history) == 0 {
 		t.Fatalf("flow events: %v, %v", history, err)
 	}
-	if last := history[len(history)-1]; last.Flow != "feature" || last.ToNode != "review" {
+	if last := history[len(history)-1]; last.FlowID == "" || last.ToNode != "review" {
 		t.Fatalf("the transition was not recorded: %+v", last)
 	}
 
 	// And the card's position is remembered, so the next event knows where it is.
 	st, ok, err := m.store.FlowStateForCard("card1")
-	if err != nil || !ok || st.NodeID != "review" || st.Flow != "feature" {
+	if err != nil || !ok || st.NodeID != "review" || st.FlowID == "" {
 		t.Fatalf("flow state: %+v, %v, %v", st, ok, err)
 	}
 	if st.Branch != "feat/x" || st.WorkdirPath != project {
@@ -128,17 +142,25 @@ func TestFlowWithoutAnEdgeLeavesTheCardPut(t *testing.T) {
 // the column's crew. The stage's worker landing in the assignee is the
 // observable.
 func TestQueuedStageKeepsItsCrew(t *testing.T) {
+	// The crew is ids, so the fixture registers the agents under known ones
+	// rather than naming them: a name is no longer a way to point at an agent.
+	const stageAgent = "ag-stage"
 	flow := sampleFlow()
-	flow.Nodes[0].AgentNames = []string{"агент-стадии"}
-	m, _, events, project := flowManager(t, fakeClaudeHang, flow)
-	m.cfgMu.Lock()
-	m.cfg.Agents = []AgentEntry{
-		{Name: "агент-стадии", Kind: "claude"},
-		{Name: "другой", Kind: "claude"},
-	}
-	// One at a time in the column, so the second card has to queue.
-	m.cfg.Columns = []ColumnSpec{{Property: "Status", Column: "To Agent", Action: FlowActionAgent, MaxRunning: 1}}
-	m.cfgMu.Unlock()
+	flow.Nodes[0].AgentIDs = []string{stageAgent}
+	// The registry has to be in place before the route is validated, so it goes
+	// into the config the manager is built from rather than being assigned over
+	// it afterwards.
+	m, _, events, project := flowManagerWith(t, fakeClaudeHang, flow, func(c *Config) {
+		c.Agents = []AgentEntry{
+			{ID: stageAgent, Name: "агент-стадии", Kind: "claude"},
+			{ID: "ag-other", Name: "другой", Kind: "claude"},
+		}
+		// One at a time in the column, so the second card has to queue.
+		c.Columns = []ColumnSpec{{
+			BoardID: "board1", PropertyID: "p1", OptionID: "opt-to agent",
+			Property: "Status", Column: "To Agent", Action: FlowActionAgent, MaxRunning: 1,
+		}}
+	})
 	users := &fakeBoardUsers{}
 	m.SetBoardUsers(users)
 
@@ -240,9 +262,9 @@ func TestFlowIgnoresOtherProperties(t *testing.T) {
 
 func TestLegacyColumnsStillWorkWithoutAFlow(t *testing.T) {
 	// No flow registered: the standalone trigger columns keep their behaviour.
-	m, _, events, project := testManager(t, fakeClaudeHappy, nil)
+	m, _, events, _ := testManager(t, fakeClaudeHappy, nil)
 
-	events.ch <- moveEvent("card7", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("card7", "opt-backlog", "opt-agent")
 
 	waitFor(t, 20*time.Second, "legacy session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("card7")

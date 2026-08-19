@@ -50,7 +50,7 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
             return
         }
         const currentMatch = match()
-        const newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), {...currentMatch.params, teamId, boardId, viewId: undefined})
+        const newPath = Utils.generatePath(currentMatch.path, {...currentMatch.params, teamId, boardId, viewId: undefined})
         navigate(newPath)
         props.onClose()
     }

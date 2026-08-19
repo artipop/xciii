@@ -14,6 +14,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/artipop/xciii/internal/acp"
+	"github.com/artipop/xciii/internal/appschema"
 	"github.com/artipop/xciii/internal/boardmcp"
 )
 
@@ -22,7 +23,7 @@ type recordingWriter struct {
 	cards    []acp.NewCard
 	edits    map[string]acp.CardEdit
 	comments map[string][]string
-	fields map[string]map[string]string
+	fields   map[string]map[string]string
 }
 
 func (w *recordingWriter) AddComment(_ context.Context, cardID, text string) error {
@@ -114,11 +115,12 @@ func (r *recordingReader) cards() []acp.CardMoved {
 // routes in front of it, and an address an agent's MCP client can reach.
 func toolsBoard(t *testing.T) (*acp.Manager, *recordingWriter, string) {
 	t.Helper()
-	store, err := acp.OpenStore(filepath.Join(t.TempDir(), "acp.db"))
+	db, err := appschema.Open(filepath.Join(t.TempDir(), "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = store.Close() })
+	t.Cleanup(func() { _ = db.Close() })
+	store := acp.NewStore(db)
 
 	writer := &recordingWriter{}
 	cfg := acp.DefaultConfig(t.TempDir())

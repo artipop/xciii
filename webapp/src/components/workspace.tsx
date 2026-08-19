@@ -7,8 +7,8 @@ import {FormattedMessage} from '../intl'
 
 import {DatePropertyType} from '../properties/types'
 
-import {getCurrentBoard, isLoadingBoard, getTemplates} from '../store/boards'
-import {getCardLimitTimestamp, getCurrentBoardHiddenCardsCount, getCurrentViewCardsSortedFilteredAndGrouped} from '../store/cards'
+import {getCurrentBoard, isLoadingBoard} from '../store/boards'
+import {getCurrentViewCardsSortedFilteredAndGrouped} from '../store/cards'
 import {
     getCurrentBoardViews,
     getCurrentViewGroupBy,
@@ -48,15 +48,12 @@ function CenterContent(props: Props) {
     const isLoading = useAppSelector(isLoadingBoard)
     const match = useRouteMatch()
     const board = useAppSelector(getCurrentBoard)
-    const templates = useAppSelector(getTemplates)
     const cards = useAppSelector(getCurrentViewCardsSortedFilteredAndGrouped)
     const activeView = useAppSelector(getCurrentView)
     const views = useAppSelector(getCurrentBoardViews)
     const groupByProperty = useAppSelector(getCurrentViewGroupBy)
     const dateDisplayProperty = useAppSelector(getCurrentViewDisplayBy)
     const clientConfig = useAppSelector(getClientConfig)
-    const hiddenCardsCount = useAppSelector(getCurrentBoardHiddenCardsCount)
-    const cardLimitTimestamp = useAppSelector(getCardLimitTimestamp)
     const navigate = useNavigate()
     const {actions} = useAppStore()
     const me = useAppSelector<IUser|null>(getMe)
@@ -69,7 +66,7 @@ function CenterContent(props: Props) {
     const showCard = (cardId?: string) => {
         const currentMatch = match()
         const params = {...currentMatch.params, cardId}
-        let newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), params)
+        let newPath = Utils.generatePath(currentMatch.path, params)
         if (props.readonly) {
             newPath += `?r=${Utils.getReadToken()}`
         }
@@ -78,21 +75,10 @@ function CenterContent(props: Props) {
     }
 
     createEffect(() => {
-        const currentCardLimitTimestamp = cardLimitTimestamp()
-        const currentTemplates = templates()
-
         const onConfigChangeHandler = (_: WSClient, config: ClientConfig) => {
             actions.clientConfig.setClientConfig(config)
         }
         wsClient.addOnConfigChange(onConfigChangeHandler)
-
-        const onCardLimitTimestampChangeHandler = (_: WSClient, timestamp: number) => {
-            actions.cards.setLimitTimestamp({timestamp, templates: currentTemplates})
-            if (currentCardLimitTimestamp > timestamp) {
-                actions.cards.refreshCards(timestamp)
-            }
-        }
-        wsClient.addOnCardLimitTimestampChange(onCardLimitTimestampChangeHandler)
 
         onCleanup(() => {
             wsClient.removeOnConfigChange(onConfigChangeHandler)
@@ -113,7 +99,6 @@ function CenterContent(props: Props) {
                     defaultMessage='Add a board to the sidebar using any of the templates defined below or start from scratch.'
                 />
             }
-            channelId={match().params.channelId}
         />
     )
 
@@ -135,14 +120,6 @@ function CenterContent(props: Props) {
 
     return (
         <Switch>
-            <Match when={match().params.channelId}>
-                <Show
-                    when={!me()?.is_guest}
-                    fallback={<GuestNoBoards/>}
-                >
-                    {templateSelector()}
-                </Show>
-            </Match>
             <Match when={board() && !isBoardHidden() && activeView()}>
                 <CenterPanel
                     clientConfig={clientConfig()}
@@ -155,7 +132,6 @@ function CenterContent(props: Props) {
                     groupByProperty={property()}
                     dateDisplayProperty={displayProperty()}
                     views={views()}
-                    hiddenCardsCount={hiddenCardsCount()}
                 />
             </Match>
             <Match when={(board() && !isBoardHidden()) || isLoading()}>

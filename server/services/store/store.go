@@ -3,14 +3,8 @@
 package store
 
 import (
-	"time"
-
 	"github.com/artipop/xciii/server/model"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
-
-const CardLimitTimestampSystemKey = "card_limit_timestamp"
 
 // Store represents the abstraction of the data storage.
 type Store interface {
@@ -68,8 +62,8 @@ type Store interface {
 	UpdateUserPasswordByID(userID, password string) error
 	GetUsersByTeam(teamID string, asGuestID string, showEmail, showName bool) ([]*model.User, error)
 	SearchUsersByTeam(teamID string, searchQuery string, asGuestID string, excludeBots bool, showEmail, showName bool) ([]*model.User, error)
-	PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (mmModel.Preferences, error)
-	GetUserPreferences(userID string) (mmModel.Preferences, error)
+	PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (model.Preferences, error)
+	GetUserPreferences(userID string) (model.Preferences, error)
 
 	GetActiveUserCount(updatedSecondsAgo int64) (int, error)
 	GetSession(token string, expireTime int64) (*model.Session, error)
@@ -130,8 +124,8 @@ type Store interface {
 
 	GetUserCategoryBoards(userID, teamID string) ([]model.CategoryBoards, error)
 
-	GetFileInfo(id string) (*mmModel.FileInfo, error)
-	SaveFileInfo(fileInfo *mmModel.FileInfo) error
+	GetFileInfo(id string) (*model.FileInfo, error)
+	SaveFileInfo(fileInfo *model.FileInfo) error
 
 	// @withTransaction
 	AddUpdateCategoryBoard(userID, categoryID string, boardIDs []string) error
@@ -146,36 +140,18 @@ type Store interface {
 	GetSubscribersCountForBlock(blockID string) (int, error)
 	UpdateSubscribersNotifiedAt(blockID string, notifiedAt int64) error
 
-	UpsertNotificationHint(hint *model.NotificationHint, notificationFreq time.Duration) (*model.NotificationHint, error)
-	DeleteNotificationHint(blockID string) error
-	GetNotificationHint(blockID string) (*model.NotificationHint, error)
-	GetNextNotificationHint(remove bool) (*model.NotificationHint, error)
-
 	RemoveDefaultTemplates(boards []*model.Board) error
 	GetTemplateBoards(teamID, userID string) ([]*model.Board, error)
 
 	// @withTransaction
-	RunDataRetention(globalRetentionDate int64, batchSize int64) (int64, error)
-
-	GetUsedCardsCount() (int, error)
-	GetCardLimitTimestamp() (int64, error)
-	UpdateCardLimitTimestamp(cardLimit int) (int64, error)
 
 	DBType() string
 	DBVersion() string
 
-	GetLicense() *mmModel.License
-	SearchUserChannels(teamID, userID, query string) ([]*mmModel.Channel, error)
-	GetChannel(teamID, channelID string) (*mmModel.Channel, error)
 	PostMessage(message, postType, channelID string) error
 	SendMessage(message, postType string, receipts []string) error
 
 	GetUserTimezone(userID string) (string, error)
-
-	// Compliance
-	GetBoardsForCompliance(opts model.QueryBoardsForComplianceOptions) ([]*model.Board, bool, error)
-	GetBoardsComplianceHistory(opts model.QueryBoardsComplianceHistoryOptions) ([]*model.BoardHistory, bool, error)
-	GetBlocksComplianceHistory(opts model.QueryBlocksComplianceHistoryOptions) ([]*model.BlockHistory, bool, error)
 
 	// For unit testing only
 	DeleteBoardRecord(boardID, modifiedBy string) error

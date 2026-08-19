@@ -20,30 +20,21 @@ import (
 // AttentionTerminal measures silence and waits terminalQuietFor before saying
 // anything.
 //
-// A hook is the CLI's own way out of that. It is a command the CLI runs when it
-// needs a person, handing it the tool call on stdin and reading a decision back
-// off stdout; the command is this binary re-invoked (hook.go), and what it does
-// is put the question on the card and hold. Measured on Claude Code 2.1.233:
-// the payload carries the tool and its arguments, the hook may hold while
-// somebody thinks, and the decision it returns is honoured — see
-// docs/attention-hooks.md for the whole measurement.
+// A hook is the CLI's own way out of that: a command it runs when it needs a
+// person, handed the tool call on stdin and read for a decision on stdout. The
+// command is this binary re-invoked (hook.go), and what it does is put the
+// question on the card and hold. Measured on Claude Code 2.1.233 —
+// docs/attention-hooks.md.
 //
-// Two things this deliberately does not do.
+// Two things it deliberately does not do.
 //
-// It does not take the question away from the terminal. The CLI draws its own
-// box at the same time (a Notification with notification_type
-// "permission_prompt" arrives while the hook is still holding), so the person
-// looking at the terminal answers there and the person looking at the board
-// answers here, and whoever is first wins. That is what makes putting a
-// question of ours on screen legitimate at all: nothing of ours is drawn over
-// the CLI's screen, and nothing is hidden from it — the card is a second place
-// to answer, not a replacement. It is also why no answer is a safe outcome
-// rather than a stuck agent: the box is still there.
+// It does not take the question away from the terminal: the CLI draws its own
+// box at the same time, so the card is a second place to answer rather than a
+// replacement — which is what makes a question of ours on screen legitimate,
+// and why no answer leaves a standing box rather than a stuck agent.
 //
-// And it does not decide anything itself. A hook that answers on its own would
-// be a permission policy in a second place — autoAllowTools is where that
-// lives, on the session side, and duplicating it here would mean two rules for
-// one question.
+// And it decides nothing itself. A hook that answered on its own would be a
+// permission policy in a second place; autoAllowTools is where that lives.
 
 // ToolAsk is the hook's question: what the CLI is about to do, in the words its
 // vendor used. Only the fields both this and the CLI agree on are here — the
@@ -153,27 +144,19 @@ func (m *Manager) AskToolPermission(ctx context.Context, token string, ask ToolA
 // withdrawWhenAnsweredOnScreen ends the wait as soon as the CLI draws again,
 // which is what answering its own box makes it do.
 //
-// "Whoever is first wins" was true of the *agent* and false of everything a
-// person looks at. The box on the CLI's screen and the question on the card are
-// two places to answer one thing, and somebody answering on screen told this
-// side nothing at all: the hook went on holding, so the card, the page's
-// notification, the system's notification and the dot in the menu bar all went
-// on saying an agent was waiting for a decision it had already been given —
-// for the rest of hookHold, which is nearly a minute of a signal that is simply
-// untrue. Worse, the signals do not expire together: the notification a person
-// dismissed comes back the moment the agent stops again, so a stale one reads
-// as a fresh question.
+// "Whoever is first wins" is true of the agent and false of everything a person
+// looks at: answering on screen tells this side nothing, so the card and every
+// notification go on announcing a decision the agent already has, for the rest
+// of hookHold.
 //
-// The terminal does know. A permission box is a still frame — that is the whole
-// premise AttentionTerminal rests on — so output after the box has settled is
-// the person having pressed something. workedAt rather than lastOutput, because
-// opening the window to look at the question resizes the CLI and a TUI repaints
-// when it is resized: being looked at must not read as being answered
-// (resizeEcho).
+// The terminal does know. A permission box is a still frame — the premise
+// AttentionTerminal rests on — so output after the box has settled is the person
+// having pressed something. workedAt rather than lastOutput, because opening the
+// window resizes the CLI and a TUI repaints when resized: being looked at must
+// not read as being answered (resizeEcho).
 //
-// It is safe in the direction it can be wrong. Withdrawing leaves the CLI's own
-// box standing, which is where the question was to begin with, and the hook
-// answering nothing is the outcome this whole path already treats as ordinary.
+// Safe in the direction it can be wrong: withdrawing leaves the CLI's own box
+// standing, and a hook that answers nothing is already the ordinary outcome.
 func (m *Manager) withdrawWhenAnsweredOnScreen(ctx context.Context, t *TerminalSession) (context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(ctx)
 	if t == nil {

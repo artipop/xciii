@@ -16,7 +16,7 @@ import (
 
 // migrationSource is where the migrations come from, and they do not come off
 // the embedded filesystem as they are: every one is a text/template over the
-// dialect, the table prefix and a set of helpers, so what runs is the rendering
+// dialect, so what runs is the rendering
 // and never the file. golang-migrate reads its migrations through this
 // interface, so rendering is what sits behind it.
 //
@@ -40,7 +40,6 @@ func (s *SQLStore) NewMigrationSource() (source.Driver, error) {
 	}
 
 	params := map[string]interface{}{
-		"prefix":     s.tablePrefix,
 		"postgres":   s.dbType == model.PostgresDBType,
 		"sqlite":     s.dbType == model.SqliteDBType,
 		"mysql":      s.dbType == model.MysqlDBType,
@@ -81,7 +80,7 @@ func (s *SQLStore) renderMigration(name string, params map[string]interface{}) (
 		return nil, err
 	}
 
-	tmpl, err := template.New("sql").Funcs(s.GetTemplateHelperFuncs()).Parse(string(asset))
+	tmpl, err := template.New("sql").Parse(string(asset))
 	if err != nil {
 		return nil, err
 	}

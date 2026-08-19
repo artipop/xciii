@@ -348,33 +348,23 @@ func TestPermissionsSearchTeamBoards(t *testing.T) {
 	})
 }
 
-func TestPermissionsSearchTeamLinkableBoards(t *testing.T) {
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			// Search boards
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userNoTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userViewer, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userCommenter, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userEditor, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
-}
-
 func TestPermissionsGetTeamTemplates(t *testing.T) {
+	// How many templates ship is not what this test is about — it is about who
+	// may read team 0's. The count was a literal 13 and the archive has held 14
+	// for long enough that this test failed on every run, which is worse than
+	// useless: a permission regression would have looked like the failure
+	// everybody had learned to ignore. Asking the store how many were imported
+	// keeps the assertion about permissions and cannot go stale again.
+	var builtInTemplateCount int
 	extraSetup := func(t *testing.T, th *TestHelper) {
 		err := th.Server.App().InitTemplates()
 		require.NoError(t, err, "InitTemplates should succeed")
-	}
 
-	builtInTemplateCount := 13
+		templates, err := th.Server.App().GetTemplateBoards(model.GlobalTeamID, "")
+		require.NoError(t, err, "the imported templates should be readable")
+		require.NotEmpty(t, templates, "InitTemplates should have imported something")
+		builtInTemplateCount = len(templates)
+	}
 
 	ttCases := []TestCase{
 		// Get Team Boards
@@ -404,6 +394,11 @@ func TestPermissionsGetTeamTemplates(t *testing.T) {
 		extraSetup(t, th)
 		ttCases[1].expectedStatusCode = http.StatusOK
 		ttCases[1].totalResults = 1
+		for i := range ttCases {
+			if ttCases[i].url == "/teams/0/templates" && ttCases[i].expectedStatusCode == http.StatusOK {
+				ttCases[i].totalResults = builtInTemplateCount
+			}
+		}
 		runTestCases(t, ttCases, testData, clients)
 	})
 }
@@ -2957,33 +2952,6 @@ func TestPermissionsDeleteSubscription(t *testing.T) {
 	})
 }
 
-func TestPermissionsOnboard(t *testing.T) {
-	ttCases := []TestCase{
-		{"/teams/test-team/onboard", methodPost, "", userAnon, http.StatusUnauthorized, 0},
-		{"/teams/test-team/onboard", methodPost, "", userNoTeamMember, http.StatusForbidden, 0},
-		{"/teams/test-team/onboard", methodPost, "", userTeamMember, http.StatusOK, 1},
-		{"/teams/test-team/onboard", methodPost, "", userViewer, http.StatusOK, 1},
-		{"/teams/test-team/onboard", methodPost, "", userCommenter, http.StatusOK, 1},
-		{"/teams/test-team/onboard", methodPost, "", userEditor, http.StatusOK, 1},
-		{"/teams/test-team/onboard", methodPost, "", userAdmin, http.StatusOK, 1},
-		{"/teams/test-team/onboard", methodPost, "", userGuest, http.StatusForbidden, 0},
-	}
-
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-
-		err := th.Server.App().InitTemplates()
-		require.NoError(t, err, "InitTemplates should not fail")
-
-		ttCases[1].expectedStatusCode = http.StatusOK
-		ttCases[1].totalResults = 1
-		runTestCases(t, ttCases, testData, clients)
-	})
-}
-
 func TestPermissionsBoardArchiveExport(t *testing.T) {
 	ttCases := []TestCase{
 		{"/boards/{PUBLIC_BOARD_ID}/archive/export", methodGet, "", userAnon, http.StatusUnauthorized, 0},
@@ -3185,60 +3153,8 @@ func TestPermissionsMinimumRolesApplied(t *testing.T) {
 	})
 }
 
-func TestPermissionsChannels(t *testing.T) {
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/channels", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/channels", methodGet, "", userNoTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userViewer, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userCommenter, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userEditor, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
-}
-
-func TestPermissionsChannel(t *testing.T) {
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userNoTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userViewer, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userCommenter, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userEditor, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
-}
-
-func TestPermissionsGetStatistics(t *testing.T) {
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/statistics", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/statistics", methodGet, "", userNoTeamMember, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userTeamMember, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userViewer, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userCommenter, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userEditor, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userAdmin, http.StatusNotImplemented, 1},
-			{"/statistics", methodGet, "", userGuest, http.StatusForbidden, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
-}
+// What used to stand here: TestPermissionsChannels and TestPermissionsChannel,
+// the permission tests for two endpoints that listed Mattermost channels. This
+// product has no channels, the store answered "not implemented", and both
+// endpoints are gone. TestPermissionsGetStatistics went the same way with
+// GET /statistics, which counted boards and cards for a page that never asked.

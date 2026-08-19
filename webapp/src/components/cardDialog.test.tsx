@@ -326,37 +326,6 @@ describe('components/cardDialog', () => {
         expect(container).toMatchSnapshot()
     })
 
-    test('limited card shows hidden view (no toolbar)', async () => {
-        // simply doing {...state} gives a TypeScript error
-        // when you try updating it's values.
-        const newState = JSON.parse(JSON.stringify(state))
-        const limitedCard = {...card, limited: true}
-        newState.cards = {
-            cards: {
-                [limitedCard.id]: limitedCard,
-            },
-            current: limitedCard.id,
-        }
-
-        const newStore = mockAppStore(newState)
-
-        const {container} = render(() => wrapDNDIntl(() =>
-            <AppStoreProvider store={newStore}>
-                <CardDialog
-                    board={board}
-                    activeView={boardView}
-                    views={[boardView]}
-                    cards={[limitedCard]}
-                    cardId={limitedCard.id}
-                    onClose={vi.fn()}
-                    showCard={vi.fn()}
-                    readonly={false}
-                />
-            </AppStoreProvider>,
-        ))
-        expect(container).toMatchSnapshot()
-    })
-
     // A board of household chores is a board. The agent integration being
     // compiled in is not a reason to offer a terminal on a machine that has
     // nobody to open one with.

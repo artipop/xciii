@@ -94,13 +94,16 @@ func TestProjectrtTestRunPassMovesTheCardAndAttachsEvidence(t *testing.T) {
 		t.Fatalf("attachment contents: %q", attached[0].data)
 	}
 
-	moves := w.cardMoves()
-	if len(moves) != 1 || moves[0].option != m.cfg.TestPassColumn || moves[0].property != m.cfg.TriggerProperty {
-		t.Fatalf("moves: %+v", moves)
+	// The verdict lands on the card, and nothing moves it: a card on a route is
+	// moved by the route reading that verdict, and a card that is not on one
+	// stays where it is. The machine's settings used to name a column to send it
+	// to, which named a column on everybody's board (contradiction 9).
+	if moves := w.cardMoves(); len(moves) != 0 {
+		t.Fatalf("a test with no route behind it moved the card: %+v", moves)
 	}
 }
 
-func TestProjectrtTestRunFailListsBugsAndMovesToFailed(t *testing.T) {
+func TestProjectrtTestRunFailListsTheBugs(t *testing.T) {
 	m, w, s := testSession(t, nil)
 	writeRun(t, s.Test.Artifacts, TestResult{
 		Verdict: VerdictFail,
@@ -116,8 +119,8 @@ func TestProjectrtTestRunFailListsBugsAndMovesToFailed(t *testing.T) {
 			t.Fatalf("comment is missing %q:\n%s", want, comment)
 		}
 	}
-	if moves := w.cardMoves(); len(moves) != 1 || moves[0].option != m.cfg.TestFailColumn {
-		t.Fatalf("moves: %+v", moves)
+	if moves := w.cardMoves(); len(moves) != 0 {
+		t.Fatalf("a failed test with no route behind it moved the card: %+v", moves)
 	}
 }
 
@@ -180,16 +183,9 @@ func TestProjectrtTestRunOnABrokenOffTurnStillReports(t *testing.T) {
 	}
 }
 
-func TestProjectrtTestRunHonoursUnconfiguredColumns(t *testing.T) {
-	m, w, s := testSession(t, func(c *Config) { c.TestPassColumn = "" })
-	writeRun(t, s.Test.Artifacts, TestResult{Verdict: VerdictPass, Summary: "ок"})
-
-	m.reportTestRun(s, "", nil)
-
-	if moves := w.cardMoves(); len(moves) != 0 {
-		t.Fatalf("an empty column name must leave the card where it is: %+v", moves)
-	}
-}
+// What used to stand here: a test that an empty column name in the machine's
+// settings left the card where it was. There is no such name any more, and
+// leaving the card alone is what always happens now.
 
 func TestProjectrtTestRunCapsAttachments(t *testing.T) {
 	m, w, s := testSession(t, nil)

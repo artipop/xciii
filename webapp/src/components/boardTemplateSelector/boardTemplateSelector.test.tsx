@@ -8,8 +8,6 @@ import {IUser} from '../../user'
 import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
-import TelemetryClient from '../../telemetry/telemetryClient'
-
 import BoardTemplateSelector from './boardTemplateSelector'
 
 // The client is a default export, and a factory has to say so: babel's CJS
@@ -24,9 +22,6 @@ vi.mock('../../octoClient', () => {
 })
 vi.mock('../../utils')
 vi.mock('../../mutator')
-
-vi.mock('../../telemetry/telemetryClient')
-const mockedTelemetry = vi.mocked(TelemetryClient)
 
 describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     const mockedMutator = vi.mocked(Mutator)
@@ -174,18 +169,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
         store = mockAppStore(state)
         vi.useRealTimers()
     })
-    describe('not a plugin deployment', () => {
-        test('should match snapshot', () => {
-            const {container} = render(() => wrapDNDIntl(() =>
-                <AppStoreProvider store={store}>
-                    <BoardTemplateSelector onClose={vi.fn()}/>
-                </AppStoreProvider>
-                ,
-            ), {wrapper: TestRouter})
-            expect(container).toMatchSnapshot()
-        })
-    })
-    describe('a plugin deployment', () => {
+    describe('the template picker', () => {
         test('should match snapshot', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
@@ -256,7 +240,6 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(divEmptyboard).not.toBeNull()
             userEvent.click(divEmptyboard!)
             expect(mockedMutator.addEmptyBoard).toHaveBeenCalledTimes(1)
-            await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledWith(newBoard, newBoard, 'linked channel'))
         })
         test('offers ours and the user’s own, and hides the upstream ones', () => {
             render(() => wrapDNDIntl(() =>
@@ -443,34 +426,6 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
 
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
-            await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledWith(newBoard, newBoard, 'linked channel'))
-        })
-
-        test('return BoardTemplateSelector and click to add board from template with channelId', async () => {
-            const newBoard = createBoard({id: 'new-board'} as Board)
-            mockedMutator.addBoardFromTemplate.mockResolvedValue({boards: [newBoard], blocks: []})
-
-            render(() => wrapDNDIntl(() =>
-                <AppStoreProvider store={store}>
-                    <BoardTemplateSelector
-                        onClose={vi.fn()}
-                        channelId='test-channel'
-                    />
-                </AppStoreProvider>
-                ,
-            ), {wrapper: TestRouter})
-            const divBoardToSelect = screen.getByText(globalTemplateTitle).parentElement
-            expect(divBoardToSelect).not.toBeNull()
-
-            userEvent.click(divBoardToSelect!)
-
-            const useTemplateButton = screen.getByText('Use this template').parentElement
-            expect(useTemplateButton).not.toBeNull()
-            userEvent.click(useTemplateButton!)
-
-            await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledTimes(1))
-            await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
-            await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledWith({...newBoard, channelId: 'test-channel'}, newBoard, 'linked channel'))
         })
 
         test('return BoardTemplateSelector and click to add board from global template', async () => {
@@ -493,8 +448,6 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             userEvent.click(useTemplateButton!)
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
-            await waitFor(() => expect(mockedTelemetry.trackEvent).toHaveBeenCalledWith('boards', 'createBoardViaTemplate', {boardTemplateId: 'template_id_global'}))
-            await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledWith(newBoard, newBoard, 'linked channel'))
         })
     })
 })

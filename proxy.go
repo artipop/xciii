@@ -30,13 +30,10 @@ import (
 // plugin builds where nothing injects this script at all.
 //
 // The catch-all runs in the capture phase and covers *every* absolute http(s)
-// anchor, not just target=_blank ones without an inline handler. Markdown links
-// (a card comment reporting a preview address, say) are rendered with an inline
-// onclick calling openInNewBrowser, and an earlier version deferred to it —
-// which left the link dead whenever that handler did not run, with nothing to
-// see: the webview cannot navigate to an outside origin either, so a click did
-// nothing at all. Capturing first and stopping propagation makes this the one
-// path out, inline handler or not.
+// anchor, not only target=_blank ones without an inline handler: deferring to
+// an inline handler leaves the link dead wherever that handler does not run,
+// and the webview cannot navigate to an outside origin either, so the click
+// does nothing at all. Capturing first makes this the one path out.
 //
 // There is deliberately no window.webSocketBaseURL here, which under v2 told
 // the webapp's socket client the board server's own address. The page, the API

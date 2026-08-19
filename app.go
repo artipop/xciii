@@ -678,13 +678,13 @@ func (a *App) UpdateFlow(entryJSON string) (string, error) {
 	return string(out), nil
 }
 
-// RemoveFlow deletes a board's route by name. Cards standing on it simply stop
+// RemoveFlow deletes a board's route by id. Cards standing on it simply stop
 // moving by themselves.
-func (a *App) RemoveFlow(boardID, name string) error {
+func (a *App) RemoveFlow(boardID, flowID string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.RemoveFlow(boardID, name)
+	return a.mgr.RemoveFlow(boardID, flowID)
 }
 
 // ExportBoardAutomation returns what a board runs — its columns and its routes

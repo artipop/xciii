@@ -10,9 +10,8 @@
 // What did not come across is the machinery around it — log targets configured
 // from JSON, file rotation, formatters, a level per target. None of it was
 // reachable here: the app builds its logger with no targets at all, so until now
-// every line the server logged went nowhere, and the audit service is handed an
-// empty config, so its records went nowhere either. A logger that writes to
-// stderr is strictly more than this app had.
+// every line the server logged went nowhere. A logger that writes to stderr is
+// strictly more than this app had.
 package mlog
 
 import (
@@ -30,9 +29,10 @@ import (
 // Field is one key and value on a log line.
 type Field = slog.Attr
 
-// Level is a severity. It is a struct rather than a number because the audit
-// service defines levels of its own (`auth`, `mod`, `read`) and the telemetry
-// service another, and they are named in the output rather than ranked.
+// Level is a severity. It is a struct rather than a number because upstream let
+// a service define levels of its own, named in the output rather than ranked.
+// Nothing does now that the audit service is gone; the shape stays because the
+// call sites below are written against it.
 type Level struct {
 	ID         int
 	Name       string
@@ -42,8 +42,8 @@ type Level struct {
 // String makes a Level printable, which is how a custom level reaches the line.
 func (l Level) String() string { return l.Name }
 
-// The levels the server logs at. The IDs match Mattermost's, since audit and
-// telemetry pick numbers well above them to stay clear.
+// The levels the server logs at. The IDs match Mattermost's; a service that
+// made up a level of its own picked numbers well above them to stay clear.
 var (
 	LvlPanic = Level{ID: 0, Name: "panic"}
 	LvlFatal = Level{ID: 1, Name: "fatal"}
@@ -54,9 +54,9 @@ var (
 	LvlTrace = Level{ID: 6, Name: "trace"}
 )
 
-// slogLevel ranks a level for slog. A level this package does not know — one the
-// audit or telemetry service made up — is a record somebody asked to be kept, so
-// it is logged at info rather than dropped.
+// slogLevel ranks a level for slog. A level this package does not know is a
+// record somebody asked to be kept, so it is logged at info rather than
+// dropped.
 func (l Level) slogLevel() slog.Level {
 	switch l.ID {
 	case LvlPanic.ID, LvlFatal.ID, LvlError.ID:
@@ -93,8 +93,9 @@ type LogCloner interface {
 	LogClone() interface{}
 }
 
-// Option configures a logger at construction. Nothing passes one today; the
-// audit service takes them because upstream's did.
+// Option configures a logger at construction. Nothing passes one today — the
+// audit service was the last caller — and it stays because NewLogger is called
+// from thirty places that would all have to change to drop it.
 type Option func(*Logger) error
 
 // Logger writes log lines.
@@ -127,10 +128,9 @@ func StdWriter(w io.Writer) Option {
 	}
 }
 
-// Discard builds a logger that writes nothing until something configures it.
-// The audit service starts this way: it records something for every request, and
-// what it records is meant for a file nobody has asked for — writing it to the
-// console instead would bury everything else.
+// Discard builds a logger that writes nothing. The audit service started this
+// way, recording every request into a file nobody had asked for; nothing uses it
+// since that service was deleted.
 func Discard() Option { return StdWriter(io.Discard) }
 
 // testingT is the part of *testing.T this package needs, named here so that
@@ -175,8 +175,8 @@ func (l *Logger) write(level Level, msg string, fields ...Field) {
 	}
 	args := make([]any, 0, len(fields)+1)
 	if level.ID >= LvlTrace.ID+1 {
-		// A level of the audit or telemetry service's own: name it, since slog
-		// has nowhere else to put it.
+		// A level this package did not define: name it, since slog has nowhere
+		// else to put it.
 		args = append(args, slog.String("level", level.Name))
 	}
 	for _, f := range fields {

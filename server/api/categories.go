@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 )
 
@@ -70,9 +69,6 @@ func (a *API) handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "createCategory", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
 
@@ -108,8 +104,6 @@ func (a *API) handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.AddMeta("categoryID", createdCategory.ID)
-	auditRec.Success()
 }
 
 func (a *API) handleUpdateCategory(w http.ResponseWriter, r *http.Request) {
@@ -164,9 +158,6 @@ func (a *API) handleUpdateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "updateCategory", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
 	if categoryID != category.ID {
 		a.errorResponse(w, r, model.NewErrBadRequest("categoryID mismatch in patch and body"))
 		return
@@ -205,7 +196,6 @@ func (a *API) handleUpdateCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }
 
 func (a *API) handleDeleteCategory(w http.ResponseWriter, r *http.Request) {
@@ -244,9 +234,6 @@ func (a *API) handleDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	teamID := r.PathValue("teamID")
 	categoryID := r.PathValue("categoryID")
 
-	auditRec := a.makeAuditRecord(r, "deleteCategory", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
 	if !a.permissions.HasPermissionToTeam(session.UserID, teamID, model.PermissionViewTeam) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
 		return
@@ -265,7 +252,6 @@ func (a *API) handleDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }
 
 func (a *API) handleGetUserCategoryBoards(w http.ResponseWriter, r *http.Request) {
@@ -302,9 +288,6 @@ func (a *API) handleGetUserCategoryBoards(w http.ResponseWriter, r *http.Request
 
 	teamID := r.PathValue("teamID")
 
-	auditRec := a.makeAuditRecord(r, "getUserCategoryBoards", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
 	if !a.permissions.HasPermissionToTeam(session.UserID, teamID, model.PermissionViewTeam) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
 		return
@@ -323,7 +306,6 @@ func (a *API) handleGetUserCategoryBoards(w http.ResponseWriter, r *http.Request
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }
 
 func (a *API) handleUpdateCategoryBoard(w http.ResponseWriter, r *http.Request) {
@@ -360,9 +342,6 @@ func (a *API) handleUpdateCategoryBoard(w http.ResponseWriter, r *http.Request) 
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	auditRec := a.makeAuditRecord(r, "updateCategoryBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
 	categoryID := r.PathValue("categoryID")
 	boardID := r.PathValue("boardID")
 	teamID := r.PathValue("teamID")
@@ -384,7 +363,6 @@ func (a *API) handleUpdateCategoryBoard(w http.ResponseWriter, r *http.Request) 
 	}
 
 	jsonBytesResponse(w, http.StatusOK, []byte("ok"))
-	auditRec.Success()
 }
 
 func (a *API) handleReorderCategories(w http.ResponseWriter, r *http.Request) {
@@ -436,12 +414,6 @@ func (a *API) handleReorderCategories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "reorderCategories", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
-	auditRec.AddMeta("TeamID", teamID)
-	auditRec.AddMeta("CategoryCount", len(newCategoryOrder))
-
 	updatedCategoryOrder, err := a.app.ReorderCategories(userID, teamID, newCategoryOrder)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -455,7 +427,6 @@ func (a *API) handleReorderCategories(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }
 
 func (a *API) handleReorderCategoryBoards(w http.ResponseWriter, r *http.Request) {
@@ -523,9 +494,6 @@ func (a *API) handleReorderCategoryBoards(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "reorderCategoryBoards", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-
 	updatedBoardsOrder, err := a.app.ReorderCategoryBoards(userID, teamID, categoryID, newBoardsOrder)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -539,7 +507,6 @@ func (a *API) handleReorderCategoryBoards(w http.ResponseWriter, r *http.Request
 	}
 
 	jsonBytesResponse(w, http.StatusOK, data)
-	auditRec.Success()
 }
 
 func (a *API) handleHideBoard(w http.ResponseWriter, r *http.Request) {
@@ -588,19 +555,12 @@ func (a *API) handleHideBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "hideBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("board_id", boardID)
-	auditRec.AddMeta("team_id", teamID)
-	auditRec.AddMeta("category_id", categoryID)
-
 	if err := a.app.SetBoardVisibility(teamID, userID, categoryID, boardID, false); err != nil {
 		a.errorResponse(w, r, err)
 		return
 	}
 
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }
 
 func (a *API) handleUnhideBoard(w http.ResponseWriter, r *http.Request) {
@@ -649,15 +609,10 @@ func (a *API) handleUnhideBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "unhideBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-
 	if err := a.app.SetBoardVisibility(teamID, userID, categoryID, boardID, true); err != nil {
 		a.errorResponse(w, r, err)
 		return
 	}
 
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }

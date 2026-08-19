@@ -37,7 +37,6 @@ const CopyLinkTourStep = (): JSX.Element | null => {
             title={title}
             punchout={punchout()}
             classname='CopyLinkTourStep'
-            telemetryTag='tourPoint3b'
             placement={'right-start'}
             imageURL={Utils.buildURL(copyLink, true)}
             hideBackdrop={true}

@@ -31,12 +31,10 @@ describe('src/components/gallery/Gallery', () => {
         },
         cards: {
             current: '',
-            limitTimestamp: 0,
             cards: {
                 [card.id]: card,
             },
             templates: {},
-            cardHiddenWarning: true,
         },
         teams: {
             current: {id: 'team-id'},
@@ -75,8 +73,6 @@ describe('src/components/gallery/Gallery', () => {
                     addCard={vi.fn()}
                     selectedCardIds={[card.id]}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -96,8 +92,6 @@ describe('src/components/gallery/Gallery', () => {
                     addCard={vi.fn()}
                     selectedCardIds={[card.id]}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -117,8 +111,6 @@ describe('src/components/gallery/Gallery', () => {
                     addCard={mockAddCard}
                     selectedCardIds={[card.id]}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -141,8 +133,6 @@ describe('src/components/gallery/Gallery', () => {
                     addCard={vi.fn()}
                     selectedCardIds={[card.id]}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -162,8 +152,6 @@ describe('src/components/gallery/Gallery', () => {
                     addCard={vi.fn()}
                     selectedCardIds={[]}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -175,69 +163,5 @@ describe('src/components/gallery/Gallery', () => {
         fireEvent.dragOver(drop)
         fireEvent.drop(drop)
         expect(mockedMutator.performAsUndoGroup).toHaveBeenCalledTimes(1)
-    })
-
-    test('limited card count check', () => {
-        const boardTest = TestBlockFactory.createBoard()
-        const card1 = TestBlockFactory.createCard(boardTest)
-        const card3 = TestBlockFactory.createCard(boardTest)
-        const stateTest = {
-            contents: {
-                contents: blocksById(contents),
-                contentsByCard: {
-                    [card.id]: [contents[0], contents[1]],
-                    [card2.id]: [contents[2]],
-                },
-            },
-            cards: {
-                current: '',
-                cards: {
-                    [card1.id]: card1,
-                    [card3.id]: card3,
-                },
-                templates: {},
-                cardHiddenWarning: true,
-                limitTimestamp: 2,
-            },
-            users: {
-                me: {
-                    id: 'user_id_1',
-                    props: {},
-                },
-            },
-            teams: {
-                current: {id: 'team-id'},
-            },
-            comments: {
-                comments: {},
-            },
-            boards: {
-                current: board.id,
-                boards: {
-                    [board.id]: board,
-                },
-                myBoardMemberships: {
-                    [board.id]: {userId: 'user_id_1', schemeAdmin: true},
-                },
-            },
-        }
-        const storeTest = mockAppStore(stateTest)
-        const {container, getByTitle} = render(() => wrapDNDIntl(() =>
-            <AppStoreProvider store={storeTest}>
-                <Gallery
-                    board={boardTest}
-                    cards={[card1, card3]}
-                    activeView={activeView}
-                    readonly={false}
-                    addCard={vi.fn()}
-                    selectedCardIds={[card1.id]}
-                    onCardClicked={vi.fn()}
-                    hiddenCardsCount={2}
-                    showHiddenCardCountNotification={vi.fn()}
-                />
-            </AppStoreProvider>,
-        ))
-        expect(getByTitle('hidden-card-count').innerHTML).toBe('<span>2</span>')
-        expect(container).toMatchSnapshot()
     })
 })

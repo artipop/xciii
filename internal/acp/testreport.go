@@ -33,11 +33,10 @@ func (m *Manager) reportTestRun(s *Session, finalText string, turnErr error) {
 	if err == nil && res.Verdict != "" {
 		m.writeStageFields(s, res.Verdict)
 	}
-	// A session that belongs to a flow is moved by the flow: two movers would
-	// fight over the card.
-	if err == nil && s.FlowName == "" {
-		m.moveAfterTest(s, res)
-	}
+	// A card on a route is moved by the route, reading the verdict just
+	// written. A card that is not on one stays where it is: the machine's
+	// settings no longer name a column to send it to, and a test column with no
+	// route is a column somebody works by hand.
 }
 
 // testOutcome maps a verdict onto the event the card's route moves on. No
@@ -163,28 +162,7 @@ func (m *Manager) attachTestArtifacts(s *Session, res TestResult) {
 	}
 }
 
-// moveAfterTest advances the card according to the verdict. A blocked run and
-// an unconfigured column both leave the card where it is: there is nothing to
-// say beyond the comment.
-func (m *Manager) moveAfterTest(s *Session, res TestResult) {
-	m.cfgMu.RLock()
-	property, pass, fail := m.cfg.TriggerProperty, m.cfg.TestPassColumn, m.cfg.TestFailColumn
-	m.cfgMu.RUnlock()
-
-	var column string
-	switch res.Verdict {
-	case VerdictPass:
-		column = strings.TrimSpace(pass)
-	case VerdictFail:
-		column = strings.TrimSpace(fail)
-	}
-	if column == "" {
-		return
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := m.writer.MoveCardByOptionName(ctx, s.CardID, property, column); err != nil {
-		m.log.Warn("acp: cannot move card after test", "card", s.CardID, "column", column, "err", err)
-		m.comment(s, fmt.Sprintf("Не удалось перевести карточку в колонку «%s»: %v", column, err))
-	}
-}
+// A test moves no card by itself: the stage writes its verdict onto the card
+// (writeStageFields) and a route's edge reads that property. A board with a
+// test column and no route leaves the card where it is, which is the answer
+// every unconfigured column gives — a person works it there.

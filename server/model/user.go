@@ -127,3 +127,20 @@ func (u *User) Sanitize(options map[string]bool) {
 		u.LastName = ""
 	}
 }
+
+// Preference is one thing a person chose, kept per (user, category, name) —
+// the `preferences` table, and mattermost's own shape for it: this is what the
+// board's REST API answers with and what the page has always read.
+//
+// Ours rather than mattermost's because the type is four strings and the
+// package it came from is a server this application does not have. The JSON
+// names are unchanged, so nothing on the page notices.
+type Preference struct {
+	UserId   string `json:"user_id"`
+	Category string `json:"category"`
+	Name     string `json:"name"`
+	Value    string `json:"value"`
+}
+
+// Preferences is what a person chose, in no particular order.
+type Preferences []Preference

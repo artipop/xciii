@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/artipop/xciii/internal/dokku"
+	"github.com/artipop/xciii/internal/secrets"
 	"github.com/artipop/xciii/internal/vcs"
 )
 
@@ -28,10 +29,14 @@ type Manager struct {
 	registryProbes map[string]func() bool
 	cfgPath        string // where registry edits are persisted; empty in tests
 	store          *Store
-	writer         BoardWriter
-	reader         BoardReader // optional; enables opening a console on a card
-	users          BoardUsers  // optional; enables assigning cards to an agent
-	meta           BoardMeta   // optional; lets a board bring its own columns and routes
+	// vault is where a credential this app presents to somebody else is kept —
+	// today the GitHub token for pull-request polling. Nil until SetSecrets,
+	// and nil for good on a build with no store; both read as "no token".
+	vault  secrets.Store
+	writer BoardWriter
+	reader BoardReader // optional; enables opening a console on a card
+	users  BoardUsers  // optional; enables assigning cards to an agent
+	meta   BoardMeta   // optional; lets a board bring its own columns and routes
 	// cards is where a card's own route position is kept — on the card, so it
 	// travels with it. Optional; without it the position lives in this
 	// machine's store alone and stays behind when the board moves.
@@ -74,16 +79,11 @@ type Manager struct {
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
 
-	// boardStored are the boards that now hold their own columns and routes
-	// (boardseed.go). Guarded by cfgMu, because it is exactly what decides
-	// which of them still go into config.json.
-	boardStored map[string]bool
-
 	// boardUnadopted is what a board carries that this machine cannot use — a
 	// column naming an agent nobody registered here, which is every column of
 	// a board that has just been imported. Kept verbatim and written back
 	// beside the registry's own, so that reading a board can never shrink it.
-	// Guarded by cfgMu, like boardStored.
+	// Guarded by cfgMu.
 	boardUnadopted map[string]unadopted
 
 	// questions are what agents are waiting to hear back on: one entry per open
@@ -107,7 +107,7 @@ type Manager struct {
 	optionsMu    sync.Mutex
 	optionsCache map[string][]AgentOption
 
-	watchers []vcs.Watcher // project watchers feeding the flow engine
+	watchers []vcs.Watcher // folder watchers feeding the flow engine
 
 	sem chan struct{}
 	// rootCtx is the running manager's, and it is nil until Start. What reads
@@ -157,18 +157,36 @@ func NewManager(cfg Config, cfgPath string, st *Store, w BoardWriter, ui UIEmitt
 	if tr.Enabled() {
 		ui = &tracingEmitter{inner: ui, tr: tr}
 	}
-	return &Manager{
-		cfg:      cfg,
-		cfgPath:  cfgPath,
-		store:    st,
-		writer:   w,
-		ui:       ui,
-		log:      log,
-		tr:       tr,
-		watchers: defaultWatchers(cfg),
-		active:   make(map[string]*Session),
-		byCard:   make(map[string]*Session),
-		sem:      make(chan struct{}, maxConc),
+	m := &Manager{
+		cfg:     cfg,
+		cfgPath: cfgPath,
+		store:   st,
+		writer:  w,
+		ui:      ui,
+		log:     log,
+		tr:      tr,
+		active:  make(map[string]*Session),
+		byCard:  make(map[string]*Session),
+		sem:     make(chan struct{}, maxConc),
+	}
+	// After the struct, because the GitHub watcher asks for a token and the
+	// token comes off the manager's own secret store (SetSecrets, which the
+	// caller may not have called yet — an absent token is the ordinary case).
+	m.watchers = m.defaultWatchers()
+	return m
+}
+
+// SetSecrets supplies the credential store. Optional: without one, a token can
+// still arrive through the environment, and most folders need none at all.
+func (m *Manager) SetSecrets(v secrets.Store) {
+	m.vault = v
+	// The GitHub watcher took its token when it was built, which was before
+	// this. Rebuild the default set so the token is the one just supplied —
+	// unless a test has replaced the watchers, in which case they are theirs.
+	if len(m.watchers) == 2 {
+		if _, ok := m.watchers[1].(*vcs.GitHub); ok {
+			m.watchers = m.defaultWatchers()
+		}
 	}
 }
 
@@ -193,9 +211,20 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 		}
 	}
 
+	// Before anything reads a registry: whichever side holds it. A database
+	// that already has entries is the truth; an empty one beside a populated
+	// settings file is the install that has just upgraded, and its file is
+	// carried in (registrymove.go). Failing here is not a reason to refuse to
+	// start — the registries are then whatever the file says, which is what
+	// every previous version did.
+	m.cfgMu.Lock()
+	if err := m.loadRegistriesLocked(); err != nil {
+		m.log.Error("acp: could not settle the registries", "err", err)
+	}
+	m.cfgMu.Unlock()
+
 	// Before anything can edit either side: whatever automation the file still
 	// carries goes onto the boards that own it (boardseed.go).
-	m.moveAutomationToBoards()
 
 	// The accounts the registry is named by. Registering an agent makes its
 	// own from now on, so this is only ever the catch-up for a registry that
@@ -209,7 +238,10 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 	m.ensureWorkdirIDs()
 
 	m.recover()
-	PruneStale(m.rootCtx, m.cfg.ProjectWhitelist)
+	// Worktrees whose directory has gone, pruned in the folders that could have
+	// one. The registry is the list now; it used to be the whitelist, which was
+	// about a card naming a path and never about where worktrees live.
+	PruneStale(m.rootCtx, m.workdirPaths())
 
 	ch, err := events.Subscribe(m.rootCtx)
 	if err != nil {
@@ -251,14 +283,15 @@ type startOptions struct {
 	// test makes this a test session: it resolves the card's preview address, is
 	// given the browser MCP tools and gets the tester prompt.
 	test bool
-	// projectName picks a folder explicitly, for a console opened on a card
+	// folderName picks a folder explicitly, for a console opened on a card
 	// that does not say which one it is about.
-	projectName string
-	// flowName/flowNodeID tie the session to the stage of a route that started
+	folderName string
+	// flowID/flowNodeID tie the session to the stage of a route that started
 	// it, so its outcome can move the card on.
-	flowName, flowNodeID string
+	flowID, flowNodeID string
 	// agentCrew/deployOverride let a flow node name the agents or the deploy
-	// target for its stage only, overriding the column's own.
+	// target for its stage only, overriding the column's own. The target is an
+	// id, because a name is what somebody renames (contradiction 8).
 	agentCrew      []string
 	deployOverride string
 	// column is the column the card landed in: who works it, how many at once,
@@ -319,7 +352,7 @@ func (o startOptions) crew() []string {
 	if len(o.agentCrew) > 0 {
 		return o.agentCrew
 	}
-	return o.column.Agents
+	return o.column.AgentIDs
 }
 
 // StartSessionForEvent creates and launches a session for a validated trigger
@@ -348,19 +381,19 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	}
 
 	workdirPath, err := m.resolveWorkdir(ev)
-	if opts.projectName != "" {
+	if opts.folderName != "" {
 		// An explicit choice wins: the console offers one exactly when the card
 		// itself does not say which folder it is about.
-		workdirPath, err = m.resolveNamedWorkdir(opts.projectName)
+		workdirPath, err = m.resolveNamedWorkdir(opts.folderName)
 	}
 	if err != nil {
 		return nil, err
 	}
-	deployName := opts.deployOverride
-	if deployName == "" {
-		deployName = opts.column.DeployName
+	deployID := opts.deployOverride
+	if deployID == "" {
+		deployID = opts.column.DeployID
 	}
-	deploy, deployBranch, err := m.resolveDeploy(ev, workdirPath, opts.deploy, deployName)
+	deploy, deployBranch, err := m.resolveDeploy(ev, workdirPath, opts.deploy, deployID)
 	if err != nil {
 		return nil, err
 	}
@@ -488,7 +521,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		ColumnName:   opts.column.Column,
 		Test:         test,
 		Artifacts:    artifacts,
-		FlowName:     opts.flowName,
+		FlowID:     opts.flowID,
 		FlowNodeID:   opts.flowNodeID,
 		NodeID:       firstNonEmpty(opts.flowNodeID, ev.ToColumn.OptionID, opts.column.OptionID, nodeNone),
 		Writes:       opts.declaredWrites(),
@@ -712,9 +745,8 @@ func (m *Manager) Shutdown(grace time.Duration) {
 	case <-time.After(grace):
 		m.log.Warn("acp: shutdown grace expired with sessions still winding down")
 	}
-	if m.store != nil {
-		_ = m.store.Close()
-	}
+	// The store is not closed here: the database is the board's, and the board
+	// outlives this manager by the length of its own shutdown.
 	m.tr.Close()
 }
 

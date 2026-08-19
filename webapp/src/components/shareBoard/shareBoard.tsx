@@ -9,7 +9,6 @@ import type {ComboboxOption} from '../../combobox'
 import {useAppSelector} from '../../store/hooks'
 import {useRouteMatch} from '../../hooks/routerMatch'
 import {getCurrentBoard, getCurrentBoardMembers} from '../../store/boards'
-import {Channel} from '../../store/channels'
 import {getMe, getBoardUsersList} from '../../store/users'
 
 import {ClientConfig} from '../../config/clientConfig'
@@ -20,11 +19,10 @@ import Tooltip from '../../widgets/tooltip'
 import mutator from '../../mutator'
 
 import {ISharing} from '../../blocks/sharing'
-import {BoardMember, createBoard, MemberRole} from '../../blocks/board'
+import {BoardMember, MemberRole} from '../../blocks/board'
 
 import client from '../../octoClient'
 import Dialog from '../dialog'
-import ConfirmationDialog from '../confirmationDialogBox'
 import {IUser} from '../../user'
 import Switch from '../../widgets/switch'
 import Button from '../../widgets/buttons/button'
@@ -32,8 +30,6 @@ import {sendFlashMessage} from '../flashMessages'
 import {Permission} from '../../constants'
 import GuestBadge from '../../widgets/guestBadge'
 import AdminBadge from '../../widgets/adminBadge/adminBadge'
-
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 
 import CompassIcon from '../../widgets/icons/compassIcon'
 import IconButton from '../../widgets/buttons/iconButton'
@@ -65,20 +61,18 @@ function isLastAdmin(members: BoardMember[]) {
     return true
 }
 
-// A person or a channel, as a row of the list: the two carry their name under
-// different keys, which is what `getOptionLabel` used to reconcile.
-const asShareOption = (userOrChannel: IUser | Channel): ComboboxOption<IUser | Channel> => ({
-    id: userOrChannel.id,
-    label: (userOrChannel as IUser).username || (userOrChannel as Channel).display_name,
-    data: userOrChannel,
+// A person as a row of the list.
+const asShareOption = (user: IUser): ComboboxOption<IUser> => ({
+    id: user.id,
+    label: user.username,
+    data: user,
 })
 
 export default function ShareBoardDialog(props: Props): JSX.Element {
     const [wasCopiedPublic, setWasCopiedPublic] = createSignal(false)
     const [wasCopiedInternal, setWasCopiedInternal] = createSignal(false)
-    const [showLinkChannelConfirmation, setShowLinkChannelConfirmation] = createSignal<Channel|null>(null)
     const [sharing, setSharing] = createSignal<ISharing|undefined>(undefined)
-    const [selectedUser, setSelectedUser] = createSignal<IUser|Channel|null>(null)
+    const [selectedUser, setSelectedUser] = createSignal<IUser|null>(null)
     const clientConfig = useAppSelector<ClientConfig>(getClientConfig)
 
     // members of the current board
@@ -116,20 +110,8 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
         const newSharing: ISharing = sharing() || createSharingInfo()
         newSharing.id = boardId()
         newSharing.enabled = isOn
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareBoard, {board: boardId(), shareBoardEnabled: isOn})
         await client.setSharing(boardId(), newSharing)
         await loadData()
-    }
-
-    const onLinkBoard = async (channel: Channel, confirmed?: boolean) => {
-        if (!confirmed) {
-            setShowLinkChannelConfirmation(channel)
-            return
-        }
-        setShowLinkChannelConfirmation(null)
-        const newBoard = createBoard(board())
-        newBoard.channelId = channel.id // This is a channel ID hardcoded here as an example
-        mutator.updateBoard(newBoard, board(), 'linked channel')
     }
 
     const onRegenerateToken = async () => {
@@ -244,7 +226,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                 viewId: params.viewId,
                 teamId: params.teamId,
             })
-            boardUrl.pathname = Utils.getFrontendBaseURL() + boardPath
+            boardUrl.pathname = Utils.getBaseURL() + boardPath
         } else {
             const newPath = Utils.generatePath('/shared/:boardId/:viewId', {
                 boardId: params.boardId,
@@ -275,9 +257,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
         />
     )
 
-    // Somebody already an explicit member of the board is not offered again;
-    // a synthetic member is somebody the board only reaches through its channel,
-    // so they still are.
+    // Somebody already an explicit member of the board is not offered again.
     const loadShareOptions = async (query: string) => {
         const users = await client.searchTeamUsers(query) || []
         return users.
@@ -285,36 +265,16 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
             map(asShareOption)
     }
 
-    const formatOptionLabel = (userOrChannel: IUser | Channel) => {
-        if ((userOrChannel as IUser).username) {
-            const user = userOrChannel as IUser
-            return (
-                <div class='user-item'>
-                    <div class='ml-3'>
-                        <strong>{Utils.getUserDisplayName(user, clientConfig().teammateNameDisplay)}</strong>
-                        <strong class='ml-2 text-light'>{`@${user.username}`}</strong>
-                        <GuestBadge show={Boolean(user?.is_guest)}/>
-                        <AdminBadge permissions={user.permissions}/>
-                    </div>
-                </div>
-            )
-        }
-
-        return null
-    }
-
-    const confirmText = () => {
-        if (board().channelId === '') {
-            return {
-                subText: intl.formatMessage({id: 'shareBoard.confirm-link-channel-subtext', defaultMessage: 'When you link a channel to a board, all members of the channel (existing and new) will be able to edit it. This excludes members who are guests.'}) as string | JSX.Element,
-                buttonText: intl.formatMessage({id: 'shareBoard.confirm-link-channel-button', defaultMessage: 'Link channel'}),
-            }
-        }
-        return {
-            subText: intl.formatMessage({id: 'shareBoard.confirm-link-channel-subtext-with-other-channel', defaultMessage: 'When you link a channel to a board, all members of the channel (existing and new) will be able to edit it. This excludes members who are guests.{lineBreak}This board is currently linked to another channel.\nIt will be unlinked if you choose to link it here.'}, {lineBreak: <p/>}) as never,
-            buttonText: intl.formatMessage({id: 'shareBoard.confirm-link-channel-button-with-other-channel', defaultMessage: 'Unlink and link here'}),
-        }
-    }
+    const formatOptionLabel = (user: IUser) => (
+        <div class='user-item'>
+            <div class='ml-3'>
+                <strong>{Utils.getUserDisplayName(user, clientConfig().teammateNameDisplay)}</strong>
+                <strong class='ml-2 text-light'>{`@${user.username}`}</strong>
+                <GuestBadge show={Boolean(user?.is_guest)}/>
+                <AdminBadge permissions={user.permissions}/>
+            </div>
+        </div>
+    )
 
     return (
         <Dialog
@@ -322,18 +282,6 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
             title={board().isTemplate ? shareTemplateTitle : shareBoardTitle}
             class='ShareBoardDialog'
         >
-            <Show when={showLinkChannelConfirmation()}>
-                <ConfirmationDialog
-                    dialogBox={{
-                        heading: intl.formatMessage({id: 'shareBoard.confirm-link-channel', defaultMessage: 'Link board to channel'}),
-                        subText: confirmText().subText,
-                        confirmButtonText: confirmText().buttonText,
-                        destructive: board().channelId !== '',
-                        onConfirm: () => onLinkBoard(showLinkChannelConfirmation()!, true),
-                        onClose: () => setShowLinkChannelConfirmation(null),
-                    }}
-                />
-            </Show>
             <BoardPermissionGate permissions={[Permission.ManageBoardRoles]}>
                 <div class='share-input__container'>
                     <div class='share-input'>
@@ -344,15 +292,12 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                             classNamePrefix={'userSearchInput'}
                             loadOptions={loadShareOptions}
                             renderOption={(option) => formatOptionLabel(option.data)}
-                            placeholder={board().isTemplate ? intl.formatMessage({id: 'ShareTemplate.searchPlaceholder', defaultMessage: 'Search for people'}) : intl.formatMessage({id: 'ShareBoard.searchPlaceholder', defaultMessage: 'Search for people and channels'})
-                            }
+                            placeholder={intl.formatMessage({id: 'ShareTemplate.searchPlaceholder', defaultMessage: 'Search for people'})}
                             onChange={(value) => {
-                                const chosen = (value as ComboboxOption<IUser | Channel> | null)?.data
-                                if (chosen && (chosen as IUser).username) {
-                                    addUser(chosen as IUser)
+                                const chosen = (value as ComboboxOption<IUser> | null)?.data
+                                if (chosen) {
+                                    addUser(chosen)
                                     setSelectedUser(null)
-                                } else if (chosen) {
-                                    onLinkBoard(chosen as Channel)
                                 }
                             }}
                         />
@@ -456,7 +401,6 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                                         />
                                     }
                                     onClick={() => {
-                                        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareLinkPublicCopy, {board: boardId()})
                                         Utils.copyTextToClipboard(urls().shareUrl.toString())
                                         setWasCopiedPublic(true)
                                         setWasCopiedInternal(false)
@@ -509,7 +453,6 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                             size='medium'
                             title={intl.formatMessage({id: 'ShareBoard.copyLink', defaultMessage: 'Copy link'})}
                             onClick={() => {
-                                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareLinkInternalCopy, {board: boardId()})
                                 Utils.copyTextToClipboard(urls().boardUrl.toString())
                                 setWasCopiedPublic(false)
                                 setWasCopiedInternal(true)

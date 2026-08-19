@@ -135,8 +135,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -172,8 +170,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -200,8 +196,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -241,8 +235,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -282,8 +274,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -333,8 +323,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -384,8 +372,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -433,8 +419,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={mockedAddCard}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -473,8 +457,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -513,8 +495,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -560,8 +540,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={vi.fn()}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -688,8 +666,6 @@ describe('src/component/kanban/kanban', () => {
                     addCard={vi.fn()}
                     addCardFromTemplate={mockedAddCard}
                     showCard={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})

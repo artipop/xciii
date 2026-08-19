@@ -68,7 +68,6 @@ vi.mock('../../octoClient', () => {
                         'group-prop-id': 'test',
                     },
                 },
-                limited: false,
             },
         ])),
     }
@@ -155,11 +154,6 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
                     ],
                     dateDisplayPropertyId: 'global-id-5',
                 }],
-            },
-            limits: {
-                limits: {
-                    views: 0,
-                },
             },
         }
         store = mockAppStore(state)

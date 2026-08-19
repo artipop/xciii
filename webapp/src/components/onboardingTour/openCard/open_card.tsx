@@ -35,7 +35,6 @@ const OpenCardTourStep = (): JSX.Element | null => {
             title={title}
             punchout={punchout()}
             classname='OpenCardTourStep'
-            telemetryTag='tourPoint1'
             placement={'bottom'}
             singleTip={true}
             hideNavButtons={true}

@@ -245,16 +245,26 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 	// spells the agent out: the fake agent is the whole command.
 	cfg.AgentMode = agentModeCommand
 	cfg.AgentCommand = []string{writeFakeAgent(t, scenario)}
-	cfg.ProjectWhitelist = []string{filepath.Dir(project)}
+	cfg.Workdirs = []WorkdirEntry{testWorkdir(project)}
 	cfg.WorktreeDir = filepath.Join(dir, "wt")
+	// The columns a fixture works with: the registry is a board's own answer
+	// now, so a config built in code has to say so itself — and before the
+	// test's own mutate, which is entitled to replace them.
+	// With their option ids, because a column is its option and nothing is
+	// matched by name any more (docs/model-graph.md, contradiction 5). The ids
+	// are the ones moveEvent sends.
+	cfg.Columns = []ColumnSpec{
+		workColumn(cfg.TriggerProperty, FlowActionAgent),
+		{BoardID: "board1", PropertyID: "p1", OptionID: "opt-deploy",
+			Property: cfg.TriggerProperty, Column: TemplateDeployColumn, Action: FlowActionDeploy},
+		{BoardID: "board1", PropertyID: "p1", OptionID: "opt-test",
+			Property: cfg.TriggerProperty, Column: TemplateTestColumn, Action: FlowActionTest},
+	}
 	if mutate != nil {
 		mutate(&cfg)
 	}
-	// LoadConfig is what fills the column registry from the trigger-column keys
-	// on a real install; a config built in code needs the same step.
-	cfg = withColumns(cfg)
 
-	st, err := OpenStore(filepath.Join(dir, "acp.db"))
+	st, err := newTestStore(t, filepath.Join(dir, "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,11 +272,12 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 	events := &fakeEvents{ch: make(chan CardMoved, 16)}
 	emitter := &fakeEmitter{}
 	m := NewManager(cfg, "", st, writer, emitter, nil)
+	registerFixtures(t, m)
 	m.SetBoardReader(&fakeReader{ev: CardMoved{
-		BoardID: "board1",
-		Title:   "Test task",
-		Body:    "Do nothing useful.",
-		Props:   map[string]string{"repo_path": project},
+		BoardID:     "board1",
+		Title:       "Test task",
+		Body:        "Do nothing useful.",
+		OptionNames: []string{testWorkdirName},
 	}})
 	if err := m.Start(context.Background(), events); err != nil {
 		t.Fatal(err)
@@ -275,17 +286,41 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 	return m, writer, events, project, emitter
 }
 
-func moveEvent(cardID, project, from, to string) CardMoved {
+func moveEvent(cardID, from, to string) CardMoved {
 	return CardMoved{
-		EventID:    "ev-" + cardID + to,
-		CardID:     cardID,
-		BoardID:    "board1",
-		Title:      "Test task",
-		Body:       "Do nothing useful.",
-		Props:      map[string]string{"repo_path": project},
-		FromColumn: Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: from, Name: columnName(from)},
-		ToColumn:   Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: to, Name: columnName(to)},
-		At:         time.Now(),
+		EventID:     "ev-" + cardID + to,
+		CardID:      cardID,
+		BoardID:     "board1",
+		Title:       "Test task",
+		Body:        "Do nothing useful.",
+		Props:       map[string]string{},
+		OptionNames: []string{testWorkdirName},
+		FromColumn:  Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: from, Name: columnName(from)},
+		ToColumn:    Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: to, Name: columnName(to)},
+		At:          time.Now(),
+	}
+}
+
+// testWorkdirName is what the fixtures call the folder they work in. A card
+// names it the way every card does — an option the board offers — and a board
+// that records no folder property falls back to matching the option's name,
+// which is what these events do.
+const testWorkdirName = "code"
+
+func testWorkdir(path string) WorkdirEntry {
+	return WorkdirEntry{
+		ID: newWorkdirID(), Name: testWorkdirName, Path: path,
+		BoardID: "board1", Kind: WorkdirGit,
+	}
+}
+
+// workColumn is the column the fixtures move a card into, bound to the option
+// moveEvent sends. Tests that replace the registry rebuild it from here rather
+// than spelling the ids again.
+func workColumn(property, action string) ColumnSpec {
+	return ColumnSpec{
+		BoardID: "board1", PropertyID: "p1", OptionID: "opt-agent",
+		Property: property, Column: TemplateWorkColumn, Action: action,
 	}
 }
 
@@ -309,9 +344,9 @@ func waitFor(t *testing.T, timeout time.Duration, what string, cond func() bool)
 }
 
 func TestTriggerRunsSessionToDone(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeHappy, nil)
+	m, writer, events, _ := testManager(t, fakeClaudeHappy, nil)
 
-	events.ch <- moveEvent("card1", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("card1", "opt-backlog", "opt-agent")
 
 	waitFor(t, 15*time.Second, "session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("card1")
@@ -353,11 +388,11 @@ func TestTriggerRunsSessionToDone(t *testing.T) {
 }
 
 func TestWorktreeModeAlways(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.WorktreeMode = "always"
 	})
 
-	events.ch <- moveEvent("cardWT", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardWT", "opt-backlog", "opt-agent")
 	waitFor(t, 15*time.Second, "worktree session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardWT")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone
@@ -379,17 +414,17 @@ func TestWorktreeModeAlways(t *testing.T) {
 // A board that works on a branch in the folder itself takes one card at a
 // time: the second one waits, and its strip says what it is waiting for.
 func TestABranchInTheFolderItselfHoldsItUntilTheCardIsDone(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeHang, func(c *Config) {
+	m, writer, events, _ := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.WorktreeMode = "never"
 	})
 
-	events.ch <- moveEvent("cardA", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardA", "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "first session running", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardA")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusRunning
 	})
 
-	events.ch <- moveEvent("cardB", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardB", "opt-backlog", "opt-agent")
 
 	// The busy folder is the card's current state, told on its strip rather
 	// than left behind as a comment.
@@ -410,11 +445,11 @@ func TestABranchInTheFolderItselfHoldsItUntilTheCardIsDone(t *testing.T) {
 }
 
 func TestRapidMovesStartOneSession(t *testing.T) {
-	m, _, events, project := testManager(t, fakeClaudeHappy, nil)
+	m, _, events, _ := testManager(t, fakeClaudeHappy, nil)
 
 	// Spec acceptance §10.4: five rapid back-and-forth moves → one session.
 	for i := 0; i < 5; i++ {
-		events.ch <- moveEvent("card2", project, "opt-backlog", "opt-agent")
+		events.ch <- moveEvent("card2", "opt-backlog", "opt-agent")
 	}
 
 	waitFor(t, 15*time.Second, "exactly one session, terminal", func() bool {
@@ -429,10 +464,15 @@ func TestRapidMovesStartOneSession(t *testing.T) {
 	}
 }
 
-func TestInvalidWorkdirPathStallsTheCard(t *testing.T) {
+// A card that names a folder the registry has not got stops, and says so where
+// a person will see it. It used to be able to name a path outright, and the
+// failure then was the path being wrong; now the only way to be wrong is to
+// name a folder nobody registered.
+func TestAFolderTheRegistryHasNotGotStallsTheCard(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeHappy, nil)
 
-	ev := moveEvent("card3", "/nonexistent/path", "opt-backlog", "opt-agent")
+	ev := moveEvent("card3", "opt-backlog", "opt-agent")
+	ev.OptionNames = []string{"такой папки нет"}
 	events.ch <- ev
 
 	// «Агент не запущен: …» was the comment this whole design grew out of: a
@@ -456,9 +496,11 @@ func TestInvalidWorkdirPathStallsTheCard(t *testing.T) {
 // A stall is state, and state goes away with progress: the reason the card
 // stood still must not survive the session that ended the standing.
 func TestStallClearsWhenTheSessionStarts(t *testing.T) {
-	m, _, events, project := testManager(t, fakeClaudeHappy, nil)
+	m, _, events, _ := testManager(t, fakeClaudeHappy, nil)
 
-	events.ch <- moveEvent("cardStall", "/nonexistent/path", "opt-backlog", "opt-agent")
+	stalling := moveEvent("cardStall", "opt-backlog", "opt-agent")
+	stalling.OptionNames = []string{"такой папки нет"}
+	events.ch <- stalling
 	waitFor(t, 5*time.Second, "the stall record appears", func() bool {
 		_, ok, _ := m.store.Stall("cardStall")
 		return ok
@@ -466,7 +508,7 @@ func TestStallClearsWhenTheSessionStarts(t *testing.T) {
 
 	// The registry got fixed; the card is dragged in again, from elsewhere so
 	// idempotency does not swallow the move.
-	events.ch <- moveEvent("cardStall", project, "opt-review", "opt-agent")
+	events.ch <- moveEvent("cardStall", "opt-review", "opt-agent")
 	waitFor(t, 15*time.Second, "the session starts and the stall clears", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardStall")
 		if err != nil || len(sessions) == 0 {
@@ -478,9 +520,9 @@ func TestStallClearsWhenTheSessionStarts(t *testing.T) {
 }
 
 func TestMoveBackCancelsSession(t *testing.T) {
-	m, _, events, project := testManager(t, fakeClaudeHang, nil)
+	m, _, events, _ := testManager(t, fakeClaudeHang, nil)
 
-	events.ch <- moveEvent("card4", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("card4", "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "session running", func() bool {
 		sessions, _, err := m.store.SessionsForCard("card4")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusRunning
@@ -488,7 +530,7 @@ func TestMoveBackCancelsSession(t *testing.T) {
 
 	// Let the fake agent actually start before yanking the card back.
 	time.Sleep(300 * time.Millisecond)
-	events.ch <- moveEvent("card4", project, "opt-agent", "opt-backlog")
+	events.ch <- moveEvent("card4", "opt-agent", "opt-backlog")
 
 	start := time.Now()
 	waitFor(t, 10*time.Second, "session cancelled", func() bool {
@@ -510,10 +552,10 @@ func TestRecoveryMarksStaleFailed(t *testing.T) {
 	cfg := DefaultConfig(dir)
 	cfg.AgentMode = agentModeCommand
 	cfg.AgentCommand = []string{writeFakeAgent(t, fakeClaudeHappy)}
-	cfg.ProjectWhitelist = []string{filepath.Dir(project)}
+	cfg.Workdirs = []WorkdirEntry{testWorkdir(project)}
 
 	dbPath := filepath.Join(dir, "acp.db")
-	st, err := OpenStore(dbPath)
+	st, err := newTestStore(t, dbPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -584,9 +626,9 @@ func waitStatus(t *testing.T, s *Session, want SessionStatus) {
 // agent wants a decision, and the decision is a person's. The card is where it
 // is asked, and the turn stays open until it is answered.
 func TestASessionAsksTheCardForAToolOutsideThePolicy(t *testing.T) {
-	m, writer, events, project, emitter := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
+	m, writer, events, _, emitter := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
 
-	events.ch <- moveEvent("cardAsk", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardAsk", "opt-backlog", "opt-agent")
 	waitFor(t, 15*time.Second, "the agent to ask", func() bool { return len(m.Questions()) == 1 })
 
 	q := m.Questions()[0]
@@ -682,9 +724,9 @@ func TestTwoQuestionsOnOneCardStayApart(t *testing.T) {
 // An agent whose question goes unanswered must not sit there for ever: saying
 // no is an answer, and the turn carries on without what it asked for.
 func TestADeclinedQuestionLetsTheTurnCarryOn(t *testing.T) {
-	m, _, events, project, _ := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
+	m, _, events, _, _ := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
 
-	events.ch <- moveEvent("cardNo", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardNo", "opt-backlog", "opt-agent")
 	waitFor(t, 15*time.Second, "the agent to ask", func() bool { return len(m.Questions()) == 1 })
 
 	if err := m.AnswerQuestion(m.Questions()[0].ID, Answer{Declined: true}); err != nil {
@@ -701,9 +743,9 @@ func TestADeclinedQuestionLetsTheTurnCarryOn(t *testing.T) {
 // that into something answerable, and the answer has to reach the agent in the
 // shape it asked for.
 func TestAnAgentQuestionArrivesAsAFormAndIsAnswered(t *testing.T) {
-	m, _, events, project, _ := testManagerWithEmitter(t, fakeClaudeAsksForm, nil)
+	m, _, events, _, _ := testManagerWithEmitter(t, fakeClaudeAsksForm, nil)
 
-	events.ch <- moveEvent("cardForm", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardForm", "opt-backlog", "opt-agent")
 	waitFor(t, 15*time.Second, "the agent to ask", func() bool { return len(m.Questions()) == 1 })
 
 	q := m.Questions()[0]
@@ -744,5 +786,28 @@ func TestTheClientTellsAgentsItCanShowAForm(t *testing.T) {
 	}
 	if caps.Elicitation.Url != nil {
 		t.Error("URL elicitation is claimed, and a board has nowhere to send somebody")
+	}
+}
+
+// registerFixtures puts what a fixture built in code through the doors the
+// product uses, so the ids come from where they come from in production: the
+// store mints a registry entry's, validateFlow mints a route's. Nothing in the
+// product hands these out for a config that skipped a save, and it should not:
+// a second place ids are born is the thing the id work was removing.
+func registerFixtures(t *testing.T, m *Manager) {
+	t.Helper()
+	m.cfgMu.Lock()
+	err := m.persistConfigLocked()
+	for i := range m.cfg.Flows {
+		f, ferr := validateFlow(m.cfg.Flows[i], m.cfg.Workdirs, m.cfg.Agents, m.cfg.Deploys)
+		if ferr != nil {
+			m.cfgMu.Unlock()
+			t.Fatalf("fixture route %q is not valid: %v", m.cfg.Flows[i].Name, ferr)
+		}
+		m.cfg.Flows[i] = f
+	}
+	m.cfgMu.Unlock()
+	if err != nil {
+		t.Fatal(err)
 	}
 }

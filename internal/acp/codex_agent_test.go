@@ -10,7 +10,7 @@ import (
 
 func TestCodexAgentRunsWithIsolatedEnv(t *testing.T) {
 	codexScript := writeFakeAgent(t, fakeCodexEnv)
-	m, writer, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name:    "codexagent",
 			Kind:    "codex",
@@ -19,8 +19,8 @@ func TestCodexAgentRunsWithIsolatedEnv(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardCodex", project, "opt-backlog", "opt-agent")
-	ev.OptionNames = []string{"codexagent"} // routes to the codex agent
+	ev := moveEvent("cardCodex", "opt-backlog", "opt-agent")
+	ev.OptionNames = append(ev.OptionNames, "codexagent") // routes to the codex agent
 	events.ch <- ev
 
 	waitFor(t, 15*time.Second, "codex session done", func() bool {
@@ -52,7 +52,7 @@ func TestCodexAgentRunsWithIsolatedEnv(t *testing.T) {
 // only one that still works.
 func TestCodexModelIsChosenOverTheProtocol(t *testing.T) {
 	script := writeFakeAgent(t, fakeCodexEnv)
-	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name:    "codexagent",
 			Kind:    "codex",
@@ -61,8 +61,8 @@ func TestCodexModelIsChosenOverTheProtocol(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardModel", project, "opt-backlog", "opt-agent")
-	ev.OptionNames = []string{"codexagent"}
+	ev := moveEvent("cardModel", "opt-backlog", "opt-agent")
+	ev.OptionNames = append(ev.OptionNames, "codexagent")
 	events.ch <- ev
 
 	waitFor(t, 15*time.Second, "codex session done", func() bool {
@@ -80,7 +80,7 @@ func TestCodexModelIsChosenOverTheProtocol(t *testing.T) {
 // proxy settings: both must survive all the way to the spawned process.
 func TestCodexAgentWrapperCommandAndProxy(t *testing.T) {
 	script := writeFakeAgent(t, fakeCodexProxy)
-	m, writer, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Proxies = []ProxyEntry{{
 			Name: "office",
 			NetworkSettings: NetworkSettings{
@@ -96,8 +96,8 @@ func TestCodexAgentWrapperCommandAndProxy(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardProxy", project, "opt-backlog", "opt-agent")
-	ev.OptionNames = []string{"proxiedcodex"}
+	ev := moveEvent("cardProxy", "opt-backlog", "opt-agent")
+	ev.OptionNames = append(ev.OptionNames, "proxiedcodex")
 	events.ch <- ev
 
 	waitFor(t, 15*time.Second, "wrapped codex session done", func() bool {

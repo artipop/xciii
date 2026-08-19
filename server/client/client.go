@@ -11,8 +11,6 @@ import (
 
 	"github.com/artipop/xciii/server/api"
 	"github.com/artipop/xciii/server/model"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 const (
@@ -854,7 +852,7 @@ func (c *Client) TeamUploadFile(teamID, boardID string, data io.Reader) (*api.Fi
 	return fileUploadResponse, BuildResponse(r)
 }
 
-func (c *Client) TeamUploadFileInfo(teamID, boardID string, fileName string) (*mmModel.FileInfo, *Response) {
+func (c *Client) TeamUploadFileInfo(teamID, boardID string, fileName string) (*model.FileInfo, *Response) {
 	r, err := c.DoAPIGet(fmt.Sprintf("/files/teams/%s/%s/%s/info", teamID, boardID, fileName), "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -972,61 +970,6 @@ func (c *Client) MoveContentBlock(srcBlockID string, dstBlockID string, where st
 	defer closeBody(r)
 
 	return true, BuildResponse(r)
-}
-
-func (c *Client) GetBoardsForCompliance(teamID string, page, perPage int) (*model.BoardsComplianceResponse, *Response) {
-	query := fmt.Sprintf("?team_id=%s&page=%d&per_page=%d", teamID, page, perPage)
-	r, err := c.DoAPIGet("/admin/boards"+query, "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
-	}
-	defer closeBody(r)
-
-	var res *model.BoardsComplianceResponse
-	err = json.NewDecoder(r.Body).Decode(&res)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
-	}
-
-	return res, BuildResponse(r)
-}
-
-func (c *Client) GetBoardsComplianceHistory(
-	modifiedSince int64, includeDeleted bool, teamID string, page, perPage int) (*model.BoardsComplianceHistoryResponse, *Response) {
-	query := fmt.Sprintf("?modified_since=%d&include_deleted=%t&team_id=%s&page=%d&per_page=%d",
-		modifiedSince, includeDeleted, teamID, page, perPage)
-	r, err := c.DoAPIGet("/admin/boards_history"+query, "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
-	}
-	defer closeBody(r)
-
-	var res *model.BoardsComplianceHistoryResponse
-	err = json.NewDecoder(r.Body).Decode(&res)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
-	}
-
-	return res, BuildResponse(r)
-}
-
-func (c *Client) GetBlocksComplianceHistory(
-	modifiedSince int64, includeDeleted bool, teamID, boardID string, page, perPage int) (*model.BlocksComplianceHistoryResponse, *Response) {
-	query := fmt.Sprintf("?modified_since=%d&include_deleted=%t&team_id=%s&board_id=%s&page=%d&per_page=%d",
-		modifiedSince, includeDeleted, teamID, boardID, page, perPage)
-	r, err := c.DoAPIGet("/admin/blocks_history"+query, "")
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
-	}
-	defer closeBody(r)
-
-	var res *model.BlocksComplianceHistoryResponse
-	err = json.NewDecoder(r.Body).Decode(&res)
-	if err != nil {
-		return nil, BuildErrorResponse(r, err)
-	}
-
-	return res, BuildResponse(r)
 }
 
 func (c *Client) HideBoard(teamID, categoryID, boardID string) *Response {

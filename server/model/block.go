@@ -4,10 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"strconv"
 	"unicode/utf8"
-
-	"github.com/artipop/xciii/server/services/audit"
 )
 
 const (
@@ -68,10 +65,6 @@ type Block struct {
 	// The deleted time in miliseconds since the current epoch. Set to indicate this block is deleted
 	// required: false
 	DeleteAt int64 `json:"deleteAt"`
-
-	// Deprecated. The workspace id that the block belongs to
-	// required: false
-	WorkspaceID string `json:"-"`
 
 	// The board id that the block belongs to
 	// required: true
@@ -244,7 +237,7 @@ type QueryBlockHistoryChildOptions struct {
 	PerPage        int   // number of blocks per page (default=-1, meaning unlimited)
 }
 
-func StampModificationMetadata(userID string, blocks []*Block, auditRec *audit.Record) {
+func StampModificationMetadata(userID string, blocks []*Block) {
 	if userID == SingleUser {
 		userID = ""
 	}
@@ -253,10 +246,6 @@ func StampModificationMetadata(userID string, blocks []*Block, auditRec *audit.R
 	for i := range blocks {
 		blocks[i].ModifiedBy = userID
 		blocks[i].UpdateAt = now
-
-		if auditRec != nil {
-			auditRec.AddMeta("block_"+strconv.FormatInt(int64(i), 10), blocks[i])
-		}
 	}
 }
 
@@ -269,17 +258,16 @@ func (b *Block) ShouldBeLimited(cardLimitTimestamp int64) bool {
 // contents of the block, only its IDs and type.
 func (b *Block) GetLimited() *Block {
 	newBlock := &Block{
-		Title:       b.Title,
-		ID:          b.ID,
-		ParentID:    b.ParentID,
-		BoardID:     b.BoardID,
-		Schema:      b.Schema,
-		Type:        b.Type,
-		CreateAt:    b.CreateAt,
-		UpdateAt:    b.UpdateAt,
-		DeleteAt:    b.DeleteAt,
-		WorkspaceID: b.WorkspaceID,
-		Limited:     true,
+		Title:    b.Title,
+		ID:       b.ID,
+		ParentID: b.ParentID,
+		BoardID:  b.BoardID,
+		Schema:   b.Schema,
+		Type:     b.Type,
+		CreateAt: b.CreateAt,
+		UpdateAt: b.UpdateAt,
+		DeleteAt: b.DeleteAt,
+		Limited:  true,
 	}
 
 	if iconField, ok := b.Fields["icon"]; ok {

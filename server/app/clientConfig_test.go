@@ -13,16 +13,12 @@ func TestGetClientConfig(t *testing.T) {
 
 	t.Run("Test Get Client Config", func(t *testing.T) {
 		newConfiguration := config.Configuration{}
-		newConfiguration.Telemetry = true
-		newConfiguration.TelemetryID = "abcde"
 		newConfiguration.EnablePublicSharedBoards = true
 		newConfiguration.TeammateNameDisplay = "username"
 		th.App.SetConfig(&newConfiguration)
 
 		clientConfig := th.App.GetClientConfig()
 		require.True(t, clientConfig.EnablePublicSharedBoards)
-		require.True(t, clientConfig.Telemetry)
-		require.Equal(t, "abcde", clientConfig.TelemetryID)
 		require.Equal(t, "username", clientConfig.TeammateNameDisplay)
 	})
 }

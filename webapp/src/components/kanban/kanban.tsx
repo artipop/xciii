@@ -18,7 +18,6 @@ import {dragAndDropRearrange} from '../cardDetail/cardDetailContentsUtility'
 
 import {getCurrentBoardTemplates} from '../../store/cards'
 import BoardPermissionGate from '../permissions/boardPermissionGate'
-import HiddenCardCount from '../../components/hiddenCardCount/hiddenCardCount'
 
 import {invalidateBoardColumns} from '../acp/columnBadge'
 import AutomationDialog from '../acp/automationDialog'
@@ -43,8 +42,6 @@ type Props = {
     addCard: (groupByOptionId?: string, show?: boolean) => Promise<void>
     addCardFromTemplate: (cardTemplateId: string, groupByOptionId?: string) => void
     showCard: (cardId?: string) => void
-    hiddenCardsCount: number
-    showHiddenCardCountNotification: (show: boolean) => void
 }
 
 const Kanban = (props: Props) => {
@@ -251,7 +248,7 @@ const Kanban = (props: Props) => {
 
                 {/* Hidden column header */}
 
-                <Show when={props.hiddenGroups.length > 0 || props.hiddenCardsCount > 0}>
+                <Show when={props.hiddenGroups.length > 0}>
                     <div class='octo-board-header-cell narrow'>
                         <FormattedMessage
                             id='BoardComponent.hidden-columns'
@@ -333,7 +330,7 @@ const Kanban = (props: Props) => {
 
                 {/* Hidden columns */}
 
-                <Show when={props.hiddenGroups.length > 0 || props.hiddenCardsCount > 0}>
+                <Show when={props.hiddenGroups.length > 0}>
                     <div class='octo-board-column narrow'>
                         <For each={props.hiddenGroups}>
                             {(group) => (
@@ -346,14 +343,6 @@ const Kanban = (props: Props) => {
                                 />
                             )}
                         </For>
-                        <Show when={props.hiddenCardsCount > 0}>
-                            <div class='ml-1'>
-                                <HiddenCardCount
-                                    hiddenCardsCount={props.hiddenCardsCount}
-                                    showHiddenCardNotification={props.showHiddenCardCountNotification}
-                                />
-                            </div>
-                        </Show>
                     </div>
                 </Show>
             </div>

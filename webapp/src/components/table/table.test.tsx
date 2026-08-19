@@ -27,7 +27,6 @@ beforeEach(() => {
 
 vi.mock('../../mutator')
 vi.mock('../../utils')
-vi.mock('../../telemetry/telemetryClient')
 const mockedMutator = vi.mocked(Mutator)
 
 describe('components/table/Table', () => {
@@ -99,8 +98,6 @@ describe('components/table/Table', () => {
                     showCard={callback}
                     addCard={addCard}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -127,8 +124,6 @@ describe('components/table/Table', () => {
                     showCard={callback}
                     addCard={addCard}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -155,8 +150,6 @@ describe('components/table/Table', () => {
                     showCard={callback}
                     addCard={addCard}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -190,73 +183,10 @@ describe('components/table/Table', () => {
                     showCard={callback}
                     addCard={addCard}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
         const {container} = render(component)
-        expect(container).toMatchSnapshot()
-    })
-
-    test('limited card in table view', () => {
-        const callback = vi.fn()
-        const addCard = vi.fn()
-        const boardTest = TestBlockFactory.createBoard()
-        const card1 = TestBlockFactory.createCard(boardTest)
-        const card2 = TestBlockFactory.createCard(boardTest)
-
-        const stateTest = {
-            comments: {
-                comments: {},
-            },
-            contents: {
-                contents: {},
-            },
-            cards: {
-                cards: {
-                    [card1.id]: card1,
-                    [card2.id]: card2,
-                },
-            },
-            teams: {
-                current: {id: 'team-id'},
-            },
-            boards: {
-                current: boardTest.id,
-                boards: {
-                    [boardTest.id]: boardTest,
-                },
-                myBoardMemberships: {
-                    [boardTest.id]: {userId: 'user_id_1', schemeAdmin: true},
-                },
-            },
-        }
-
-        const storeTest = mockAppStore(stateTest)
-        card.limited = true
-
-        const component = () => wrapDNDIntl(() =>
-            <AppStoreProvider store={storeTest}>
-                <Table
-                    board={boardTest}
-                    activeView={view}
-                    visibleGroups={[]}
-                    cards={[card1, card2]}
-                    views={[view, view2]}
-                    selectedCardIds={[]}
-                    readonly={true}
-                    cardIdToFocusOnRender=''
-                    showCard={callback}
-                    addCard={addCard}
-                    onCardClicked={vi.fn()}
-                    hiddenCardsCount={2}
-                    showHiddenCardCountNotification={vi.fn()}
-                />
-            </AppStoreProvider>,
-        )
-        const {container, getByTitle} = render(component)
-        expect(getByTitle('hidden-card-count')).toHaveTextContent('2')
         expect(container).toMatchSnapshot()
     })
 })
@@ -361,8 +291,6 @@ describe('components/table/Table extended', () => {
                     showCard={callback}
                     addCard={addCard}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -445,8 +373,6 @@ describe('components/table/Table extended', () => {
                     showCard={callback}
                     addCard={addCard}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -502,8 +428,6 @@ describe('components/table/Table extended', () => {
                     showCard={callback}
                     addCard={addCard}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -592,8 +516,6 @@ describe('components/table/Table extended', () => {
                     showCard={callback}
                     addCard={addCard}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -644,8 +566,6 @@ describe('components/table/Table extended', () => {
                     showCard={vi.fn()}
                     addCard={vi.fn()}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -704,8 +624,6 @@ describe('components/table/Table extended', () => {
                     showCard={vi.fn()}
                     addCard={vi.fn()}
                     onCardClicked={vi.fn()}
-                    hiddenCardsCount={0}
-                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )

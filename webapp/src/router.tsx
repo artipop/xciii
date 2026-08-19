@@ -84,7 +84,7 @@ const rootLayout = (props: {children?: JSX.Element}) => (
 const AppRouter: Component = () => {
     return (
         <Router
-            base={Utils.getFrontendBaseURL()}
+            base={Utils.getBaseURL()}
             root={rootLayout}
         >
             <FBRoute
@@ -137,11 +137,6 @@ const AppRouter: Component = () => {
                         <TerminalPage softKeys={true}/>
                     </Suspense>
                 )}
-            />
-
-            <FBRoute
-                path='/team/:teamId/new/:channelId'
-                component={() => <BoardPage new={true}/>}
             />
 
             <FBRoute

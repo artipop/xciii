@@ -1,25 +1,20 @@
 // Package userpath gives this process the PATH its owner actually has.
 //
-// A GUI application is started by launchd — or by a desktop launcher on Linux —
-// and not by a shell, so it inherits `/usr/bin:/bin:/usr/sbin:/sbin` and
-// nothing else. Everything this app runs on the user's behalf is a program the
-// user installed: npx and node, the agent CLIs and their npm adapters, git, a
-// source plugin. None of that is in those four directories, so the packaged
-// .app cannot find any of it while `wails3 dev` — started from a terminal, and
-// therefore holding the terminal's PATH — finds all of it. That difference is
-// the whole of the bug this package exists for.
+// A GUI application is started by launchd, not by a shell, so it inherits
+// `/usr/bin:/bin:/usr/sbin:/sbin` and nothing else — while everything it runs
+// on the user's behalf (npx, node, the agent CLIs, git, a source plugin) was
+// installed by the user and is somewhere else. A dev build started from a
+// terminal finds all of it; the packaged .app finds none.
 //
-// Guessing directories does not answer it. Node under nvm lives in
-// ~/.nvm/versions/node/<version>/bin, where the version is whichever one the
-// user's shell selects; fnm, mise, volta, asdf and bun each have their own
-// spelling of the same idea. The one place that PATH is assembled is the login
-// shell, so the shell is asked rather than imitated.
+// Guessing directories does not answer it: a version manager's node lives under
+// a version number only the user's rc files know, and there are half a dozen
+// managers. The login shell is the one place PATH is assembled, so it is asked
+// rather than imitated.
 //
-// The fix is the process environment and not a lookup helper, because the PATH
-// has to reach further than our own exec calls: npx is a script that runs
-// `#!/usr/bin/env node`, and the codex adapter drives the codex CLI. Finding
-// npx by absolute path and spawning it with launchd's PATH only moves the
-// failure one process along.
+// The process environment is the fix, not a lookup helper: npx is a
+// `#!/usr/bin/env node` script and the codex adapter drives the codex CLI, so
+// finding a binary by absolute path and spawning it with launchd's PATH only
+// moves the failure one process along.
 package userpath
 
 import (

@@ -206,6 +206,17 @@ describe('components/cardDetail/CardDetailProperties', () => {
             expect(screen.getByText(/already working in “alpha”/)).toBeInTheDocument()
         })
 
+        // Work exists and this machine does not hold it. Nothing here can
+        // continue it, so the card says where it is instead of offering an
+        // action it cannot carry out (docs/deferred.md).
+        it('says where the work is when it was started on another machine', () => {
+            cardAgent.state = {work: {branch: 'feat/x', started: true}}
+            renderFolderCard()
+
+            expect(screen.getByText(/started on another machine/)).toBeInTheDocument()
+            expect(screen.getByText(/feat\/x/)).toBeInTheDocument()
+        })
+
         it('is an ordinary choice while nothing has been claimed', () => {
             const {container} = renderFolderCard()
 

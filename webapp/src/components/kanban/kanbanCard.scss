@@ -71,12 +71,9 @@
     // it merely runs; the amber the design language keeps for attention, and
     // the slow breath with it, while the agent is asking.
     //
-    // It began in the top-right, which is where a card's controls are — and
-    // that is exactly why it moved: the ⋯ menu is there too, so the two spent
-    // their time stepping around each other and the title carried padding for
-    // a button that is only on some cards. The bottom-right corner is empty on
-    // every card (the badges run from the left) and it is the corner nearest
-    // the next card, which is where the eye already is.
+    // Bottom-right rather than top-right, where a card's controls are: the ⋯
+    // menu is there, and two buttons in one corner make the title carry padding
+    // for one that is only on some cards. This corner is empty on every card.
     .KanbanCard__terminal {
         position: absolute;
         bottom: 8px;

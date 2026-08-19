@@ -31,7 +31,12 @@ func TestPersonPropertiesResolveToUsernames(t *testing.T) {
 		return map[string]string{"uid-claude": "claude", "uid-codex": "codex"}[userID]
 	})
 
-	names := personNames(props, personSchema(), resolver)
+	names, ids := personNames(props, personSchema(), resolver)
+	// The ids go out even for a user the resolver cannot read: they are what the
+	// card stores and what an agent is matched by.
+	if len(ids) != 3 {
+		t.Errorf("person ids = %v, want one per value including the unknown one", ids)
+	}
 	if len(names) != 2 {
 		t.Fatalf("person names = %v, want claude and codex", names)
 	}
@@ -73,7 +78,7 @@ func TestNamedPropertiesSurvivesUnresolvableUsers(t *testing.T) {
 	if parsed["assignee"] != "uid-claude" {
 		t.Errorf("assignee prop = %q, want the raw id", parsed["assignee"])
 	}
-	if names := personNames(props, personSchema(), resolver); len(names) != 0 {
+	if names, _ := personNames(props, personSchema(), resolver); len(names) != 0 {
 		t.Errorf("person names = %v, want none", names)
 	}
 }

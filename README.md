@@ -172,8 +172,7 @@ There is deliberately **no `window.webSocketBaseURL`** here, unlike v2:
 `frontdoor.go` owns the origin, so `/ws` opens from the page's own origin.
 
 **Every one of them is feature-detected at the call site**, because the same
-bundle also runs in a browser and as a Mattermost plugin, where none of them
-exist. That guard is what keeps the desktop-only UI inert elsewhere, and it is
+bundle also runs in a browser, where none of them exist. That guard is what keeps the desktop-only UI inert elsewhere, and it is
 the one thing a rewrite must not quietly drop.
 
 ## Prerequisites
@@ -307,8 +306,9 @@ the one thing a rewrite must not quietly drop.
 - **Flows** (board "…" menu → *«Как работает эта доска…»*) join those columns into a route and
   move cards along it. Repository events are polled from the branches parked
   cards wait on: plain git needs nothing, while `pr.*`, `review.approved` and
-  `checks.*` call the GitHub API and want a token in `githubToken` (or
-  `GITHUB_TOKEN`) — public repositories work without one, more slowly. The
+  `checks.*` call the GitHub API and want a token: `GITHUB_TOKEN` in the
+  environment, or the credential store under `github.token` — public
+  repositories work without one, more slowly. The
   interval is `vcsPollSeconds` (default 60) and the remote is `gitRemote`
   (default `origin`). Which branch is watched: the card's `branch` property if
   it has one, otherwise the branch the card's own work is on, which the card

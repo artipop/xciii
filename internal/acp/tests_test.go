@@ -159,7 +159,7 @@ func TestTestSessionNeedsABrowserServer(t *testing.T) {
 	m.cfg.Deploys = []DeployEntry{deployEntry("prod")}
 	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: project}}
 
-	ev := CardMoved{CardID: "cardT", Title: "Проверить", Props: map[string]string{"repo_path": project, "branch": "feat/x"}}
+	ev := CardMoved{CardID: "cardT", Title: "Проверить", Props: map[string]string{"branch": "feat/x"}, OptionNames: []string{"webapp"}}
 	_, err := m.startSession(ev, startOptions{test: true})
 	if err == nil {
 		t.Fatal("a test session without a browser server should not start")
@@ -175,12 +175,15 @@ func TestTestSessionNeedsABrowserServer(t *testing.T) {
 // saves registering one agent twice to give it a browser in one column.
 func TestTestSessionTakesTheBrowserFromTheColumn(t *testing.T) {
 	m, _, _, project := testManager(t, fakeClaudeHappy, func(c *Config) {
-		c.Agents = []AgentEntry{{Name: "bare", Kind: "claude"}}
+		c.Agents = []AgentEntry{{ID: newID(), Name: "bare", Kind: "claude"}}
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
-	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: project}}
+	// Attached to the board, because that is what makes a folder offered there
+	// — and the card resolving its folder now goes through what the board
+	// offers rather than through a path the card carried.
+	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: project, BoardID: "board1"}}
 	ev := CardMoved{CardID: "cardQA", BoardID: "board1", Title: "Проверить",
-		Props: map[string]string{"repo_path": project, "branch": "feat/x"}}
+		Props: map[string]string{"branch": "feat/x"}, OptionNames: []string{"webapp"}}
 	column := ColumnSpec{Property: "Статус", Column: "QA", Action: FlowActionTest,
 		MCPServers: MCPServerSet{"playwright": {Command: "npx"}}}
 
@@ -204,35 +207,36 @@ func TestTestSessionTakesTheBrowserFromTheColumn(t *testing.T) {
 
 func TestTestColumnRouting(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.Columns = migratedColumns(m.cfg)
+	m.cfg.Columns = []ColumnSpec{
+		{BoardID: "board1", PropertyID: "p", OptionID: "opt-test",
+			Property: m.cfg.TriggerProperty, Column: TemplateTestColumn, Action: FlowActionTest},
+	}
 
-	col := func(name string) Column {
-		return Column{PropertyName: strings.ToLower(m.cfg.TriggerProperty), Name: name}
+	col := func(optionID string) Column {
+		return Column{PropertyID: "p", PropertyName: m.cfg.TriggerProperty, OptionID: optionID, Name: TemplateTestColumn}
 	}
-	spec, ok := m.columnFor("board1", col(strings.ToLower(m.cfg.TestColumn)))
+	spec, ok := m.columnFor("board1", col("opt-test"))
 	if !ok || spec.Action != FlowActionTest {
-		t.Fatalf("the test column should match case-insensitively: %+v, %v", spec, ok)
+		t.Fatalf("the test column was not matched by its option: %+v, %v", spec, ok)
 	}
-	if spec, _ := m.columnFor("board1", col(m.cfg.TriggerColumn)); spec.Action != FlowActionAgent {
-		t.Fatalf("the trigger column should run an agent: %+v", spec)
-	}
-	if _, ok := m.columnFor("board1", Column{PropertyName: "Other", Name: m.cfg.TestColumn}); ok {
-		t.Fatal("only the configured property may match")
+	// Another option is another column, whatever it happens to be called.
+	if _, ok := m.columnFor("board1", col("opt-other")); ok {
+		t.Fatal("only the configured option may match")
 	}
 
 	// An empty name is not a column: it must not match every unnamed one.
-	m.cfg.TestColumn = ""
-	m.cfg.Columns = migratedColumns(m.cfg)
+	m.cfg.Columns = []ColumnSpec{
+		{Property: m.cfg.TriggerProperty, Column: "", Action: FlowActionTest},
+	}
 	if _, ok := m.columnFor("board1", Column{PropertyName: m.cfg.TriggerProperty}); ok {
 		t.Fatal("an empty column name must not become a trigger")
 	}
 }
 
-func TestDefaultConfigShipsTheTestColumn(t *testing.T) {
+func TestDefaultConfigShipsTheTestSettings(t *testing.T) {
 	cfg := DefaultConfig(t.TempDir())
-	if cfg.TestColumn == "" || cfg.TestPassColumn == "" || cfg.TestFailColumn == "" {
-		t.Fatalf("test columns: %+v", cfg)
-	}
+	// The column names are the templates' own now; the machine's settings keep
+	// only what is about this machine.
 	if cfg.TestPrompt != DefaultTestPrompt || cfg.ArtifactsDir == "" {
 		t.Fatalf("test defaults missing: %+v", cfg)
 	}

@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 
 import {IUser} from '../../user'
 import {ISharing} from '../../blocks/sharing'
-import {Channel} from '../../store/channels'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {TestRouter, mockAppStore, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
@@ -61,7 +60,6 @@ board.cardProperties = [
         ],
     },
 ]
-board.channelId = 'channel_1'
 
 const activeView = TestBlockFactory.createBoardView(board)
 activeView.id = 'view1'
@@ -148,8 +146,6 @@ describe('src/components/shareBoard/shareBoard', () => {
         searchText: {},
         clientConfig: {
             value: {
-                telemetry: true,
-                telemetryid: 'telemetry',
                 enablePublicSharedBoards: true,
                 teammateNameDisplay: 'username',
             },
@@ -177,8 +173,6 @@ describe('src/components/shareBoard/shareBoard', () => {
             viewId,
             workspaceId,
         }
-
-        mockedOctoClient.getChannel.mockResolvedValue({type: 'P', display_name: 'Dunder Mifflin Party Planing Committee'} as Channel)
     })
 
     afterEach(() => {
@@ -455,15 +449,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             {id: 'userid3', username: 'username_3'} as IUser,
             {id: 'userid4', username: 'username_4'} as IUser,
         ]
-        const channels: Channel[] = [
-            {id: 'channel1', type: 'P', display_name: 'Channel 1'} as Channel,
-            {id: 'channel2', type: 'P', display_name: 'Channel 2'} as Channel,
-            {id: 'channel3', type: 'O', display_name: 'Channel 3'} as Channel,
-            {id: 'channel4', type: 'O', display_name: 'Channel 4'} as Channel,
-        ]
-
         mockedOctoClient.searchTeamUsers.mockResolvedValue(users)
-        mockedOctoClient.searchUserChannels.mockResolvedValue(channels)
 
         const {container} = render(() =>
             wrapDNDIntl(() =>
@@ -477,7 +463,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         )
 
         expect(container).toMatchSnapshot()
-        const selectElement = await screen.findByText('Search for people and channels')
+        const selectElement = await screen.findByText('Search for people')
         expect(selectElement).toBeDefined()
 
         userEvent.click(selectElement!)
@@ -498,15 +484,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             {id: 'userid3', username: 'username_3'} as IUser,
             {id: 'userid4', username: 'username_4'} as IUser,
         ]
-        const channels: Channel[] = [
-            {id: 'channel1', type: 'P', display_name: 'Channel 1'} as Channel,
-            {id: 'channel2', type: 'P', display_name: 'Channel 2'} as Channel,
-            {id: 'channel3', type: 'O', display_name: 'Channel 3'} as Channel,
-            {id: 'channel4', type: 'O', display_name: 'Channel 4'} as Channel,
-        ]
-
         mockedOctoClient.searchTeamUsers.mockResolvedValue(users)
-        mockedOctoClient.searchUserChannels.mockResolvedValue(channels)
 
         const {container} = render(() =>
             wrapDNDIntl(() =>
@@ -520,7 +498,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         )
 
         expect(container).toMatchSnapshot()
-        const selectElement = await screen.findByText('Search for people and channels')
+        const selectElement = await screen.findByText('Search for people')
         expect(selectElement).toBeDefined()
 
         userEvent.click(selectElement!)
@@ -576,15 +554,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             {id: 'userid3', username: 'username_3'} as IUser,
             {id: 'userid4', username: 'username_4'} as IUser,
         ]
-        const channels: Channel[] = [
-            {id: 'channel1', type: 'P', display_name: 'Channel 1'} as Channel,
-            {id: 'channel2', type: 'P', display_name: 'Channel 2'} as Channel,
-            {id: 'channel3', type: 'O', display_name: 'Channel 3'} as Channel,
-            {id: 'channel4', type: 'O', display_name: 'Channel 4'} as Channel,
-        ]
-
         mockedOctoClient.searchTeamUsers.mockResolvedValue(users)
-        mockedOctoClient.searchUserChannels.mockResolvedValue(channels)
 
         const templateBoard = {...board, isTemplate: true}
         const myStore = mockAppStore({
@@ -612,7 +582,6 @@ describe('src/components/shareBoard/shareBoard', () => {
 
         userEvent.click(selectElement!)
 
-        expect(mockedOctoClient.searchUserChannels).not.toHaveBeenCalled()
         expect(container).toMatchSnapshot()
     })
 })

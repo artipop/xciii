@@ -123,14 +123,6 @@ describe('src/components/workspace', () => {
                 [board.id]: {userId: 'user_id_1', schemeAdmin: true},
             },
         },
-        limits: {
-            limits: {
-                cards: 0,
-                used_cards: 0,
-                card_limit_timestamp: 0,
-                views: 0,
-            },
-        },
         globalTemplates: {
             value: [],
         },
@@ -147,8 +139,6 @@ describe('src/components/workspace', () => {
         searchText: {},
         clientConfig: {
             value: {
-                telemetry: true,
-                telemetryid: 'telemetry',
                 enablePublicSharedBoards: true,
                 teammateNameDisplay: 'username',
             },
@@ -179,7 +169,6 @@ describe('src/components/workspace', () => {
         // Navigation builds a real path even under the Utils auto-mock:
         // navigate(undefined) would crash inside the router instead.
         mockedUtils.generatePath = actualUtils.generatePath
-        mockedUtils.getBoardPagePath = actualUtils.getBoardPagePath
     })
     test('should match snapshot', async () => {
         const result = render(() => wrapDNDIntl(() =>
@@ -268,8 +257,6 @@ describe('src/components/workspace', () => {
             searchText: {},
             clientConfig: {
                 value: {
-                    telemetry: true,
-                    telemetryid: 'telemetry',
                     enablePublicSharedBoards: true,
                     teammateNameDisplay: 'username',
                 },
@@ -339,14 +326,6 @@ describe('src/components/workspace', () => {
                     [welcomeBoard.id]: {userId: 'user_id_1', schemeAdmin: true},
                 },
             },
-            limits: {
-                limits: {
-                    cards: 0,
-                    used_cards: 0,
-                    card_limit_timestamp: 0,
-                    views: 0,
-                },
-            },
             globalTemplates: {
                 value: [],
             },
@@ -363,8 +342,6 @@ describe('src/components/workspace', () => {
             searchText: {},
             clientConfig: {
                 value: {
-                    telemetry: true,
-                    telemetryid: 'telemetry',
                     enablePublicSharedBoards: true,
                     teammateNameDisplay: 'username',
                 },

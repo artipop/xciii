@@ -16,8 +16,6 @@ import BoardPermissionGate from '../permissions/boardPermissionGate'
 
 import './table.scss'
 
-import HiddenCardCount from '../../components/hiddenCardCount/hiddenCardCount'
-
 import TableHeaders from './tableHeaders'
 import TableRows from './tableRows'
 import TableGroup from './tableGroup'
@@ -37,8 +35,6 @@ type Props = {
     showCard: (cardId?: string) => void
     addCard: (groupByOptionId?: string) => Promise<void>
     onCardClicked: (e: MouseEvent, card: Card) => void
-    hiddenCardsCount: number
-    showHiddenCardCountNotification: (show: boolean) => void
 }
 
 const Table = (props: Props): JSX.Element => {
@@ -256,13 +252,6 @@ const Table = (props: Props): JSX.Element => {
                     />
                 </div>
             </ColumnResizeProvider>
-
-            <Show when={props.hiddenCardsCount > 0}>
-                <HiddenCardCount
-                    showHiddenCardNotification={props.showHiddenCardCountNotification}
-                    hiddenCardsCount={props.hiddenCardsCount}
-                />
-            </Show>
         </div>
     )
 }

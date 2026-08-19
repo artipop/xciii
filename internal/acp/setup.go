@@ -208,7 +208,7 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 
 	plan.AgentColumn = columnOfAction(columns, FlowActionAgent)
 	plan.TestColumn = columnOfAction(columns, FlowActionTest)
-	plan.WorkAgents = crewOfAction(columns, FlowActionAgent)
+	plan.WorkAgents = m.crewNames(crewOfAction(columns, FlowActionAgent))
 	states := m.setupStates(boardID)
 	plan.Offered = states[setupWizardStep] != ""
 	for _, step := range steps {
@@ -391,10 +391,10 @@ func crewOfAction(columns []ColumnSpec, action string) []string {
 			continue
 		}
 		if first {
-			crew, first = c.Agents, false
+			crew, first = c.AgentIDs, false
 			continue
 		}
-		if !sameCrew(crew, c.Agents) {
+		if !sameCrew(crew, c.AgentIDs) {
 			return nil
 		}
 	}
@@ -449,11 +449,13 @@ func (m *Manager) BoardAgentNames(boardID string) []string {
 		}
 	}
 	for _, c := range columns {
-		add(c.Agents)
+		add(m.crewNames(c.AgentIDs))
+		add(c.Agents) // names this machine could not resolve, kept as written
 	}
 	for _, f := range flows {
 		for _, n := range f.Nodes {
-			add(n.Crew())
+			add(m.crewNames(n.Crew()))
+			add(n.AgentNames)
 		}
 	}
 	return names
@@ -465,13 +467,11 @@ func (m *Manager) BoardAgentNames(boardID string) []string {
 // Both writes belong to that one answer. A test session refuses to start
 // without a browser MCP server on the agent it resolved (startSession), and
 // which agent it resolves is the column's business — so the server goes on the
-// agent, and the agent goes on the test column as its crew. Putting the server
-// on whichever agent the registry happened to list first is what this replaces:
-// on a board with two agents the browser landed on one and the QA column ran
-// the other, and the session died saying it had nothing to test with.
+// agent, and that agent goes on the test column as its crew. Split, the browser
+// lands on one agent and the column runs another.
 //
 // The rest of the agent's entry is kept: the wizard knows about a browser and
-// nothing else, and rebuilding the entry from that dropped the model, the
+// nothing else, so rebuilding the entry from that would drop the model, the
 // environment and the proxy of an agent already set up.
 func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) error {
 	return m.setStageCrew(boardID, []string{agentName}, FlowActionTest, servers)
@@ -506,7 +506,9 @@ func (m *Manager) setStageCrew(boardID string, names []string, action string, se
 			return fmt.Errorf("агент %q не найден в реестре", strings.TrimSpace(name))
 		}
 		entry = found
-		crew = append(crew, found.Name)
+		// The page speaks names, because that is what a person picks; the id is
+		// resolved once, here, and it is the id that is stored.
+		crew = append(crew, found.ID)
 	}
 
 	// Read the board first: the wizard runs before any card has been moved, so
@@ -525,7 +527,7 @@ func (m *Manager) setStageCrew(boardID string, names []string, action string, se
 		if spec.Action != action {
 			continue
 		}
-		spec.Agents = crewOrNone(crew)
+		spec.AgentIDs = crewOrNone(crew)
 		if len(servers) > 0 {
 			spec.MCPServers = servers
 		}
@@ -542,12 +544,12 @@ func (m *Manager) setStageCrew(boardID string, names []string, action string, se
 			if node.Action != action {
 				continue
 			}
-			flow.Nodes[i].AgentNames = crewOrNone(crew)
+			flow.Nodes[i].AgentIDs = crewOrNone(crew)
 
-			// The stage's older single-agent field, which Crew() still prefers
-			// when AgentNames is empty: left standing it would answer for a
-			// crew somebody has just taken off.
-			flow.Nodes[i].AgentName = ""
+			// The stage's older name fields, folded into ids on load: left
+			// standing they would be bound again and put back a crew somebody
+			// has just taken off.
+			flow.Nodes[i].AgentName, flow.Nodes[i].AgentNames = "", nil
 			if len(servers) > 0 {
 				flow.Nodes[i].MCPServers = servers
 			}
@@ -597,25 +599,17 @@ func (m *Manager) agentNamed(name string) (AgentEntry, bool) {
 // setupSteps is what this board asks to be asked: what the stages it has now
 // need, with what the board said about them laid over it.
 //
-// A declaration used to *replace* the inference, and a declaration is written
-// once — by the template, before the board existed. So a board of household
-// chores that grew a deploy stage a month later was never asked for a Dokku
-// host and was never offered «Куда деплоить…» in its menu either, since that
-// item is this plan: the stage stood there when a card reached it, with no door
-// anywhere to fix it. It ran stale the other way too — «Разработка» with its
-// deploy column deleted went on asking for a host for ever.
+// The stages decide *which* questions there are, because they are the board as
+// it is now; a declaration is written once, before the board exists, and would
+// run stale in both directions — a board that grew a deploy stage later never
+// asked for a host, and one whose deploy column was deleted asked for ever.
+// The declaration decides what the questions *say*: a hint, a step the board
+// insists on, and the one kind nothing implies (a source feeds a board rather
+// than working on it).
 //
-// So the stages decide *which* questions there are, being the board as it is
-// now, and the declaration decides what those questions say: a hint of the
-// board's own, a step it insists on, and the one kind nothing can be inferred
-// from — a source feeds a board rather than working on it, so no arrangement of
-// columns implies one.
-//
-// None of this makes a question an obligation. Every inferred step keeps the
-// closed set's own answer about being optional (SetupStepDefs), because a stage
-// nobody has configured is not a broken board: it runs nothing by itself and a
-// person works the card there by hand, which is a perfectly good way to use a
-// column.
+// None of it makes a question an obligation. An inferred step keeps the closed
+// set's answer about being optional, because a stage nobody has configured runs
+// nothing and a person works the card there by hand.
 func setupSteps(declared BoardSetup, columns []ColumnSpec, flows []FlowEntry) []BoardSetupStep {
 	// A board with no stages at all has nothing to infer from, and inference
 	// answers that case by offering everything — a guess for a board that has

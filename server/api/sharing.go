@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
 	"github.com/artipop/xciii/server/mlog"
@@ -57,10 +56,6 @@ func (a *API) handleGetSharing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "getSharing", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-
 	sharing, err := a.app.GetSharing(boardID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -80,9 +75,6 @@ func (a *API) handleGetSharing(w http.ResponseWriter, r *http.Request) {
 		mlog.String("shareID", sharing.ID),
 		mlog.Bool("enabled", sharing.Enabled),
 	)
-	auditRec.AddMeta("shareID", sharing.ID)
-	auditRec.AddMeta("enabled", sharing.Enabled)
-	auditRec.Success()
 }
 
 func (a *API) handlePostSharing(w http.ResponseWriter, r *http.Request) {
@@ -139,11 +131,6 @@ func (a *API) handlePostSharing(w http.ResponseWriter, r *http.Request) {
 	// Stamp boardID from the URL
 	sharing.ID = boardID
 
-	auditRec := a.makeAuditRecord(r, "postSharing", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("shareID", sharing.ID)
-	auditRec.AddMeta("enabled", sharing.Enabled)
-
 	// Stamp ModifiedBy
 	modifiedBy := userID
 	if userID == model.SingleUser {
@@ -175,5 +162,4 @@ func (a *API) handlePostSharing(w http.ResponseWriter, r *http.Request) {
 	jsonStringResponse(w, http.StatusOK, "{}")
 
 	a.logger.Debug("POST sharing", mlog.String("sharingID", sharing.ID))
-	auditRec.Success()
 }

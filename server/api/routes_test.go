@@ -13,10 +13,9 @@ import (
 
 func routerWithAllRoutes(t *testing.T) *web.Router {
 	t.Helper()
-	a := NewAPI(nil, "", "", nil, mlog.CreateConsoleTestLogger(t), nil)
+	a := NewAPI(nil, "", "", nil, mlog.CreateConsoleTestLogger(t))
 	r := web.NewRouter()
 	a.RegisterRoutes(r)
-	a.RegisterAdminRoutes(r)
 	return r
 }
 

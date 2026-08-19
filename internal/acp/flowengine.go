@@ -95,14 +95,14 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 	m.saveFlowState(FlowState{
 		CardID:      ev.CardID,
 		BoardID:     ev.BoardID,
-		Flow:        flow.Name,
+		FlowID:      flow.ID,
 		NodeID:      node.ID,
 		Branch:      m.flowBranch(ev, workdirPath, previousBranch),
 		WorkdirPath: workdirPath,
 		Visited:     visited,
 	})
 	m.appendFlowEvent(FlowEventRecord{
-		CardID: ev.CardID, Flow: flow.Name, FromNode: from, ToNode: node.ID, On: on, Detail: detail,
+		CardID: ev.CardID, FlowID: flow.ID, FromNode: from, ToNode: node.ID, On: on, Detail: detail,
 		// The agent's own words on the transition, kept because the stage the
 		// card returns to is briefed from them (returnBrief): «ревьюер вернул с
 		// такими-то замечаниями» is the input the resumed session works from.
@@ -162,7 +162,7 @@ func (m *Manager) cardBranch(cardID string) string {
 	// The card's own workspace, for a card whose branch was made before any
 	// session ran in it — a person opening the terminal first, which is the
 	// ordinary way to start now.
-	branch, err = m.store.BranchForOwner(cardID)
+	branch, err = m.store.BranchForCard(cardID)
 	if err != nil {
 		m.log.Warn("acp: cannot read the card's workspace", "card", cardID, "err", err)
 		return ""
@@ -177,8 +177,8 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 	// The stage stands on a column, and the column says who works it and how
 	// many at once. The stage overrides only what it names itself.
 	spec, _ := m.columnFor(ev.BoardID, node.asColumn(flow.PropertyOr(m.triggerProperty())))
-	opts := startOptions{flowName: flow.Name, flowNodeID: node.ID, column: spec,
-		deployOverride: node.DeployName, agentCrew: node.Crew(), stagePrompt: node.Prompt,
+	opts := startOptions{flowID: flow.ID, flowNodeID: node.ID, column: spec,
+		deployOverride: node.DeployID, agentCrew: node.Crew(), stagePrompt: node.Prompt,
 		writes: node.Writes, reads: node.Reads, mcp: node.MCPServers}
 
 	action := node.Action
@@ -207,7 +207,7 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 
 	s, err := m.startSession(ev, opts)
 	if errors.Is(err, errStageBusy) {
-		m.enqueueStage(ev, spec, flow.Name, node.ID)
+		m.enqueueStage(ev, spec, flow.ID, node.ID)
 		return
 	}
 	// The card is somebody's: the route keeps its place and waits for them to
@@ -246,9 +246,9 @@ func (m *Manager) advanceFlowWith(cardID, on, detail, agentText string) {
 	if err != nil || !ok {
 		return
 	}
-	flow, ok := m.FlowByName(st.Flow)
+	flow, ok := m.FlowByID(st.FlowID)
 	if !ok {
-		m.log.Info("acp: flow gone, card stays put", "card", cardID, "flow", st.Flow)
+		m.log.Info("acp: flow gone, card stays put", "card", cardID, "flow", st.FlowID)
 		return
 	}
 	node, ok := flow.Node(st.NodeID)
@@ -326,7 +326,7 @@ func (m *Manager) handleCardChanged(ev CardMoved) bool {
 	if err != nil || !ok {
 		return false
 	}
-	flow, ok := m.FlowByName(st.Flow)
+	flow, ok := m.FlowByID(st.FlowID)
 	if !ok {
 		return false
 	}
@@ -356,7 +356,7 @@ func (m *Manager) handleCardChanged(ev CardMoved) bool {
 // its outcome is the event its stage moves on. A cancelled session produces no
 // outcome at all — somebody intervened, and the route waits for them.
 func (m *Manager) flowAfterSession(s *Session) {
-	if s.FlowName == "" {
+	if s.FlowID == "" {
 		return
 	}
 	outcome, detail := s.flowOutcome()
@@ -444,7 +444,7 @@ func (m *Manager) FlowTargets() []FlowTarget {
 		if st.WorkdirPath == "" || st.Branch == "" {
 			continue
 		}
-		flow, ok := m.FlowByName(st.Flow)
+		flow, ok := m.FlowByID(st.FlowID)
 		if !ok {
 			continue
 		}
@@ -498,7 +498,7 @@ func (m *Manager) flowState(cardID string) (FlowState, bool, error) {
 		st, ok, err := m.cards.CardFlow(ctx, cardID)
 		cancel()
 		if err == nil {
-			return st, ok, nil
+			return m.boundFlowState(st), ok, nil
 		}
 		// A card that cannot be read right now is not a card with no position:
 		// falling through to the index keeps a route moving through a hiccup.
@@ -507,14 +507,32 @@ func (m *Manager) flowState(cardID string) (FlowState, bool, error) {
 	if m.store == nil {
 		return FlowState{}, false, nil
 	}
-	return m.store.FlowStateForCard(cardID)
+	st, ok, err := m.store.FlowStateForCard(cardID)
+	return m.boundFlowState(st), ok, err
+}
+
+// boundFlowState folds the route's name, as a card parked before routes had ids
+// records it, into the id. Read-only: the fold is written back the next time
+// the card moves, and until then this is what every reader sees.
+func (m *Manager) boundFlowState(st FlowState) FlowState {
+	if st.FlowID != "" || st.Flow == "" {
+		return st
+	}
+	if flow, ok := m.FlowByName(st.Flow); ok {
+		st.FlowID, st.Flow = flow.ID, ""
+	}
+	return st
 }
 
 func (m *Manager) flowStates() ([]FlowState, error) {
 	if m.store == nil {
 		return nil, nil
 	}
-	return m.store.FlowStates()
+	states, err := m.store.FlowStates()
+	for i := range states {
+		states[i] = m.boundFlowState(states[i])
+	}
+	return states, err
 }
 
 func (m *Manager) saveFlowState(st FlowState) {

@@ -131,19 +131,11 @@ func extractIDs(t *testing.T, arr ...any) []string {
 					ids = append(ids, b.ID)
 				}
 			}
-		case []*model.BoardHistory:
-			for _, bh := range tarr {
-				ids = append(ids, bh.ID)
-			}
 		case []*model.Block:
 			for _, b := range tarr {
 				if b != nil {
 					ids = append(ids, b.ID)
 				}
-			}
-		case []*model.BlockHistory:
-			for _, bh := range tarr {
-				ids = append(ids, bh.ID)
 			}
 		default:
 			t.Errorf("unsupported type %T extracting board ID", item)

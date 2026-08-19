@@ -18,23 +18,27 @@ import (
 
 // ColumnSpec is one configured column.
 type ColumnSpec struct {
-	// The board it belongs to and the option that is the column itself.
-	// Written by the editor, which knows them; a spec migrated from the old
-	// column-name config keys has them empty until an event fills them in.
+	// The board it belongs to and the option that is the column itself. This is
+	// the whole of how a column is identified; a spec that arrived with only a
+	// name is bound to its option when the board is read (bindToBoardOptions).
 	BoardID    string `json:"boardId,omitempty"`
 	PropertyID string `json:"propertyId,omitempty"`
 	OptionID   string `json:"optionId,omitempty"`
 
-	// Property and Column are the names — what the user reads, and what a spec
-	// without ids is matched by.
+	// Property and Column are what a person reads. They are labels and nothing
+	// else: renaming either used to move a card's settings to another column.
 	Property string `json:"property"`
 	Column   string `json:"column"`
 
 	Action string `json:"action"` // FlowAction*
 
-	// Agents is the roster: everyone who works this column. A card picks one of
-	// them when it does not name an agent itself. Empty leaves the choice to
-	// the card, exactly as before.
+	// AgentIDs is the roster: everyone who works this column, by registry id.
+	// A card picks one of them when it does not name an agent itself. Empty
+	// leaves the choice to the card, exactly as before.
+	AgentIDs []string `json:"agentIds,omitempty"`
+	// Agents is what the roster used to be written as — the names a person
+	// typed. Folded into AgentIDs once (bindrefs.go) and never written back:
+	// renaming an agent used to empty the crew of every column on every board.
 	Agents []string `json:"agents,omitempty"`
 
 	// Prompt is what working in this column means, said to the agent: the
@@ -63,7 +67,12 @@ type ColumnSpec struct {
 	// (FlowNode.MCPServers).
 	MCPServers MCPServerSet `json:"mcpServers,omitempty"`
 
-	// DeployName pins the deploy target for an "deploy" column.
+	// DeployID pins the deploy target for a "deploy" column, by the registry
+	// entry's own id: renaming a target must not silently unpin every column
+	// that sends work to it (docs/model-graph.md, contradiction 8).
+	DeployID string `json:"deployId,omitempty"`
+	// DeployName is what pinning used to be written as. Read once and folded
+	// into DeployID (bindrefs.go); never written back.
 	DeployName string `json:"deployName,omitempty"`
 
 	// MaxRunning bounds how many sessions this column runs at once. Zero means
@@ -73,20 +82,10 @@ type ColumnSpec struct {
 
 // Key identifies the column for the queue and for counting what is running in
 // it. Ids are used where known, since names change and ids do not.
-func (c ColumnSpec) Key() string {
-	if c.OptionID != "" {
-		return c.BoardID + "|" + c.OptionID
-	}
-	return strings.ToLower(c.Property + "|" + c.Column)
-}
+func (c ColumnSpec) Key() string { return c.BoardID + "|" + c.OptionID }
 
 // columnKey is Key for a column as it arrives in an event.
-func columnKey(boardID string, c Column) string {
-	if c.OptionID != "" {
-		return boardID + "|" + c.OptionID
-	}
-	return strings.ToLower(c.PropertyName + "|" + c.Name)
-}
+func columnKey(boardID string, c Column) string { return boardID + "|" + c.OptionID }
 
 // Columns returns a snapshot of the registry.
 func (m *Manager) Columns() []ColumnSpec {
@@ -96,8 +95,7 @@ func (m *Manager) Columns() []ColumnSpec {
 }
 
 // BoardColumns returns the columns configured for one board — the specs the
-// editor shows. A spec that has never seen an event carries no board id yet, so
-// it is offered to every board: it came from the config's own column names.
+// editor shows, plus any that name no board at all.
 func (m *Manager) BoardColumns(boardID string) []ColumnSpec {
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
@@ -110,27 +108,24 @@ func (m *Manager) BoardColumns(boardID string) []ColumnSpec {
 	return out
 }
 
-// matchColumn finds the spec for a column of an event, most precise first:
-// the board's own option id, then the board's property/column names, then a
-// spec that names no board at all (a migrated one).
+// matchColumn finds the spec for a column of an event, by the option the column
+// is. Nothing is matched by name any more (contradiction 5): a spec that knows
+// only a name is bound to its option when the board is read
+// (bindToBoardOptions), and one that could not be bound describes a column the
+// board has not got.
 func matchColumn(specs []ColumnSpec, boardID string, c Column) (ColumnSpec, int, bool) {
-	byName := func(s ColumnSpec) bool {
-		return strings.EqualFold(s.Property, c.PropertyName) && strings.EqualFold(s.Column, c.Name)
+	if c.OptionID == "" {
+		return ColumnSpec{}, -1, false
 	}
-	if c.OptionID != "" {
-		for i, s := range specs {
-			if s.OptionID == c.OptionID && (s.BoardID == "" || s.BoardID == boardID) {
-				return s, i, true
-			}
-		}
-	}
+	// The board's own answer first, then one that names no board — an entry
+	// that predates boards being told apart, and is offered to all of them.
 	for i, s := range specs {
-		if s.BoardID == boardID && s.OptionID == "" && byName(s) {
+		if s.OptionID == c.OptionID && s.BoardID == boardID {
 			return s, i, true
 		}
 	}
 	for i, s := range specs {
-		if s.BoardID == "" && byName(s) {
+		if s.OptionID == c.OptionID && s.BoardID == "" {
 			return s, i, true
 		}
 	}
@@ -138,45 +133,26 @@ func matchColumn(specs []ColumnSpec, boardID string, c Column) (ColumnSpec, int,
 }
 
 // columnFor is what the trigger loop asks: does anything happen when a card
-// lands here? It also backfills the ids of a spec matched by name, so the very
-// first move teaches the config which option the column actually is — after
-// that, renaming the column on the board changes nothing.
+// lands here?
 func (m *Manager) columnFor(boardID string, c Column) (ColumnSpec, bool) {
 	m.cfgMu.RLock()
-	specs := append([]ColumnSpec(nil), m.cfg.Columns...)
-	m.cfgMu.RUnlock()
-
-	spec, _, ok := matchColumn(specs, boardID, c)
-	if !ok {
-		return ColumnSpec{}, false
-	}
-	if spec.OptionID == "" && c.OptionID != "" {
-		spec = m.learnColumnIDs(spec, boardID, c)
-	}
-	return spec, true
-}
-
-// learnColumnIDs records which option a name-matched spec turned out to be.
-func (m *Manager) learnColumnIDs(spec ColumnSpec, boardID string, c Column) ColumnSpec {
-	m.cfgMu.Lock()
-	defer m.cfgMu.Unlock()
-	_, i, ok := matchColumn(m.cfg.Columns, boardID, c)
-	if !ok || m.cfg.Columns[i].OptionID != "" {
-		return spec // somebody else got there first
-	}
-	m.cfg.Columns[i].BoardID = boardID
-	m.cfg.Columns[i].PropertyID = c.PropertyID
-	m.cfg.Columns[i].OptionID = c.OptionID
-	if err := m.persistConfigLocked(); err != nil {
-		m.log.Warn("acp: cannot persist column ids", "column", c.Name, "err", err)
-	}
-	m.log.Info("acp: column bound to its option", "column", c.Name, "board", boardID, "option", c.OptionID)
-	return m.cfg.Columns[i]
+	defer m.cfgMu.RUnlock()
+	spec, _, ok := matchColumn(m.cfg.Columns, boardID, c)
+	return spec, ok
 }
 
 // validateColumn normalizes and checks one spec against the registries it may
 // reference.
 func validateColumn(c ColumnSpec, agents []AgentEntry, deploys []DeployEntry) (ColumnSpec, error) {
+	// A leftover name means the board's own copy could not be bound to this
+	// machine's registry (adoptColumns); refusing here is what routes the column
+	// back to being kept on the board verbatim.
+	if len(c.Agents) > 0 {
+		return ColumnSpec{}, fmt.Errorf("агент %q не найден в реестре (%s)", c.Agents[0], agentNames(agents))
+	}
+	if c.DeployName != "" {
+		return ColumnSpec{}, fmt.Errorf("цель деплоя %q не найдена в реестре (%s)", c.DeployName, deployNames(deploys))
+	}
 	c.Property = strings.TrimSpace(c.Property)
 	c.Column = strings.TrimSpace(c.Column)
 	if c.Column == "" {
@@ -195,27 +171,26 @@ func validateColumn(c ColumnSpec, agents []AgentEntry, deploys []DeployEntry) (C
 		return ColumnSpec{}, fmt.Errorf("неизвестное действие %q у колонки %q", c.Action, c.Column)
 	}
 
-	roster := make([]string, 0, len(c.Agents))
-	seen := make(map[string]bool, len(c.Agents))
-	for _, name := range c.Agents {
-		name = strings.TrimSpace(name)
-		if name == "" {
+	roster := make([]string, 0, len(c.AgentIDs))
+	seen := make(map[string]bool, len(c.AgentIDs))
+	for _, id := range c.AgentIDs {
+		id = strings.TrimSpace(id)
+		if id == "" || seen[id] {
 			continue
 		}
-		if !hasAgent(agents, name) {
-			return ColumnSpec{}, fmt.Errorf("агент %q не найден в реестре (%s)", name, agentNames(agents))
+		if _, ok := agentByID(agents, id); !ok {
+			return ColumnSpec{}, fmt.Errorf("колонка %q ссылается на агента, которого нет в реестре (есть: %s)", c.Column, agentNames(agents))
 		}
-		if seen[strings.ToLower(name)] {
-			continue
-		}
-		seen[strings.ToLower(name)] = true
-		roster = append(roster, name)
+		seen[id] = true
+		roster = append(roster, id)
 	}
-	c.Agents = roster
+	c.AgentIDs = roster
 
-	c.DeployName = strings.TrimSpace(c.DeployName)
-	if c.DeployName != "" && !hasDeploy(deploys, c.DeployName) {
-		return ColumnSpec{}, fmt.Errorf("цель деплоя %q не найдена в реестре (%s)", c.DeployName, deployNames(deploys))
+	c.DeployID = strings.TrimSpace(c.DeployID)
+	if c.DeployID != "" {
+		if _, ok := deployByID(deploys, c.DeployID); !ok {
+			return ColumnSpec{}, fmt.Errorf("колонка %q ссылается на цель деплоя, которой нет в реестре (есть: %s)", c.Column, deployNames(deploys))
+		}
 	}
 	if c.MaxRunning < 0 {
 		return ColumnSpec{}, fmt.Errorf("лимит одновременных сессий не может быть отрицательным")
@@ -287,30 +262,6 @@ func sameColumn(a, b ColumnSpec) bool {
 	}
 	return strings.EqualFold(a.Column, b.Column) &&
 		(a.BoardID == b.BoardID || a.BoardID == "" || b.BoardID == "")
-}
-
-// migratedColumns turns the config's legacy column keys into specs, so an
-// install that has never seen this feature behaves exactly as it did: the
-// trigger column runs an agent, the deploy column deploys, the test column
-// tests. They carry no ids — the first card moved into one fills those in.
-func migratedColumns(cfg Config) []ColumnSpec {
-	out := make([]ColumnSpec, 0, 3)
-	add := func(column, action string) {
-		column = strings.TrimSpace(column)
-		if column == "" {
-			return
-		}
-		for _, c := range out {
-			if strings.EqualFold(c.Column, column) {
-				return // two keys naming one column: the first wins
-			}
-		}
-		out = append(out, ColumnSpec{Property: cfg.TriggerProperty, Column: column, Action: action})
-	}
-	add(cfg.TriggerColumn, FlowActionAgent)
-	add(cfg.DeployColumn, FlowActionDeploy)
-	add(cfg.TestColumn, FlowActionTest)
-	return out
 }
 
 // errStageBusy is not a failure: the column's crew is fully occupied, so the

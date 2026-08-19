@@ -13,20 +13,20 @@ import (
 // retiredSchemaTable is where the previous engine's record is kept while the
 // migrations run, so an install that fails halfway through this can still be
 // looked at. deleteOldSchemaMigrationTable drops it once they have finished.
-const retiredSchemaTableSuffix = "schema_migrations_old_temp"
+const retiredSchemaTable = "schema_migrations_old_temp"
 
 // legacyMigrationTables are the names the previous engine could have left its
 // record of applied migrations under, most likely first.
 //
 // There are two because that engine was configured for one and given the other.
-// It was told to keep its record in <prefix>schema_migrations — but the SQLite
-// path threw every engine option away to be rid of the locking it did not
-// support, and the table name went with them, so a board on somebody's desk
-// records its migrations in that engine's own default, `db_migrations`,
-// unprefixed. Both are looked for whatever the dialect, since the cost is one
-// query against a table that is not there.
+// It was told to keep its record in schema_migrations — but the SQLite path
+// threw every engine option away to be rid of the locking it did not support,
+// and the table name went with them, so a board on somebody's desk records its
+// migrations in that engine's own default, `db_migrations`. Both are looked for
+// whatever the dialect, since the cost is one query against a table that is not
+// there.
 func (s *SQLStore) legacyMigrationTables() []string {
-	return []string{"db_migrations", s.tablePrefix + "schema_migrations"}
+	return []string{"db_migrations", "schema_migrations"}
 }
 
 // EnsureSchemaMigrationFormat converts the record of applied migrations from the
@@ -209,7 +209,7 @@ func (s *SQLStore) getLegacySchemaVersion(tableName string) (uint32, error) {
 // migration engine can create its own, and keeps the contents under another name
 // until the migrations have finished.
 func (s *SQLStore) retireLegacySchemaTable(tableName string) error {
-	retired := s.tablePrefix + retiredSchemaTableSuffix
+	retired := retiredSchemaTable
 
 	var query string
 	if s.dbType == model.MysqlDBType {
@@ -227,7 +227,7 @@ func (s *SQLStore) retireLegacySchemaTable(tableName string) error {
 }
 
 func (s *SQLStore) deleteOldSchemaMigrationTable() error {
-	query := "DROP TABLE IF EXISTS " + s.tablePrefix + retiredSchemaTableSuffix
+	query := "DROP TABLE IF EXISTS " + retiredSchemaTable
 	if _, err := s.db.Exec(query); err != nil {
 		s.logger.Error("failed to delete old temp schema migrations table", mlog.Err(err))
 		return err

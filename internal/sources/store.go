@@ -2,66 +2,48 @@ package sources
 
 import (
 	"database/sql"
-	"os"
-	"path/filepath"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/google/uuid"
 )
 
-// Store keeps what has already been seen and what came of it, in a SQLite
-// database of its own — separate from the board's and from the ACP one, so a
-// source works with the agent integration switched off.
+// Store keeps what has already been seen and what came of it. It lives in the
+// board's own database, in tables of its own: a source works with the agent
+// integration switched off, and that is a fact about packages rather than about
+// files — internal/sources still imports nothing from internal/acp.
+//
+// The handle belongs to the board, which opened it and closes it.
 type Store struct {
 	db *sql.DB
 }
 
-// OpenStore opens (creating if needed) the sources database at path.
-func OpenStore(path string) (*Store, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
-		return nil, err
-	}
-	db, err := sql.Open("sqlite3", path+"?_busy_timeout=5000&_journal_mode=WAL")
+// NewStore wraps the board's database handle. It creates nothing: the tables
+// are rungs on the board's own migration ladder (tools/schemagen).
+func NewStore(db *sql.DB) *Store {
+	return &Store{db: db}
+}
+
+func (s *Store) exec(q string, args ...any) (sql.Result, error) {
+	return s.db.Exec(q, args...)
+}
+
+func (s *Store) query(q string, args ...any) (*sql.Rows, error) {
+	return s.db.Query(q, args...)
+}
+
+func (s *Store) queryRow(q string, args ...any) *sql.Row {
+	return s.db.QueryRow(q, args...)
+}
+
+// newID names a row of the log. UUIDv7 rather than an autoincrement, because
+// v7 sorts by the moment it was made — which is what ORDER BY id meant here.
+func newID() string {
+	id, err := uuid.NewV7()
 	if err != nil {
-		return nil, err
+		return uuid.NewString()
 	}
-	s := &Store{db: db}
-	if err := s.migrate(); err != nil {
-		db.Close()
-		return nil, err
-	}
-	return s, nil
+	return id.String()
 }
-
-func (s *Store) migrate() error {
-	// Additive and idempotent, like the ACP schema: there is no version column,
-	// so a migration may only add.
-	_, err := s.db.Exec(`
-CREATE TABLE IF NOT EXISTS source_item (
-	source TEXT NOT NULL,
-	external_id TEXT NOT NULL,
-	version TEXT NOT NULL DEFAULT '',
-	card_id TEXT NOT NULL DEFAULT '',
-	created_at INTEGER NOT NULL,
-	updated_at INTEGER NOT NULL,
-	PRIMARY KEY (source, external_id)
-);
-CREATE INDEX IF NOT EXISTS idx_source_item_card ON source_item(card_id);
-CREATE TABLE IF NOT EXISTS source_event (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	source TEXT NOT NULL,
-	external_id TEXT NOT NULL DEFAULT '',
-	rule TEXT NOT NULL DEFAULT '',
-	outcome TEXT NOT NULL,
-	card_id TEXT NOT NULL DEFAULT '',
-	detail TEXT NOT NULL DEFAULT '',
-	created_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_source_event_source ON source_event(source, id);`)
-	return err
-}
-
-func (s *Store) Close() error { return s.db.Close() }
 
 // ItemState says what an item is: never seen, seen in another state, or exactly
 // what is already recorded.
@@ -81,7 +63,7 @@ const (
 // marked as handled and never seen again.
 func (s *Store) StateOf(source, externalID, version string) (ItemState, string, error) {
 	var seenVersion, cardID string
-	err := s.db.QueryRow(`SELECT version, card_id FROM source_item WHERE source=? AND external_id=?`,
+	err := s.queryRow(`SELECT COALESCE(version,''), COALESCE(card_id,'') FROM source_item WHERE source=? AND external_id=?`,
 		source, externalID).Scan(&seenVersion, &cardID)
 	switch {
 	case err == sql.ErrNoRows:
@@ -99,11 +81,11 @@ func (s *Store) StateOf(source, externalID, version string) (ItemState, string, 
 // board write has succeeded.
 func (s *Store) RememberItem(source, externalID, version, cardID string) error {
 	now := time.Now().UnixMilli()
-	_, err := s.db.Exec(`INSERT INTO source_item (source, external_id, version, card_id, created_at, updated_at)
+	_, err := s.exec(`INSERT INTO source_item (source, external_id, version, card_id, created_at, updated_at)
 		VALUES (?,?,?,?,?,?)
 		ON CONFLICT(source, external_id) DO UPDATE SET
 			version=excluded.version, card_id=excluded.card_id, updated_at=excluded.updated_at`,
-		source, externalID, version, cardID, now, now)
+		source, externalID, nullable(version), nullable(cardID), now, now)
 	return err
 }
 
@@ -111,10 +93,10 @@ func (s *Store) RememberItem(source, externalID, version, cardID string) error {
 // created again under the same name starts clean rather than silently ignoring
 // everything it brings.
 func (s *Store) ForgetSource(source string) error {
-	if _, err := s.db.Exec(`DELETE FROM source_item WHERE source=?`, source); err != nil {
+	if _, err := s.exec(`DELETE FROM source_item WHERE source=?`, source); err != nil {
 		return err
 	}
-	_, err := s.db.Exec(`DELETE FROM source_event WHERE source=?`, source)
+	_, err := s.exec(`DELETE FROM source_event WHERE source=?`, source)
 	return err
 }
 
@@ -131,7 +113,7 @@ const (
 // and what came of it. It answers the only question anybody asks of a source —
 // why nothing happened — the way flow_event answers it for routes.
 type EventRecord struct {
-	ID         int64     `json:"id"`
+	ID         string    `json:"id"`
 	Source     string    `json:"source"`
 	ExternalID string    `json:"externalId,omitempty"`
 	Rule       string    `json:"rule,omitempty"`
@@ -143,9 +125,9 @@ type EventRecord struct {
 
 // AppendEvent records one decision.
 func (s *Store) AppendEvent(r EventRecord) error {
-	_, err := s.db.Exec(`INSERT INTO source_event (source, external_id, rule, outcome, card_id, detail, created_at)
-		VALUES (?,?,?,?,?,?,?)`,
-		r.Source, r.ExternalID, r.Rule, r.Outcome, r.CardID, r.Detail, time.Now().UnixMilli())
+	_, err := s.exec(`INSERT INTO source_event (id, source, external_id, rule, outcome, card_id, detail, created_at)
+		VALUES (?,?,?,?,?,?,?,?)`,
+		newID(), r.Source, r.ExternalID, r.Rule, r.Outcome, nullable(r.CardID), r.Detail, time.Now().UnixMilli())
 	return err
 }
 
@@ -154,7 +136,7 @@ func (s *Store) Events(source string, limit int) ([]EventRecord, error) {
 	if limit <= 0 {
 		limit = 50
 	}
-	rows, err := s.db.Query(`SELECT id, source, external_id, rule, outcome, card_id, detail, created_at
+	rows, err := s.query(`SELECT id, source, COALESCE(external_id,''), COALESCE(rule,''), outcome, COALESCE(card_id,''), COALESCE(detail,''), created_at
 		FROM source_event WHERE source=? ORDER BY id DESC LIMIT ?`, source, limit)
 	if err != nil {
 		return nil, err
@@ -179,7 +161,7 @@ func (s *Store) PruneEvents(keep int) error {
 	if keep <= 0 {
 		keep = 500
 	}
-	_, err := s.db.Exec(`DELETE FROM source_event WHERE id NOT IN (
+	_, err := s.exec(`DELETE FROM source_event WHERE id NOT IN (
 		SELECT id FROM source_event ORDER BY id DESC LIMIT ?)`, keep)
 	return err
 }

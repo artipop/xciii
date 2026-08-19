@@ -366,7 +366,7 @@ A stage can wait for something that happens outside the board:
 | Trigger | Where it comes from | Needs |
 |---|---|---|
 | `branch.pushed`, `branch.merged` | local git | nothing |
-| `pr.opened`, `pr.merged`, `pr.closed`, `review.approved`, `checks.passed`, `checks.failed` | GitHub API | a token in `githubToken` or `GITHUB_TOKEN` for private projects |
+| `pr.opened`, `pr.merged`, `pr.closed`, `review.approved`, `checks.passed`, `checks.failed` | GitHub API | для приватных проектов — токен в `GITHUB_TOKEN` или в хранилище секретов под `github.token` |
 
 There is nowhere for a webhook to arrive on a laptop, so this is polling —
 `vcsPollSeconds`, 60 by default — and **only for the branches a parked card is
@@ -558,7 +558,7 @@ by hand:
 | `sessionTimeoutMinutes` / `testTimeoutMinutes` | one turn (15) and one browser pass (30) |
 | `sessionIdleMinutes` | how long a console session sits between turns (30) |
 | `boardPrompts` | what each board tells its agents first, keyed by board id — written by *«Системный промпт доски…»* in the board's ⋯ menu, not by hand. The other prompt an agent gets is its own (`agents[].prompt`), and there is deliberately no third |
-| `vcsPollSeconds` / `gitRemote` / `githubToken` | watching folders |
+| `vcsPollSeconds` / `gitRemote` | watching folders |
 | `autoAllowTools` | what an agent may do without asking. A card-triggered session has nobody to ask, so anything not on the list is refused |
 | `artifactsDir` | screenshots and verdicts of test runs |
 

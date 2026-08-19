@@ -1,95 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`src/components/gallery/Gallery > limited card count check 1`] = `
-<div>
-  <div
-    class="Gallery"
-  >
-    <div
-      class="GalleryCard selected"
-      style="opacity: 1;"
-    >
-      <div
-        aria-label="menuwrapper"
-        class="MenuWrapper optionsMenu"
-        role="button"
-      >
-        <button
-          class="IconButton CardActionsMenuIcon"
-          type="button"
-        >
-          <i
-            class="CompassIcon icon-dots-horizontal OptionsIcon"
-          />
-        </button>
-        
-      </div>
-      <div
-        class="gallery-item"
-      />
-      
-      
-      
-    </div>
-    <div
-      class="GalleryCard"
-      style="opacity: 1;"
-    >
-      <div
-        aria-label="menuwrapper"
-        class="MenuWrapper optionsMenu"
-        role="button"
-      >
-        <button
-          class="IconButton CardActionsMenuIcon"
-          type="button"
-        >
-          <i
-            class="CompassIcon icon-dots-horizontal OptionsIcon"
-          />
-        </button>
-        
-      </div>
-      <div
-        class="gallery-item"
-      />
-      
-      
-      
-    </div>
-    <div
-      class="octo-gallery-new"
-    >
-      + New
-    </div>
-    <div
-      class="gallery-hidden-cards"
-    >
-      <div
-        class="HiddenCardCount"
-      >
-        <div
-          class="hidden-card-title"
-        >
-          Cards hidden
-        </div>
-        <button
-          class="Button"
-          title="hidden-card-count"
-          type="button"
-        >
-          
-          <span>
-            2
-          </span>
-          
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`src/components/gallery/Gallery > return Gallery and click new 1`] = `
 <div>
   <div
@@ -159,7 +69,6 @@ exports[`src/components/gallery/Gallery > return Gallery and click new 1`] = `
     >
       + New
     </div>
-    
   </div>
 </div>
 `;
@@ -200,7 +109,6 @@ exports[`src/components/gallery/Gallery > return Gallery readonly 1`] = `
       
       
     </div>
-    
     
   </div>
 </div>
@@ -459,7 +367,6 @@ exports[`src/components/gallery/Gallery > should match snapshot 1`] = `
     >
       + New
     </div>
-    
   </div>
 </div>
 `;
@@ -603,7 +510,6 @@ exports[`src/components/gallery/Gallery > should match snapshot without permissi
       
       
     </div>
-    
     
   </div>
 </div>

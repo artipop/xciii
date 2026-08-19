@@ -15,55 +15,32 @@ import (
 
 // WorkdirEntry is one named local folder in the registry.
 type WorkdirEntry struct {
-	// ID is what a card points at, and the one field of an entry that never
-	// changes. A card used to name its folder by *name*, which made the name
-	// undeletable and unrenameable and tied the whole idea to something a
-	// person typed; and a name is the wrong identity for what is coming — a
-	// place to work need not be a folder on this disk at all (a repository to
-	// clone, a drive, a machine over ssh), and for those the "name" is exactly
-	// the part somebody will want to change.
-	//
-	// It is also the id of the option the board offers for this folder
-	// (workdirSync.ts), so the card stores it by storing an ordinary select
-	// value. An entry written before this field is given one at startup.
+	// ID is what a card points at, and the one field that never changes. It is
+	// also the id of the option the board offers for this folder
+	// (workdirSync.ts), so the card holds an ordinary select value.
 	ID   string `json:"id,omitempty"`
 	Name string `json:"name"`
 	Path string `json:"path"`
-	// BoardID is the board the folder was added on, and the only board that
-	// offers it. A folder of household notes has no business being on the board
-	// about code, and the registry is per machine, so without this every board
-	// ends up offering every folder anybody ever added.
-	//
-	// Empty means no board has claimed it — an entry written before folders
-	// belonged to a board. Such an entry is offered nowhere and worked in by
-	// nothing; the folders dialog lists it apart and attaches it to the board
-	// somebody is on (Attached), which is the only way back into use.
+	// BoardID is the board the folder was added on and the only one that offers
+	// it: the registry is per machine, so without this every board offers every
+	// folder anybody ever added. Empty means nobody has claimed it, and such an
+	// entry is offered nowhere until the folders dialog attaches it.
 	BoardID string `json:"boardId,omitempty"`
 	// Global says the folder belongs to all of them on purpose — the same
 	// checkout worked from several boards.
 	Global bool `json:"global,omitempty"`
 
 	// Kind is what somebody said this folder is, not what it happens to be.
-	// WorkdirGit means a repository was asked for — the board's setup step
-	// demanded one — so a folder that turns out not to be under git is an
-	// error rather than a quiet fall back to working in it as it stands.
-	// Empty is the ordinary case and means nobody said: git is asked at the
-	// moment it matters (IsGitWorkdir), which is what every entry written
-	// before this field does, and what lets a folder become a repository
-	// later without anybody re-adding it.
+	// WorkdirGit means a repository was demanded, so one without git is an error
+	// rather than a quiet fall back. Empty means nobody said, and git is asked
+	// when it matters (IsGitWorkdir) — so a folder can become a repository later
+	// without being re-added.
 	Kind string `json:"kind,omitempty"`
 
-	// Modes is how this folder is worked in when it is a repository, per board
-	// that offers it: board id → WorkModeWorktree (a copy per card) or
-	// WorkModeBranch (a branch in the folder itself). A board with no answer
-	// falls back to the machine's own old default.
-	//
-	// Keyed by board because the answer is about this folder *on this board*.
-	// A folder belongs to one board anyway, so for almost every entry the map
-	// has one key and reads as "the folder's answer"; a folder marked «на всех
-	// досках» is the case the key earns — the same checkout can be a copy per
-	// card on the board where three people work it and a branch in place on the
-	// board where one person does.
+	// Modes is how this folder is worked in when it is a repository, per board:
+	// WorkModeWorktree (a copy per card) or WorkModeBranch (a branch in place).
+	// Keyed by board because a folder marked «на всех досках» can want a copy
+	// per card where three people work it and a branch where one does.
 	Modes map[string]string `json:"modes,omitempty"`
 
 	// BranchPrefix names the branches made here — "feature/", say. Empty is
@@ -107,7 +84,13 @@ func (p WorkdirEntry) Attached() bool { return p.Global || p.BoardID != "" }
 // is how several agents (e.g. two Codex accounts) coexist on one machine: give
 // each its own CODEX_HOME/OPENAI_API_KEY (or CLAUDE_CONFIG_DIR/ANTHROPIC_API_KEY).
 type AgentEntry struct {
-	Name    string            `json:"name"`              // registry key; matches the card's assignee
+	// ID is what a column's crew and a card's session record point at. The name
+	// used to be the key, and renaming an agent therefore broke the crew of
+	// every route on every board and unassigned every card — silently, because
+	// nothing can check a name against a name. Filled in at startup for an
+	// entry written before this field.
+	ID      string            `json:"id,omitempty"`
+	Name    string            `json:"name"`              // shown on screen; the account's username
 	Kind    string            `json:"kind"`              // "claude" | "codex" | "antigravity" | "copilot" | "junie" | "acp"
 	BinPath string            `json:"binPath,omitempty"` // overrides adapter discovery
 	Model   string            `json:"model,omitempty"`   // the model the adapter is asked for
@@ -154,29 +137,32 @@ type AgentEntry struct {
 	// all, since nothing else can know what its CLI is called.
 	TerminalCommand []string `json:"terminalCommand,omitempty"`
 
-	// MCPServers are the agent's own MCP servers, spawned alongside the one a
-	// deploy session configures itself. This is how a Node-based server such as
-	// @playwright/mcp plugs in without the app depending on Node: the user wires
-	// it per agent, we only pass it on.
-	//
-	// The shape is the one every MCP client uses — name → {command, args, env} —
-	// so an entry can be pasted straight from a server's README, and so the
-	// config file reads the same as the agent's own.
+	// MCPServers are the agent's own, in the shape every MCP client uses, so an
+	// entry can be pasted from a server's README. This is how @playwright/mcp
+	// plugs in without the app depending on Node: the user wires it, we pass it
+	// on.
 	MCPServers MCPServerSet `json:"mcpServers,omitempty"`
 
-	// ProxyName selects a named entry from the proxy registry (Config.Proxies).
-	// Network settings live there rather than on the agent, so several agents
-	// share one configuration and it is edited in a single place. Empty means
-	// the agent inherits the app's own environment.
+	// ProxyID selects an entry of the proxy registry. Network settings live
+	// there rather than on the agent, so several agents share one configuration
+	// and it is edited in a single place. Empty means the agent inherits the
+	// app's own environment.
+	ProxyID string `json:"proxyId,omitempty"`
+	// ProxyName is what the selection used to be written as. Read once and
+	// folded into ProxyID (bindrefs.go); never written back.
 	ProxyName string `json:"proxyName,omitempty"`
+
+	// UserID is the agent's board account. It is what «Кто занимается» on a
+	// card actually stores, so it — and not the username derived from Name — is
+	// how an assigned card finds its agent: renaming an agent must not
+	// unassign every card it was working on.
+	UserID string `json:"userId,omitempty"`
 }
 
-// AgentMCPServer is one MCP server an agent carries of its own, in the standard
-// client shape: a command with its arguments and environment.
+// AgentMCPServer is one MCP server an agent carries of its own.
 //
-// Configuring one is consent to use it: its tools (mcp__<name>__…) run without
-// asking, for the same reason our own server's do — a card-triggered session
-// has no console, and asking nobody means rejecting.
+// Configuring one is consent to use it: its tools run without asking, because a
+// card-triggered session has no console and asking nobody means rejecting.
 //
 // Type and URL exist only to recognise a remote server pasted from a README and
 // say what is wrong: everything here is spawned over stdio.
@@ -227,18 +213,15 @@ func (s *AgentMCPServer) UnmarshalJSON(data []byte) error {
 }
 
 // MCPServerSet is how an agent's servers are stored: name → server, the shape
-// every MCP client uses. It reads more than it writes, because the file is
-// edited by hand as often as by us and the same servers are written differently
-// in the wild:
+// every MCP client uses. It reads more than it writes, because entries are
+// pasted out of other clients' configs, which spell the same thing three ways:
 //
 //	{"playwright": {"command": "npx", …}}                  the canonical shape
 //	[{"name": "playwright", "command": "npx", …}]          a list of named ones
 //	{"mcpServers": {"playwright": {…}}}                    the whole client file
 //
-// All three mean the same thing, so all three are accepted rather than
-// disabling the integration over the punctuation. Anything else is reported
-// with the name of the field, since a config that cannot be read stops
-// everything.
+// All three are accepted rather than disabling the integration over
+// punctuation. Anything else is reported with the field's name.
 type MCPServerSet map[string]AgentMCPServer
 
 func (s *MCPServerSet) UnmarshalJSON(data []byte) error {
@@ -365,7 +348,10 @@ func (n NetworkSettings) redactProxySecret(text string) string {
 // ProxyEntry is one named network configuration in the registry, referenced by
 // agents through AgentEntry.ProxyName.
 type ProxyEntry struct {
-	Name string `json:"name"` // registry key; matches AgentEntry.ProxyName
+	// ID is what an agent's proxy_id points at. Filled in at startup for an
+	// entry written before this field.
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"` // shown on screen; matches AgentEntry.ProxyName
 	NetworkSettings
 }
 
@@ -377,7 +363,10 @@ type ProxyEntry struct {
 // The Dokku half is dokku.Target verbatim, because that is exactly what the MCP
 // subprocess is handed at session start.
 type DeployEntry struct {
-	Name string `json:"name"` // registry key; matches the card "Deploy target" option
+	// ID is what a route's deploy stage points at. Filled in at startup for an
+	// entry written before this field.
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"` // shown on screen; matches the card "Deploy target" option
 
 	// An entry is the host and the domain, nothing else: what a preview needs
 	// beyond that — environment, TLS, how long a build may take — is a property
@@ -490,14 +479,9 @@ var AgentKinds = []string{
 	AgentKindACP,
 }
 
-// acpAdapter is everything that differs between one ACP agent and another: the
-// binary to look for, the package that provides it when it is missing, the
-// flags that select ACP-over-stdio, how a model is asked for, what the process
-// must not inherit, and the mode to switch it into once connected.
-//
-// Everything else — the connection, MCP servers, permissions, cancellation,
-// turn budgets — is the same code for every kind, which is the point of the
-// table: adding an agent is a row, not a branch.
+// acpAdapter is everything that differs between one ACP agent and another.
+// Everything else is the same code for every kind, which is the point: adding
+// an agent is a row, not a branch.
 type acpAdapter struct {
 	// bin is the executable, looked up on PATH and in the usual install spots.
 	bin string
@@ -550,13 +534,10 @@ type acpAdapter struct {
 	// separator belongs to the kind that knows how its own parser spells one.
 	cliPromptArgs func(prompt string) []string
 	// cliHookArgs register a command the CLI runs when it needs a person, so a
-	// stage stops being noticed by its silence alone (toolhook.go). Same
-	// arrangement as cliMCPArgs and for the same reason: a hook is spelled
-	// differently by every vendor, so it is a column rather than a branch, and a
-	// kind that leaves it empty keeps the timer it has always had.
-	//
-	// The argument is a shell command line, because that is what both CLIs that
-	// have hooks accept — hookCommand builds it, quoted.
+	// stage is not noticed by silence alone (toolhook.go). A column rather than
+	// a branch, because every vendor spells hooks differently; a kind that
+	// leaves it empty keeps the timer. The argument is a shell command line,
+	// which is what both CLIs with hooks accept.
 	cliHookArgs func(hookCmd string) []string
 	// dropEnv names variables the process must not inherit from ours.
 	dropEnv []string
@@ -675,75 +656,50 @@ type Config struct {
 	AgentCommand []string `json:"agentCommand,omitempty"`
 
 	TriggerProperty string `json:"triggerProperty"`
-	TriggerColumn   string `json:"triggerColumn"`
 
-	// DeployColumn is the second trigger on the same property: a card dragged
-	// into it starts a session whose job is to publish the card's branch to the
-	// Dokku target it resolves to. Empty disables the deploy trigger.
-	DeployColumn string `json:"deployColumn"`
-
-	// TestColumn is the third trigger on the same property: a card dragged into
-	// it starts a session that opens the card's preview in a real browser and
-	// checks it against the card's description. Empty disables the test trigger.
-	TestColumn string `json:"testColumn"`
-
-	// TestPassColumn and TestFailColumn are where the card goes once the verdict
-	// is in. Empty means the card stays put and a human decides.
-	TestPassColumn string `json:"testPassColumn"`
-	TestFailColumn string `json:"testFailColumn"`
-
-	// ProjectWhitelist lists directory roots a card's project_path must be
-	// under. Empty means every project_path is rejected (explicit opt-in).
-	ProjectWhitelist []string `json:"projectWhitelist"`
-
-	// Workdirs is the registry of named local folders. A card is mapped to
-	// a folder when one of its select/multiSelect option names (e.g. a tag)
-	// matches a registry entry name. Registered paths are implicitly allowed.
-	//
-	// A folder is a git repository; the product stopped calling it one because
-	// a board that runs agents is not only for software.
-	Workdirs []WorkdirEntry `json:"projects"`
+	// Workdirs is the registry of named local folders, not necessarily git ones.
+	// Not in the file: they are the `workspace` table, and this is the working
+	// copy the engine reads on every card move (loadRegistriesLocked).
+	Workdirs []WorkdirEntry `json:"-"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their
 	// own prompt, model and env). A card is mapped to an agent by its assignee,
 	// each agent being a member of the board under its own name. When empty,
 	// AgentMode below drives the (single) built-in agent for backward compat.
-	Agents []AgentEntry `json:"agents"`
+	// Not in the file: the `agent` table. See Workdirs.
+	Agents []AgentEntry `json:"-"`
 
 	// Proxies is the registry of named network configurations. Agents pick one
 	// by name (AgentEntry.ProxyName), so a proxy is described once and shared.
-	Proxies []ProxyEntry `json:"proxies"`
+	// Not in the file: the `proxy` table. See Workdirs.
+	Proxies []ProxyEntry `json:"-"`
 
 	// Deploys is the registry of named Dokku destinations used by the deploy
 	// column. The matching target is handed to the session's dokku MCP server.
-	Deploys []DeployEntry `json:"deploys"`
+	// Not in the file: the `deploy_target` table. See Workdirs.
+	Deploys []DeployEntry `json:"-"`
 
-	// Columns is what happens in each column of a board: the action a card
-	// entering it starts, who works it, how many at once. It is the single
-	// answer to "what does this column do" — the TriggerColumn/DeployColumn/
-	// TestColumn keys above are only the seed it is migrated from. See columns.go.
-	Columns []ColumnSpec `json:"columns"`
+	// Columns is what happens in each column of a board (columns.go).
+	//
+	// Not in the file: a board's automation lives on the board (`xciiiColumns`)
+	// so it travels with it. This is the working copy; every edit is written
+	// through by persistBoardLocked.
+	Columns []ColumnSpec `json:"-"`
 
 	// Flows is the registry of named routes across the board: which column
 	// follows which, and on what event. A card without a matching flow still
 	// gets whatever its column does — a flow adds the transitions, not the
 	// behaviour. See flows.go.
-	Flows []FlowEntry `json:"flows"`
-
-	// SystemPrompt was the instruction prepended to every triggered session's
-	// prompt, for every board at once. It is kept only as the source the
-	// migration below reads: a board is what a prompt is about, and one
-	// setting shared by the household board and the code board was a setting
-	// nobody could fill in. Nothing reads it after LoadConfig.
-	//
-	// Deprecated: use BoardPrompts.
-	SystemPrompt string `json:"systemPrompt,omitempty"`
+	// Not in the file: `xciiiFlows` on the board. See Columns.
+	Flows []FlowEntry `json:"-"`
 
 	// BoardPrompts is that instruction, per board: the text prepended to every
 	// prompt a session of that board is given, before the agent's own system
 	// prompt and the card task. Keyed by board id, empty for a board that
 	// never set one.
-	BoardPrompts map[string]string `json:"boardPrompts,omitempty"`
+	//
+	// Not in the file: `xciiiPrompt` on the board. See Columns.
+	BoardPrompts map[string]string `json:"-"`
 
 	// DeployPrompt is what a deploy session is told to do; the concrete facts
 	// (folder, branch, target, expected URL) are appended to it.
@@ -772,10 +728,6 @@ type Config struct {
 	VCSPollSeconds int `json:"vcsPollSeconds"`
 	// GitRemote is the remote consulted for those events.
 	GitRemote string `json:"gitRemote"`
-	// GithubToken authorizes the pull-request triggers. Empty falls back to
-	// GITHUB_TOKEN in the environment; without either, only public folders
-	// answer, and slowly (60 requests an hour).
-	GithubToken string `json:"githubToken,omitempty"`
 
 	// WorktreeMode controls where sessions run: "always" (default) — a
 	// dedicated git worktree per session, which is what gives a card its own
@@ -822,7 +774,10 @@ type Config struct {
 const (
 	// DefaultTriggerProperty is the select property the columns live on.
 	DefaultTriggerProperty = "Статус"
-	DefaultTriggerColumn   = "В работе"
+	// DefaultTriggerColumn is what a board made from a template calls the column
+	// an agent works in. Kept as the one name the fixtures and the templates
+	// share; the templates' own names are in flowtemplates.go.
+	DefaultTriggerColumn = TemplateWorkColumn
 	// legacyTriggerColumn is the column earlier versions triggered on; configs
 	// still carrying it are migrated on load.
 	legacyTriggerColumn = "To Agent"
@@ -835,12 +790,6 @@ func DefaultConfig(dataDir string) Config {
 		Enabled:                  true,
 		AgentMode:                "claude",
 		TriggerProperty:          DefaultTriggerProperty,
-		TriggerColumn:            DefaultTriggerColumn,
-		DeployColumn:             "Деплой",
-		TestColumn:               "QA",
-		TestPassColumn:           "Проверено",
-		TestFailColumn:           "Не прошло",
-		ProjectWhitelist:         []string{},
 		Workdirs:                 []WorkdirEntry{},
 		Agents:                   []AgentEntry{},
 		Proxies:                  []ProxyEntry{},
@@ -858,14 +807,11 @@ func DefaultConfig(dataDir string) Config {
 		ShowThoughts:             true,
 		PermissionTimeoutMinutes: 5,
 		IdempotencyWindowSeconds: 10,
-		// This list is what an agent is *not* asked about, and everything on it
-		// is here because being asked would be noise: reading and editing code,
-		// and the shell a coding agent cannot work without (tests, git, build)
-		// — withholding it while Edit and Write are allowed buys nothing but
-		// interruptions. The dokku tools are the same judgement for a deploy.
-		// destroy_deployment is deliberately absent: deleting an environment is
-		// always worth a human answer, and since a session now waits for one
-		// (question.go) that answer is a person's rather than a rejection.
+		// What an agent is *not* asked about: reading and editing code, and the
+		// shell a coding agent cannot work without — withholding it while Edit
+		// and Write are allowed buys nothing but interruptions. The dokku tools
+		// are the same judgement for a deploy; destroy_deployment is absent
+		// because tearing an environment down is worth a human answer.
 		AutoAllowTools: []string{
 			"Read", "Grep", "Glob", "Edit", "Write", "MultiEdit", "NotebookEdit", "TodoWrite", "Bash", "Skill",
 			"mcp__dokku__deploy_branch", "mcp__dokku__app_logs",
@@ -878,24 +824,14 @@ func DefaultConfig(dataDir string) Config {
 	}
 }
 
-// DefaultPlanningPrompt is what a planning terminal is opened with. It is a
-// conversation about a task that does not exist yet, so the one rule is that
-// nothing is to be changed — and unlike a session, where the tool policy holds
-// the agent to that, a terminal is the CLI's own with the person's own
-// permissions. Here the instruction is all there is, which is also why it is
-// editable: whoever plans is the one who knows what "don't touch" means for
-// their folder.
+// DefaultPlanningPrompt opens a planning terminal: a conversation about a task
+// that does not exist yet, so the one rule is that nothing is to be changed.
+// Unlike a session there is no tool policy holding the agent to it — a terminal
+// runs with the person's own permissions — so the instruction is all there is,
+// and editable by whoever knows what "don't touch" means for their folder.
 //
-// It says nothing about creating cards on purpose. The board tools describe
-// themselves — an MCP server's instructions arrive with its tool list — so an
-// agent that has them is already told what they are for, and one that has not
-// is not told to reach for something it does not have. Naming them here would
-// be the same sentence written twice, in the one place a person edits by hand.
-// It is English, as everything this application says to an agent is: the app is
-// used in more than one language, and this text is read by a model rather than
-// by a person. What the person writes — the card, the board's own prompt, their
-// own rewrite of this one — carries the language along with it, and the agent
-// answers in it.
+// It says nothing about creating cards on purpose: an MCP server's instructions
+// arrive with its tool list.
 const DefaultPlanningPrompt = `We are planning a new task.
 
 The code in this folder is yours to read — open files, search them, read the git
@@ -961,11 +897,9 @@ func (c Config) TestTimeout() time.Duration {
 func LoadConfig(path, dataDir string) (Config, error) {
 	b, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		// A new install seeds no routes: the board brings its own (the "My
-		// Folder Tasks" template ships them), and the editor offers the same
-		// ones to a board that does not. Columns are still derived from the
-		// trigger-column keys, so a hand-made board behaves as it always did.
-		cfg := withColumns(DefaultConfig(dataDir))
+		// A new install seeds neither columns nor routes: a board brings its
+		// own, and the editor offers the templates to a board that has none.
+		cfg := DefaultConfig(dataDir)
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			return cfg, err
 		}
@@ -982,95 +916,30 @@ func LoadConfig(path, dataDir string) (Config, error) {
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return Config{}, fmt.Errorf("parse %s: %w", path, err)
 	}
-	// An existing config keeps whatever it says, so the old default would live
-	// on forever in installs that never touched it. Only the abandoned default
-	// is rewritten; a column the user chose is left alone. It happens before the
-	// routes are seeded, so their stages name the column cards land in now.
-	if strings.EqualFold(strings.TrimSpace(cfg.TriggerColumn), legacyTriggerColumn) {
-		cfg.TriggerColumn = DefaultTriggerColumn
-	}
-	// Seed the routes and the columns only when the file has no such key at
-	// all. An empty list is a decision — the user deleted every route, or
-	// cleared every column — and must survive restarts, which an emptiness
-	// check could not tell from a config written before either existed.
-	var probe struct {
-		Flows   *[]FlowEntry  `json:"flows"`
-		Columns *[]ColumnSpec `json:"columns"`
-	}
-	if err := json.Unmarshal(b, &probe); err != nil {
-		probe.Flows, probe.Columns = nil, nil
-	}
-	if probe.Columns == nil {
-		cfg = withColumns(cfg)
-	}
-	if probe.Flows == nil && len(cfg.Columns) > 0 {
-		// An install that predates flows keeps the routes it would have been
-		// given then; a fresh one gets them from its board instead.
-		cfg = withTemplateFlows(cfg)
-	}
-	cfg = withBoardPrompts(cfg)
+	// What used to happen here: three seedings, all of them for an install that
+	// predated something. The trigger column was rewritten off an abandoned
+	// default; columns were built from the five column-name keys this file used
+	// to carry; routes were built from those columns. All three are gone with
+	// the keys (docs/model-graph.md, contradiction 9): a board carries
+	// its own columns and routes, and the machine's settings no longer name the
+	// columns of anybody's board.
 	return cfg, nil
 }
 
-// withBoardPrompts moves the one prompt every board used to share onto the
-// boards that actually run something. It runs once: the global field is blanked
-// afterwards, so the next load finds nothing to move.
-//
-// Every board named by a column or a route gets the text, because those are the
-// boards the prompt was reaching — a board with neither never ran a session and
-// so never saw it. Boards the user has since deleted leave a key behind, which
-// costs a line of JSON and is cheaper than reaching into the store from here.
-func withBoardPrompts(cfg Config) Config {
-	text := strings.TrimSpace(cfg.SystemPrompt)
-	if text == "" || len(cfg.BoardPrompts) > 0 {
-		cfg.SystemPrompt = ""
-		return cfg
-	}
-	prompts := map[string]string{}
-	for _, c := range cfg.Columns {
-		if c.BoardID != "" {
-			prompts[c.BoardID] = cfg.SystemPrompt
+// GithubSecretKey is where the pull-request token is kept: internal/secrets,
+// which is the keychain where there is one and a 0600 file where there is not.
+// It was `githubToken` in config.json — a credential in a settings file
+// somebody edits by hand and pastes into an issue, next to the timeouts.
+const GithubSecretKey = "github.token"
+
+// githubToken is what authorizes pull-request polling: the stored one, else
+// whatever the environment already holds. Absent is the ordinary case — public
+// folders answer without a token, at a rate limit the watcher paces itself to.
+func (m *Manager) githubToken() string {
+	if m.vault != nil {
+		if t, err := m.vault.Get(GithubSecretKey); err == nil && strings.TrimSpace(t) != "" {
+			return strings.TrimSpace(t)
 		}
-	}
-	for _, f := range cfg.Flows {
-		if f.BoardID != "" {
-			prompts[f.BoardID] = cfg.SystemPrompt
-		}
-	}
-	if len(prompts) > 0 {
-		cfg.BoardPrompts = prompts
-	}
-	cfg.SystemPrompt = ""
-	return cfg
-}
-
-// withColumns fills the column registry from the trigger-column keys the config
-// already carries, so an install that predates it keeps behaving exactly as it
-// did: the trigger column runs an agent, the deploy column deploys, the test
-// column tests. The keys stay in the file as the seed; from here on the
-// registry is what the trigger loop reads.
-func withColumns(cfg Config) Config {
-	if len(cfg.Columns) == 0 {
-		cfg.Columns = migratedColumns(cfg)
-	}
-	return cfg
-}
-
-// withTemplateFlows seeds the registry with the template routes, built from the
-// trigger columns the config already names. It runs after unmarshalling so the
-// routes reflect the user's own column names rather than the defaults.
-func withTemplateFlows(cfg Config) Config {
-	if flows := TemplateFlows(cfg); len(flows) > 0 {
-		cfg.Flows = flows
-	}
-	return cfg
-}
-
-// GithubTokenValue is the token to authorize pull-request polling with: the
-// configured one, else whatever the environment already holds.
-func (c Config) GithubTokenValue() string {
-	if t := strings.TrimSpace(c.GithubToken); t != "" {
-		return t
 	}
 	return strings.TrimSpace(os.Getenv("GITHUB_TOKEN"))
 }
@@ -1117,34 +986,4 @@ func SaveConfig(path string, cfg Config) error {
 	// config keeps whatever it had — tighten it, the file can hold proxy
 	// credentials and API keys (agent env).
 	return os.Chmod(path, 0o600)
-}
-
-// ValidateWorkdirPath checks a card's repo_path against the whitelist, the folder
-// registry and the filesystem. It returns the cleaned absolute path.
-func (c Config) ValidateWorkdirPath(workdirPath string) (string, error) {
-	if strings.TrimSpace(workdirPath) == "" {
-		return "", fmt.Errorf("repo_path is empty")
-	}
-	if !filepath.IsAbs(workdirPath) {
-		return "", fmt.Errorf("repo_path must be absolute: %s", workdirPath)
-	}
-	clean := filepath.Clean(workdirPath)
-	info, err := os.Stat(clean)
-	if err != nil {
-		return "", fmt.Errorf("repo_path does not exist: %s", clean)
-	}
-	if !info.IsDir() {
-		return "", fmt.Errorf("repo_path is not a directory: %s", clean)
-	}
-	roots := append([]string(nil), c.ProjectWhitelist...)
-	for _, r := range c.Workdirs {
-		roots = append(roots, r.Path)
-	}
-	for _, root := range roots {
-		rootClean := filepath.Clean(root)
-		if clean == rootClean || strings.HasPrefix(clean, rootClean+string(filepath.Separator)) {
-			return clean, nil
-		}
-	}
-	return "", fmt.Errorf("repo_path %s is not under any whitelisted root (repoWhitelist / projects in acp config)", clean)
 }

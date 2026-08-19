@@ -18,6 +18,12 @@ import './deployTargetsPanel.scss'
 // pointed at it, and what makes everything a preview needs beyond that
 // (environment, TLS, build time) a property of the project, not of a host.
 export type DeployTarget = {
+
+    // The registry entry's own id. What a column or a route stage pins by: a
+    // name is the part somebody renames, and pinning by one silently unpinned
+    // every stage that used it (docs/model-graph.md, contradiction 8). Absent
+    // on a form that has not been saved yet.
+    id?: string
     name: string
     sshHost: string
     sshUser?: string

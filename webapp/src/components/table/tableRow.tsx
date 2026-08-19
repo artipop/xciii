@@ -19,7 +19,6 @@ import CompassIcon from '../../widgets/icons/compassIcon'
 import OptionsIcon from '../../widgets/icons/options'
 import Tooltip from '../../widgets/tooltip'
 import ConfirmationDialogBox, {ConfirmationDialogBoxProps} from '../confirmationDialogBox'
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 import CardActionsMenu from '../cardActionsMenu/cardActionsMenu'
 
 import {useColumnResize} from './tableColumnResizeContext'
@@ -121,7 +120,6 @@ const TableRow = (props: Props) => {
             Utils.assertFailure()
             return
         }
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, card: card.id})
         await mutator.deleteBlock(card, 'delete card')
     }
 

@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	acpsdk "github.com/coder/acp-go-sdk"
@@ -72,9 +71,9 @@ type Session struct {
 	ColumnKey  string
 	ColumnName string
 
-	// FlowName/FlowNodeID are set when a flow stage started this session. Its
+	// FlowID/FlowNodeID are set when a flow stage started this session. Its
 	// outcome is then the event that moves the card on.
-	FlowName   string
+	FlowID   string
 	FlowNodeID string
 	// NodeID is the node this session's conversation is keyed under: the flow
 	// node when a route started it, else the option id of the column that did.
@@ -130,8 +129,6 @@ type Session struct {
 
 	finalMu  sync.Mutex
 	finalBuf strings.Builder
-
-	seq atomic.Int64
 }
 
 func (s *Session) Status() SessionStatus {
@@ -255,9 +252,11 @@ func (s *Session) autoAllowed(name string, input any, cfg Config) bool {
 	return s.Policy.Allows(name, input)
 }
 
-// appendEvent persists a session event with the next sequence number.
+// appendEvent persists one line of a session's journal. Nothing numbers them:
+// the row's own id is a UUIDv7, so the order it was written in is the order it
+// comes back in.
 func (s *Session) appendEvent(m *Manager, kind string, payload any) {
-	if err := m.store.AppendEvent(s.ID, s.seq.Add(1), kind, payload); err != nil {
+	if err := m.store.AppendEvent(s.ID, kind, payload); err != nil {
 		m.log.Warn("acp: failed to persist session event", "session", s.ID, "err", err)
 	}
 }

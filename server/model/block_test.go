@@ -302,7 +302,7 @@ func TestStampModificationMetadata(t *testing.T) {
 		assert.Empty(t, block.ModifiedBy)
 		assert.Empty(t, block.UpdateAt)
 
-		StampModificationMetadata("user_id_1", blocks, nil)
+		StampModificationMetadata("user_id_1", blocks)
 		assert.Equal(t, "user_id_1", blocks[0].ModifiedBy)
 		assert.NotEmpty(t, blocks[0].UpdateAt)
 	})

@@ -16,22 +16,15 @@ import (
 	"github.com/google/uuid"
 )
 
-// A terminal session is the agent's own CLI, running in a pseudo-terminal in
-// the card's working directory — the same thing a developer would open a shell
-// and type, with the folder, the worktree, the branch and the agent's
-// environment already set up.
+// The agent's own CLI in a pty, in the card's workspace.
 //
-// It is deliberately *not* an ACP session: an ACP agent speaks JSON-RPC on
-// stdio and has no terminal UI, so a session cannot be both. What the two share
-// is everything around them — which folder a card is about, which agent
-// works it, which proxy and API keys that agent runs with, and where the branch
-// goes — and that is what this reuses. Where an ACP session reports every step
-// as it goes, a terminal session reports once, when it ends: what the CLI left
-// on the branch (terminalReport).
+// Deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and
+// has no terminal UI, so one process cannot be both. What the two share is
+// everything around them — folder, agent, proxy, branch — and that is what
+// startTerminal reuses.
 //
 // The window is where the human sits, so nothing here decides anything for
-// them: no tool policy, no flow outcome, no card movement. The card is told
-// what happened and stays where it is.
+// them: no tool policy, no flow outcome, no card movement.
 
 // terminalScrollback is how much output a session keeps for a window that
 // opens late or reopens. Enough for a screen of a TUI and its history, small
@@ -402,13 +395,6 @@ func (t *TerminalSession) finish() {
 // **one** conversation, with the column's own agent, workspace and prompt.
 // Come back to the node and you come back to the session.
 //
-// This replaced a special key for "the card's own conversation, apart from
-// every stage's" (@brainstorm). That split existed to stop a stage typing the
-// card's task into a person's discussion, and the node model answers the same
-// problem at the source: what a column means — who works there and what they
-// are told — is the column's setting, so the conversation a stage joins is the
-// conversation a person deliberately opened *about that stage*.
-//
 // nodeNone is the node of a card that has no column at all, spelled with `@`
 // because option ids are not made of it: a card can be talked over the moment
 // it exists, before anybody files it anywhere.
@@ -417,39 +403,27 @@ const nodeNone = "@none"
 // nodeTalk is the card's own conversation, apart from every stage's — thinking
 // about the card rather than working on it: the wording, the plan, the brief.
 //
-// This is the key the paragraph above says was removed, and it is back on a
-// different footing. It was removed because the split it made was arbitrary:
-// «the card's own» and «the stage's» were two conversations about the same
-// column, and what a column means is the column's setting, so a person sitting
-// down at a stage and the stage itself belong in one place. That is still true,
-// and the node key is still what work is filed under.
-//
-// What the node key could not express is the other axis. A conversation is
-// either work — it stands in the card's workspace, a route may join it, it ends
-// in finish_work and leaves a branch — or it is talk, which claims nothing and
-// ends in nothing. While that was *derived* (from the column the card happened
-// to stand in, and from whether it named a folder yet), the two kept colliding:
-// a card talked over before it had a folder took the node's key with a
-// conversation standing in the drafts folder, which the stage then adopted, or
-// could not adopt and had to work around; and neither the lists nor the button
-// on the card could say which of the two a row was, because nothing knew.
-//
-// So the kind is declared by whoever opens the conversation — two doors,
-// StartCardTerminal and StartCardTalk — rather than inferred from where the
-// card is standing at the time.
+// The node key files work; this is the other axis. Work stands in the card's
+// workspace, a route may join it, it ends in finish_work and leaves a branch;
+// talk claims nothing and ends in nothing. The kind is declared by whoever
+// opens the conversation (StartCardTerminal / StartCardTalk) rather than
+// inferred from the column the card happens to stand in — inferred, the two
+// collided: a card talked over before it had a folder took the node's key with
+// a conversation standing in the drafts folder, and the stage then typed its
+// task into it.
 const nodeTalk = "@talk"
 
 // StartCardTerminal opens the work conversation of the node the card stands on
 // — «сесть рядом с работой»: person and stage share the node's one
-// conversation. projectName/agentName override what the card says, for the case
+// conversation. folderName/agentName override what the card says, for the case
 // where it says nothing.
 //
 // On a column that runs an agent the conversation *is* the stage's, so it works
 // where the stage works — the card's workspace — and a stage starting later
 // joins it there instead of opening a second CLI beside it. On every other
 // column it stands beside the work and claims nothing.
-func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*TerminalSession, error) {
-	return m.startCardConversation(cardID, projectName, agentName, false)
+func (m *Manager) StartCardTerminal(cardID, folderName, agentName string) (*TerminalSession, error) {
+	return m.startCardConversation(cardID, folderName, agentName, false)
 }
 
 // StartCardTalk opens the card's own conversation — «обсудить эту карточку»:
@@ -463,11 +437,11 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 // with a transcript behind it, and the CLI's own resume is directory-scoped:
 // re-resolving the folder after the card gained one would leave the earlier
 // half unreachable while looking like the same row.
-func (m *Manager) StartCardTalk(cardID, projectName, agentName string) (*TerminalSession, error) {
-	return m.startCardConversation(cardID, projectName, agentName, true)
+func (m *Manager) StartCardTalk(cardID, folderName, agentName string) (*TerminalSession, error) {
+	return m.startCardConversation(cardID, folderName, agentName, true)
 }
 
-func (m *Manager) startCardConversation(cardID, projectName, agentName string, talk bool) (*TerminalSession, error) {
+func (m *Manager) startCardConversation(cardID, folderName, agentName string, talk bool) (*TerminalSession, error) {
 	if m.reader == nil {
 		return nil, fmt.Errorf("чтение карточек недоступно")
 	}
@@ -498,8 +472,8 @@ func (m *Manager) startCardConversation(cardID, projectName, agentName string, t
 			workdirPath, err = rec.WorkdirPath, nil
 		}
 	}
-	if projectName != "" {
-		workdirPath, err = m.resolveNamedWorkdir(projectName)
+	if folderName != "" {
+		workdirPath, err = m.resolveNamedWorkdir(folderName)
 	} else if talk && errors.As(err, &errNoWorkdir{}) {
 		// Talk needs no folder: the wording and the plan come before anybody
 		// decides where the work lives, and the conversation opens in the
@@ -593,13 +567,13 @@ type cardPlace struct {
 func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 	property := m.triggerProperty()
 	if st, ok, _ := m.flowState(ev.CardID); ok {
-		if flow, found := m.FlowByName(st.Flow); found {
+		if flow, found := m.FlowByID(st.FlowID); found {
 			property = flow.PropertyOr(property)
-			if node, has := flow.Node(st.NodeID); has && columnMatchesCard(ev, property, node.Column) {
+			if node, has := flow.Node(st.NodeID); has && columnMatchesCard(ev, node, property, m.boardProperty(ev.BoardID, BoardPropColumnProperty)) {
 				place := cardPlace{node: st.NodeID, column: node.Column, crew: node.Crew(), runIn: node.RunIn}
-				spec, _ := m.columnByName(property, node.Column)
+				spec, _ := m.columnOf(node, property)
 				if len(place.crew) == 0 {
-					place.crew = spec.Agents
+					place.crew = spec.AgentIDs
 				}
 				action := node.Action
 				if action == "" {
@@ -626,7 +600,7 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 		}
 		place := cardPlace{node: opt.OptionID, column: opt.Name}
 		if spec, ok := m.columnFor(ev.BoardID, opt); ok {
-			place.crew = spec.Agents
+			place.crew = spec.AgentIDs
 			place.works = spec.Action == FlowActionAgent
 			place.prompt = spec.Prompt
 			place.reads = spec.Reads
@@ -637,18 +611,41 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 	return cardPlace{node: nodeNone}
 }
 
-// columnMatchesCard reports whether the card's value on the property is this
-// column — or whether the card cannot say (no options carried, as in a test
-// fake), in which case the route's record is trusted.
-func columnMatchesCard(ev CardMoved, property, column string) bool {
+// columnMatchesCard reports whether the card is standing on this node's column
+// — or whether the card cannot say (no options carried, as in a test fake), in
+// which case the route's record is trusted.
+//
+// The node's option id answers "yes". Answering "no" needs the other half —
+// which of the card's options is a column at all — and that is propertyID, what
+// the board records as xciiiColumnProperty. A board without one falls back to
+// the property's name.
+func columnMatchesCard(ev CardMoved, node FlowNode, property, propertyID string) bool {
 	if len(ev.SelectedOptions) == 0 {
 		return true
 	}
-	for _, opt := range ev.SelectedOptions {
-		if strings.EqualFold(opt.PropertyName, property) {
-			return strings.EqualFold(opt.Name, column)
+	if node.OptionID != "" {
+		for _, opt := range ev.SelectedOptions {
+			if opt.OptionID == node.OptionID {
+				return true
+			}
 		}
 	}
+	// The negative answer — "the card has left this stage" — needs to know which
+	// of the card's options is its column, and that is the property, by the id
+	// the board recorded for itself. A stage with no option id is one the board
+	// could not bind (bindToBoardOptions), so no card can be standing on it and
+	// the route's own record is all there is to go on.
+	for _, opt := range ev.SelectedOptions {
+		onColumn := propertyID != "" && opt.PropertyID == propertyID
+		if propertyID == "" {
+			onColumn = strings.EqualFold(opt.PropertyName, property)
+		}
+		if onColumn {
+			return node.OptionID == ""
+		}
+	}
+	// The card carries options, none of them on the column property: it says
+	// nothing about where it stands, so the route's record stands.
 	return true
 }
 
@@ -663,20 +660,11 @@ func joinPrompts(parts ...string) string {
 	return strings.Join(out, "\n\n")
 }
 
-
-// cardIntro is what the card's own conversation opens with: which card it is
-// about, in the card's own words.
+// cardIntro is what the card's own conversation opens with: the person clicking
+// has the card in front of them and the agent has nothing.
 //
-// It is here because the person opening this panel has the card in front of
-// them and the agent has nothing — the conversation used to start on a blank
-// screen, and the first thing anybody typed was the title they were looking at.
-// The agent is told to wait, because this is a card being thought about rather
-// than a task being handed over; the stage of a route says the opposite, and
-// says it with its own prompt.
-//
-// English, like everything the system says to an agent: the app is used in more
-// than one language, and the card underneath is in whichever one the person
-// writes — which is the language the answer should come back in.
+// The agent is told to wait — this is a card being thought about, not a task
+// being handed over, which is what a stage's own prompt says instead.
 func cardIntro(ev CardMoved) string {
 	title := strings.TrimSpace(ev.Title)
 	if title == "" {
@@ -745,8 +733,8 @@ func (m *Manager) terminalAgent(ev CardMoved, crew []string) (AgentEntry, error)
 // StartPlanningTerminal opens the CLI with no card behind it — the terminal
 // half of "Plan a task". It runs in the folder itself and never creates a
 // branch: there is nothing yet to put on one.
-func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) (*TerminalSession, error) {
-	project, err := m.planningWorkdir(projectName)
+func (m *Manager) StartPlanningTerminal(folderName, agentName, boardID string) (*TerminalSession, error) {
+	workdir, err := m.planningWorkdir(folderName)
 	if err != nil {
 		return nil, err
 	}
@@ -754,7 +742,7 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 	if err != nil {
 		return nil, err
 	}
-	if project.Path == "" {
+	if workdir.Path == "" {
 		// Planning with no folder talks in «черновики доски» — the same answer
 		// the card's dialog gives, for a conversation that is about the
 		// board's cards rather than about code. The name is what the prompt
@@ -766,13 +754,13 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		if err := os.MkdirAll(folder, 0o755); err != nil {
 			return nil, fmt.Errorf("не удалось создать папку черновиков доски: %w", err)
 		}
-		project = WorkdirEntry{Name: "черновики доски", Path: folder}
+		workdir = WorkdirEntry{Name: "черновики доски", Path: folder}
 	}
 	// The same rule a card's terminal follows: asking twice means "show me the
 	// one I have", not "start another CLI". A planning terminal has no card to
 	// be found through, so without this a closed window left it running with
 	// nothing in the UI pointing at it.
-	if live := m.planningTerminal(project.Path, agent.Name); live != nil {
+	if live := m.planningTerminal(workdir.Path, agent.Name); live != nil {
 		return live, nil
 	}
 	return m.startTerminal(terminalSpec{
@@ -784,8 +772,8 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		// card's terminal already does with its card: the CLI is not ready for
 		// input when it starts, so the terminal page offers it as a button
 		// rather than typing it in.
-		task:        planningPrompt(m.BoardPrompt(boardID), m.PlanningPrompt(), agent, project),
-		workdirPath: project.Path,
+		task:        planningPrompt(m.BoardPrompt(boardID), m.PlanningPrompt(), agent, workdir),
+		workdirPath: workdir.Path,
 		agent:       agent,
 	})
 }
@@ -1147,22 +1135,17 @@ func (t *TerminalSession) copyOutput(tty pty.Pty) {
 // conversation, after a resumed launch exited straight away, and reports whether
 // it did.
 //
-// "Continue what is in this directory" is a promise about the CLI's own history,
-// and our record of a terminal is not that history: a terminal that was opened
-// and never spoken in leaves a row here and nothing there — which is what a
-// `wails3 dev` restart makes of every terminal that was open — and `claude
-// --continue` then prints "No conversation found to continue" and exits 1. The
-// person who clicked the button wanted a terminal, so they get one; what they
-// got before was a dead window and a comment on the card saying the CLI closed
-// with code 1. Nothing vendor-specific is read to find this out, which is the
-// point: the same restart covers a pruned transcript, a `codex resume --last`
-// with nothing to resume, and whatever the next CLI does about it.
+// Our record of a terminal is not the CLI's own history: one opened and never
+// spoken in leaves a row here and nothing there, and `claude --continue` then
+// prints "No conversation found to continue" and exits 1. The person wanted a
+// terminal, so they get one. Nothing vendor-specific is read to decide it,
+// which is what makes the same fallback cover a pruned transcript and a
+// `codex resume --last` with nothing to resume.
 //
 // Once only, and only for an exit too soon to have been work: a refused resume
-// dies before it draws anything, while a CLI a person used and closed exits 0 —
-// or exits nonzero much later, and that is its own report to make. A kill (code
-// -1) is this app closing the terminal or shutting down, and must never come
-// back.
+// dies before drawing anything, while a CLI somebody used and closed exits 0,
+// or exits nonzero much later. A kill (-1) is this app closing the terminal and
+// must never come back.
 func (t *TerminalSession) restartFresh() bool {
 	t.mu.Lock()
 	fresh, restarted, code, since := t.freshArgv, t.restarted, t.exitCode, time.Since(t.launchedAt)
@@ -1435,18 +1418,15 @@ func (m *Manager) DeleteCardConversation(cardID, nodeID string) error {
 }
 
 // AskTerminalName types the one message this app ever puts into a conversation
-// somebody else is having: «назови этот разговор».
+// somebody else is having.
 //
-// It is worth the intrusion because nothing else can answer it. A terminal is a
+// It earns the intrusion because nothing else can answer it: a terminal is a
 // vendor CLI in a pty, so no protocol carries a name for what is happening in
-// it, and until the agent says so a row in the list reads «клаус · черновики
-// доски» — which is true of every other row too. The agent knows: it is the one
-// having the conversation. So it is asked, in the conversation, and it answers
-// through the tool it already has (name_conversation) rather than into the
-// screen, where nothing of ours could read it.
+// it, and every row otherwise reads «клаус · черновики доски». The agent is the
+// one having the conversation, so it is asked in it, and answers through
+// name_conversation rather than onto the screen, where nothing could read it.
 //
-// The ask waits for the CLI to go quiet before it is typed (deliverPrompt), so
-// it lands between turns rather than in the middle of one.
+// Typed on the quiet wait (deliverPrompt) so it lands between turns.
 func (m *Manager) AskTerminalName(terminalID string) error {
 	t := m.Terminal(terminalID)
 	if t == nil {
@@ -1534,14 +1514,11 @@ type Attention struct {
 // still such a session.
 //
 // AttentionTerminal is a stage of a route whose CLI has stopped drawing. There
-// is no protocol to ask through in a pty, so this is silence standing in for a
-// question — which is exactly what was thrown out once, and it is back because
-// what it means has changed. Silence used to be measured on a terminal somebody
-// had opened and left, where "nothing is happening" is the ordinary state, and
-// it announced "needs you" five seconds later every time. Here the agent was
-// handed a task and has not said it is finished, so a CLI drawing nothing is
-// waiting on somebody: an agent mid-turn redraws its own spinner, and the
-// permission box it stops at is a still frame.
+// is no protocol to ask through in a pty, so silence stands in for a question —
+// and it only means that on a *stage*: the agent was handed a task and has not
+// said it is finished, so a still frame is it waiting on somebody. An agent
+// mid-turn redraws its own spinner; a permission box does not. On a terminal a
+// person opened, nothing happening is the ordinary state and means nothing.
 const (
 	AttentionQuestion = "question"
 	AttentionTerminal = "terminal"
@@ -1885,7 +1862,7 @@ func (m *Manager) stageColumns(cardID string) map[string]string {
 	if err != nil || !ok {
 		return nil
 	}
-	flow, found := m.FlowByName(st.Flow)
+	flow, found := m.FlowByID(st.FlowID)
 	if !found {
 		return nil
 	}

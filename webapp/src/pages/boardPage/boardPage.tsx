@@ -6,7 +6,6 @@ import {useNavigate} from '@solidjs/router'
 import {FormattedMessage, useIntl} from '../../intl'
 
 import Workspace from '../../components/workspace'
-import VersionMessage from '../../components/messages/versionMessage'
 import octoClient from '../../octoClient'
 import {Subscription, WSClient} from '../../wsclient'
 import {Utils} from '../../utils'
@@ -21,7 +20,6 @@ import {Board, BoardMember} from '../../blocks/board'
 import {BoardView} from '../../blocks/boardView'
 import {Card} from '../../blocks/card'
 import {getCurrentBoardId} from '../../store/boards'
-import {getCurrentViewId} from '../../store/views'
 import ConfirmationDialog from '../../components/confirmationDialogBox'
 import {useAppSelector, useAppStore} from '../../store/hooks'
 import {
@@ -31,8 +29,6 @@ import {UserSettings} from '../../userSettings'
 
 import IconButton from '../../widgets/buttons/iconButton'
 import CloseIcon from '../../widgets/icons/close'
-
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 
 import {Constants} from '../../constants'
 
@@ -54,7 +50,6 @@ type Props = {
 const BoardPage = (props: Props): JSX.Element => {
     const intl = useIntl()
     const activeBoardId = useAppSelector(getCurrentBoardId)
-    const activeViewId = useAppSelector(getCurrentViewId)
     const {actions} = useAppStore()
     const match = useRouteMatch()
     const [mobileWarningClosed, setMobileWarningClosed] = createSignal(UserSettings.mobileWarningClosed)
@@ -239,12 +234,6 @@ const BoardPage = (props: Props): JSX.Element => {
         }
     })
 
-    createEffect(() => {
-        if (props.readonly && activeBoardId() && activeViewId()) {
-            TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ViewSharedBoard, {board: activeBoardId(), view: activeViewId()})
-        }
-    })
-
     return (
         <Show
             when={!showJoinBoardDialog()}
@@ -276,7 +265,6 @@ const BoardPage = (props: Props): JSX.Element => {
                 <SetWindowTitleAndIcon/>
                 <UndoRedoHotKeys/>
                 <WebsocketConnection/>
-                <VersionMessage/>
 
                 <Show when={!mobileWarningClosed()}>
                     <div class='mobileWarning'>

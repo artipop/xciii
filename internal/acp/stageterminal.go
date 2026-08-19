@@ -7,31 +7,19 @@ import (
 	"time"
 )
 
-// A stage of a route is the agent's own CLI, in the card's terminal.
+// A stage of a route is the agent's own CLI, in the card's terminal: the task
+// goes to it the way a person would give it (terminalCommand, deliverPrompt),
+// and everything it draws — plan, questions, permission prompts — is drawn by
+// the CLI with nothing of ours over it. An agent asks the way its vendor built
+// it to ask, and we stop re-implementing a TUI badly.
 //
-// It used to be an ACP session: an adapter on stdio, its questions lifted out of
-// the protocol and drawn by us over the terminal — with a second CLI sitting in
-// that terminal, in the same worktree, knowing nothing about the first. Two
-// agents in one copy of the code, and a question about the card answered in a
-// box that hid the window it was drawn on.
+// Two things that buys, and both had to be answered first. The route learns the
+// stage is over from finish_work: a CLI exit cannot stand in for it, because an
+// interactive CLI does not exit when a turn ends. And a stuck card is noticed by
+// the CLI drawing nothing, which is what AttentionTerminal measures.
 //
-// So the terminal *is* the stage. The card's task goes to the CLI the way a
-// person would give it (terminalCommand, deliverPrompt), and everything the CLI
-// draws — its plan, its questions, its permission prompts — is drawn by the CLI,
-// in its own screen, with nothing of ours over it. Which is the whole of what
-// this buys: an agent asks the way its vendor built it to ask, and we stop
-// re-implementing a TUI badly.
-//
-// Two things had to be answered for that to work. **How the route learns the
-// stage is over**: the agent says so through the board tools (finish_work), the
-// same channel it already uses to move cards — a CLI exit cannot stand in for
-// it, because an interactive CLI does not exit when a turn ends. And **how a
-// card that is stuck is noticed**: the CLI draws nothing while it waits, which
-// is the signal AttentionTerminal is built on.
-//
-// A deploy and a test are still ACP sessions. Nobody watches them, their verdict
-// is read by the machine rather than by a person, and there is no terminal for
-// anybody to answer in.
+// A deploy and a test are still ACP sessions: nobody watches them, the machine
+// reads their verdict, and there is no terminal for anybody to answer in.
 
 // terminalQuietFor is how long a stage's CLI must draw nothing before the card
 // says it is waiting for a person. Generous: a model thinking between tool calls
@@ -190,25 +178,18 @@ func (m *Manager) runCardTaskInTerminal(s *Session) {
 // have the card's terminal for this stage open — that *is* this conversation, so
 // the task goes into it rather than into a second CLI beside it.
 func (m *Manager) startStageTerminal(s *Session) (*TerminalSession, error) {
-	// A conversation already open on this node — a person sat down at the
-	// column before the stage started — *is* this conversation: the node model
-	// puts them in one place on purpose, so the task is typed into it rather
-	// than into a second CLI beside it. The route adopts it: the terminal is a
-	// running stage from here on, which is what keeps the bin off its row and
-	// the card's comment single (stageComment reports; terminalEnded stays
-	// quiet about stages).
+	// A conversation already open on this node *is* this conversation, so the
+	// task is typed into it rather than into a second CLI beside it. Adopting it
+	// makes the terminal a running stage, which keeps the bin off its row and
+	// the card's comment single.
 	//
-	// Only a conversation standing where the stage was told to run, though. A
-	// person can open the card's terminal before the card names a folder, and
-	// that conversation runs in «черновики доски» — the same node, a different
-	// directory. Adopting it typed the task into a CLI sitting in the drafts
-	// folder while the route believed the stage was in the card's branch: the
-	// branch was made, written on the card and left empty, and finish_work
-	// reported work that had landed nowhere.
-	//
-	// The folder is the test, and the directory too once the session has
-	// claimed one — not "is this the drafts folder", because what the stage
-	// depends on is that the two are in the same place, whatever that place is.
+	// Only one standing where the stage was told to run, though: a person can
+	// open the card's terminal before the card names a folder, and that
+	// conversation runs in «черновики доски» — same node, different directory.
+	// Adopt it and the task goes to a CLI in the drafts folder while the route
+	// believes the stage is on the card's branch. The test is the folder, and
+	// the directory once one is claimed — not "is this the drafts folder", since
+	// what matters is only that the two are in the same place.
 	if live := m.TerminalForCardNode(s.CardID, s.NodeID); live != nil {
 		sameFolder := live.WorkdirPath == s.WorkdirPath
 		samePlace := s.Worktree.Path == "" || live.Cwd == s.Worktree.Path
@@ -272,7 +253,7 @@ func (m *Manager) returnBrief(cardID, nodeID string) string {
 		return ""
 	}
 	from := arrival.FromNode
-	if flow, ok := m.FlowByName(arrival.Flow); ok {
+	if flow, ok := m.FlowByID(arrival.FlowID); ok {
 		if node, has := flow.Node(from); has {
 			from = node.Column
 		}
@@ -331,15 +312,11 @@ func (m *Manager) forgetStage(terminalID string) {
 // turn ends, and a person typing in the same terminal afterwards is the ordinary
 // case rather than a signal.
 //
-// fields are the stage's outputs, written onto the card **here, before the
-// report is delivered** — deliberately in this order, twice over. The route
-// advances on the report and its edges read the card as it is then, so a value
-// an edge branches on has to be standing before the outcome fires. And a write
-// the board refuses — a select with no such option, a property the board does
-// not have — comes back as this tool call's own error, to the one party that
-// can fix the value: the agent. A stage that declared a required write is
-// refused without it, which is what makes an edge on that property a
-// transition and not a hope.
+// fields are the stage's outputs, written onto the card **before the report is
+// delivered**, for two reasons. The route advances on the report and its edges
+// read the card as it is then, so a value an edge branches on has to be
+// standing first. And a write the board refuses comes back as this call's own
+// error, to the one party that can fix it: the agent.
 func (m *Manager) FinishWorkFromTools(token string, ok bool, summary string, fields map[string]string) error {
 	g, found := m.boardGrant(token)
 	if !found {

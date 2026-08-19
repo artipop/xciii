@@ -7,7 +7,6 @@ import (
 	permissionsMocks "github.com/artipop/xciii/server/services/permissions/mocks"
 
 	"github.com/artipop/xciii/server/mlog"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +30,7 @@ func SetupTestHelper(t *testing.T) *TestHelper {
 	}
 }
 
-func (th *TestHelper) checkBoardPermissions(roleName string, member *model.BoardMember, hasPermissionTo, hasNotPermissionTo []*mmModel.Permission) {
+func (th *TestHelper) checkBoardPermissions(roleName string, member *model.BoardMember, hasPermissionTo, hasNotPermissionTo []*model.Permission) {
 	for _, p := range hasPermissionTo {
 		th.t.Run(roleName+" "+p.Id, func(t *testing.T) {
 			th.store.EXPECT().

@@ -82,7 +82,6 @@ const SidebarCategoriesTourStep = (): JSX.Element => {
             title={title}
             punchout={punchout()}
             classname='SidebarCategories'
-            telemetryTag='tourPoint4a'
             placement={'right'}
             hideBackdrop={false}
             showForce={true}

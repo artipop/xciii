@@ -11,18 +11,12 @@ package sqlstore
 
 import (
 	"context"
-	"time"
-
-	"github.com/artipop/xciii/server/model"
 
 	"github.com/artipop/xciii/server/mlog"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
+	"github.com/artipop/xciii/server/model"
 )
 
 func (s *SQLStore) AddUpdateCategoryBoard(userID string, categoryID string, boardIDs []string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.addUpdateCategoryBoard(s.db, userID, categoryID, boardIDs)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -54,9 +48,6 @@ func (s *SQLStore) CleanUpSessions(expireTime int64) error {
 }
 
 func (s *SQLStore) CreateBoardsAndBlocks(bab *model.BoardsAndBlocks, userID string) (*model.BoardsAndBlocks, error) {
-	if s.dbType == model.SqliteDBType {
-		return s.createBoardsAndBlocks(s.db, bab, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return nil, txErr
@@ -78,9 +69,6 @@ func (s *SQLStore) CreateBoardsAndBlocks(bab *model.BoardsAndBlocks, userID stri
 }
 
 func (s *SQLStore) CreateBoardsAndBlocksWithAdmin(bab *model.BoardsAndBlocks, userID string) (*model.BoardsAndBlocks, []*model.BoardMember, error) {
-	if s.dbType == model.SqliteDBType {
-		return s.createBoardsAndBlocksWithAdmin(s.db, bab, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return nil, nil, txErr
@@ -102,9 +90,6 @@ func (s *SQLStore) CreateBoardsAndBlocksWithAdmin(bab *model.BoardsAndBlocks, us
 }
 
 func (s *SQLStore) CreateCategory(category model.Category) error {
-	if s.dbType == model.SqliteDBType {
-		return s.createCategory(s.db, category)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -141,9 +126,6 @@ func (s *SQLStore) CreateUser(user *model.User) (*model.User, error) {
 }
 
 func (s *SQLStore) DeleteBlock(blockID string, modifiedBy string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.deleteBlock(s.db, blockID, modifiedBy)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -170,9 +152,6 @@ func (s *SQLStore) DeleteBlockRecord(blockID string, modifiedBy string) error {
 }
 
 func (s *SQLStore) DeleteBoard(boardID string, userID string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.deleteBoard(s.db, boardID, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -199,9 +178,6 @@ func (s *SQLStore) DeleteBoardRecord(boardID string, modifiedBy string) error {
 }
 
 func (s *SQLStore) DeleteBoardsAndBlocks(dbab *model.DeleteBoardsAndBlocks, userID string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.deleteBoardsAndBlocks(s.db, dbab, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -232,11 +208,6 @@ func (s *SQLStore) DeleteMember(boardID string, userID string) error {
 
 }
 
-func (s *SQLStore) DeleteNotificationHint(blockID string) error {
-	return s.deleteNotificationHint(s.db, blockID)
-
-}
-
 func (s *SQLStore) DeleteSession(sessionID string) error {
 	return s.deleteSession(s.db, sessionID)
 
@@ -248,9 +219,6 @@ func (s *SQLStore) DeleteSubscription(blockID string, subscriberID string) error
 }
 
 func (s *SQLStore) DuplicateBlock(boardID string, blockID string, userID string, asTemplate bool) ([]*model.Block, error) {
-	if s.dbType == model.SqliteDBType {
-		return s.duplicateBlock(s.db, boardID, blockID, userID, asTemplate)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return nil, txErr
@@ -272,9 +240,6 @@ func (s *SQLStore) DuplicateBlock(boardID string, blockID string, userID string,
 }
 
 func (s *SQLStore) DuplicateBoard(boardID string, userID string, toTeam string, asTemplate bool) (*model.BoardsAndBlocks, []*model.BoardMember, error) {
-	if s.dbType == model.SqliteDBType {
-		return s.duplicateBoard(s.db, boardID, userID, toTeam, asTemplate)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return nil, nil, txErr
@@ -340,11 +305,6 @@ func (s *SQLStore) GetBlocksByIDs(ids []string) ([]*model.Block, error) {
 
 }
 
-func (s *SQLStore) GetBlocksComplianceHistory(opts model.QueryBlocksComplianceHistoryOptions) ([]*model.BlockHistory, bool, error) {
-	return s.getBlocksComplianceHistory(s.db, opts)
-
-}
-
 func (s *SQLStore) GetBlocksForBoard(boardID string) ([]*model.Block, error) {
 	return s.getBlocksForBoard(s.db, boardID)
 
@@ -395,16 +355,6 @@ func (s *SQLStore) GetBoardMemberHistory(boardID string, userID string, limit ui
 
 }
 
-func (s *SQLStore) GetBoardsComplianceHistory(opts model.QueryBoardsComplianceHistoryOptions) ([]*model.BoardHistory, bool, error) {
-	return s.getBoardsComplianceHistory(s.db, opts)
-
-}
-
-func (s *SQLStore) GetBoardsForCompliance(opts model.QueryBoardsForComplianceOptions) ([]*model.Board, bool, error) {
-	return s.getBoardsForCompliance(s.db, opts)
-
-}
-
 func (s *SQLStore) GetBoardsForUserAndTeam(userID string, teamID string, includePublicBoards bool) ([]*model.Board, error) {
 	return s.getBoardsForUserAndTeam(s.db, userID, teamID, includePublicBoards)
 
@@ -415,28 +365,13 @@ func (s *SQLStore) GetBoardsInTeamByIds(boardIDs []string, teamID string) ([]*mo
 
 }
 
-func (s *SQLStore) GetCardLimitTimestamp() (int64, error) {
-	return s.getCardLimitTimestamp(s.db)
-
-}
-
 func (s *SQLStore) GetCategory(id string) (*model.Category, error) {
 	return s.getCategory(s.db, id)
 
 }
 
-func (s *SQLStore) GetChannel(teamID string, channelID string) (*mmModel.Channel, error) {
-	return s.getChannel(s.db, teamID, channelID)
-
-}
-
-func (s *SQLStore) GetFileInfo(id string) (*mmModel.FileInfo, error) {
+func (s *SQLStore) GetFileInfo(id string) (*model.FileInfo, error) {
 	return s.getFileInfo(s.db, id)
-
-}
-
-func (s *SQLStore) GetLicense() *mmModel.License {
-	return s.getLicense(s.db)
 
 }
 
@@ -452,16 +387,6 @@ func (s *SQLStore) GetMembersForBoard(boardID string) ([]*model.BoardMember, err
 
 func (s *SQLStore) GetMembersForUser(userID string) ([]*model.BoardMember, error) {
 	return s.getMembersForUser(s.db, userID)
-
-}
-
-func (s *SQLStore) GetNextNotificationHint(remove bool) (*model.NotificationHint, error) {
-	return s.getNextNotificationHint(s.db, remove)
-
-}
-
-func (s *SQLStore) GetNotificationHint(blockID string) (*model.NotificationHint, error) {
-	return s.getNotificationHint(s.db, blockID)
 
 }
 
@@ -535,11 +460,6 @@ func (s *SQLStore) GetTemplateBoards(teamID string, userID string) ([]*model.Boa
 
 }
 
-func (s *SQLStore) GetUsedCardsCount() (int, error) {
-	return s.getUsedCardsCount(s.db)
-
-}
-
 func (s *SQLStore) GetUserByEmail(email string) (*model.User, error) {
 	return s.getUserByEmail(s.db, email)
 
@@ -565,7 +485,7 @@ func (s *SQLStore) GetUserCategoryBoards(userID string, teamID string) ([]model.
 
 }
 
-func (s *SQLStore) GetUserPreferences(userID string) (mmModel.Preferences, error) {
+func (s *SQLStore) GetUserPreferences(userID string) (model.Preferences, error) {
 	return s.getUserPreferences(s.db, userID)
 
 }
@@ -586,9 +506,6 @@ func (s *SQLStore) GetUsersList(userIDs []string, showEmail bool, showName bool)
 }
 
 func (s *SQLStore) InsertBlock(block *model.Block, userID string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.insertBlock(s.db, block, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -610,9 +527,6 @@ func (s *SQLStore) InsertBlock(block *model.Block, userID string) error {
 }
 
 func (s *SQLStore) InsertBlocks(blocks []*model.Block, userID string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.insertBlocks(s.db, blocks, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -639,9 +553,6 @@ func (s *SQLStore) InsertBoard(board *model.Board, userID string) (*model.Board,
 }
 
 func (s *SQLStore) InsertBoardWithAdmin(board *model.Board, userID string) (*model.Board, *model.BoardMember, error) {
-	if s.dbType == model.SqliteDBType {
-		return s.insertBoardWithAdmin(s.db, board, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return nil, nil, txErr
@@ -663,9 +574,6 @@ func (s *SQLStore) InsertBoardWithAdmin(board *model.Board, userID string) (*mod
 }
 
 func (s *SQLStore) MoveBlocksToBoard(blockIDs []string, boardID string, userID string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.moveBlocksToBoard(s.db, blockIDs, boardID, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -687,9 +595,6 @@ func (s *SQLStore) MoveBlocksToBoard(blockIDs []string, boardID string, userID s
 }
 
 func (s *SQLStore) PatchBlock(blockID string, blockPatch *model.BlockPatch, userID string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.patchBlock(s.db, blockID, blockPatch, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -711,9 +616,6 @@ func (s *SQLStore) PatchBlock(blockID string, blockPatch *model.BlockPatch, user
 }
 
 func (s *SQLStore) PatchBlocks(blockPatches *model.BlockPatchBatch, userID string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.patchBlocks(s.db, blockPatches, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -735,9 +637,6 @@ func (s *SQLStore) PatchBlocks(blockPatches *model.BlockPatchBatch, userID strin
 }
 
 func (s *SQLStore) PatchBoard(boardID string, boardPatch *model.BoardPatch, userID string) (*model.Board, error) {
-	if s.dbType == model.SqliteDBType {
-		return s.patchBoard(s.db, boardID, boardPatch, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return nil, txErr
@@ -759,9 +658,6 @@ func (s *SQLStore) PatchBoard(boardID string, boardPatch *model.BoardPatch, user
 }
 
 func (s *SQLStore) PatchBoardsAndBlocks(pbab *model.PatchBoardsAndBlocks, userID string) (*model.BoardsAndBlocks, error) {
-	if s.dbType == model.SqliteDBType {
-		return s.patchBoardsAndBlocks(s.db, pbab, userID)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return nil, txErr
@@ -782,7 +678,7 @@ func (s *SQLStore) PatchBoardsAndBlocks(pbab *model.PatchBoardsAndBlocks, userID
 
 }
 
-func (s *SQLStore) PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (mmModel.Preferences, error) {
+func (s *SQLStore) PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (model.Preferences, error) {
 	return s.patchUserPreferences(s.db, userID, patch)
 
 }
@@ -812,31 +708,7 @@ func (s *SQLStore) ReorderCategoryBoards(categoryID string, newBoardsOrder []str
 
 }
 
-func (s *SQLStore) RunDataRetention(globalRetentionDate int64, batchSize int64) (int64, error) {
-	if s.dbType == model.SqliteDBType {
-		return s.runDataRetention(s.db, globalRetentionDate, batchSize)
-	}
-	tx, txErr := s.db.BeginTx(context.Background(), nil)
-	if txErr != nil {
-		return 0, txErr
-	}
-	result, err := s.runDataRetention(tx, globalRetentionDate, batchSize)
-	if err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			s.logger.Error("transaction rollback error", mlog.Err(rollbackErr), mlog.String("methodName", "RunDataRetention"))
-		}
-		return 0, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return 0, err
-	}
-
-	return result, nil
-
-}
-
-func (s *SQLStore) SaveFileInfo(fileInfo *mmModel.FileInfo) error {
+func (s *SQLStore) SaveFileInfo(fileInfo *model.FileInfo) error {
 	return s.saveFileInfo(s.db, fileInfo)
 
 }
@@ -853,11 +725,6 @@ func (s *SQLStore) SearchBoardsForUser(term string, searchField model.BoardSearc
 
 func (s *SQLStore) SearchBoardsForUserInTeam(teamID string, term string, userID string) ([]*model.Board, error) {
 	return s.searchBoardsForUserInTeam(s.db, teamID, term, userID)
-
-}
-
-func (s *SQLStore) SearchUserChannels(teamID string, userID string, query string) ([]*mmModel.Channel, error) {
-	return s.searchUserChannels(s.db, teamID, userID, query)
 
 }
 
@@ -882,9 +749,6 @@ func (s *SQLStore) SetSystemSetting(key string, value string) error {
 }
 
 func (s *SQLStore) UndeleteBlock(blockID string, modifiedBy string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.undeleteBlock(s.db, blockID, modifiedBy)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -906,9 +770,6 @@ func (s *SQLStore) UndeleteBlock(blockID string, modifiedBy string) error {
 }
 
 func (s *SQLStore) UndeleteBoard(boardID string, modifiedBy string) error {
-	if s.dbType == model.SqliteDBType {
-		return s.undeleteBoard(s.db, boardID, modifiedBy)
-	}
 	tx, txErr := s.db.BeginTx(context.Background(), nil)
 	if txErr != nil {
 		return txErr
@@ -926,11 +787,6 @@ func (s *SQLStore) UndeleteBoard(boardID string, modifiedBy string) error {
 	}
 
 	return nil
-
-}
-
-func (s *SQLStore) UpdateCardLimitTimestamp(cardLimit int) (int64, error) {
-	return s.updateCardLimitTimestamp(s.db, cardLimit)
 
 }
 
@@ -961,11 +817,6 @@ func (s *SQLStore) UpdateUserPassword(username string, password string) error {
 
 func (s *SQLStore) UpdateUserPasswordByID(userID string, password string) error {
 	return s.updateUserPasswordByID(s.db, userID, password)
-
-}
-
-func (s *SQLStore) UpsertNotificationHint(hint *model.NotificationHint, notificationFreq time.Duration) (*model.NotificationHint, error) {
-	return s.upsertNotificationHint(s.db, hint, notificationFreq)
 
 }
 

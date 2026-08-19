@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/artipop/xciii/server/model"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -63,23 +62,4 @@ func TestSearchUsers(t *testing.T) {
 		assert.Equal(t, users[0].Permissions[1], model.PermissionManageSystem.Id)
 	})
 
-	t.Run("test user channels", func(t *testing.T) {
-		channelID := "Channel1"
-		th.Store.EXPECT().SearchUserChannels(teamID, userID, "").Return([]*mmModel.Channel{{Id: channelID}}, nil)
-		th.API.EXPECT().HasPermissionToChannel(userID, channelID, model.PermissionCreatePost).Return(true).Times(1)
-
-		channels, err := th.App.SearchUserChannels(teamID, userID, "")
-		assert.NoError(t, err)
-		assert.Equal(t, 1, len(channels))
-	})
-
-	t.Run("test user channels- no permissions", func(t *testing.T) {
-		channelID := "Channel1"
-		th.Store.EXPECT().SearchUserChannels(teamID, userID, "").Return([]*mmModel.Channel{{Id: channelID}}, nil)
-		th.API.EXPECT().HasPermissionToChannel(userID, channelID, model.PermissionCreatePost).Return(false).Times(1)
-
-		channels, err := th.App.SearchUserChannels(teamID, userID, "")
-		assert.NoError(t, err)
-		assert.Equal(t, 0, len(channels))
-	})
 }

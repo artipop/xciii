@@ -39,7 +39,7 @@ func stageManager(t *testing.T, script string, mutate func(*Config)) (*Manager, 
 	t.Helper()
 	fakeCLIOnPath(t, "claude", script)
 	m, writer, events, project, emitter := testManagerWithEmitter(t, "idle", func(cfg *Config) {
-		cfg.Agents = []AgentEntry{{Name: "clauuus", Kind: AgentKindClaude}}
+		cfg.Agents = []AgentEntry{{ID: "ag-clauuus", Name: "clauuus", Kind: AgentKindClaude}}
 		if mutate != nil {
 			mutate(cfg)
 		}
@@ -83,9 +83,9 @@ func cardSession(m *Manager, cardID string) *Session {
 // of ours over the top — the task goes on the command line the way a person
 // would have typed it.
 func TestAStageIsTheAgentsOwnCLIWithTheTaskInIt(t *testing.T) {
-	m, _, events, project, _ := stageManager(t, "sleep 30", nil)
+	m, _, events, _, _ := stageManager(t, "sleep 30", nil)
 
-	events.ch <- moveEvent("cardStage", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardStage", "opt-backlog", "opt-agent")
 	term := liveStageTerminal(t, m, "cardStage")
 
 	argv := strings.Join(term.Argv, " ")
@@ -125,9 +125,9 @@ func TestTheTaskIsNotEatenByTheFlagBeforeIt(t *testing.T) {
 // interactive CLI does not exit when a turn ends, so nothing else can stand in
 // for the answer.
 func TestACardWaitsUntilTheAgentSaysTheWorkIsDone(t *testing.T) {
-	m, writer, events, project, _ := stageManager(t, "sleep 30", nil)
+	m, writer, events, _, _ := stageManager(t, "sleep 30", nil)
 
-	events.ch <- moveEvent("cardDone", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardDone", "opt-backlog", "opt-agent")
 	term := liveStageTerminal(t, m, "cardDone")
 
 	if got := cardSession(m, "cardDone").Status(); got != StatusRunning {
@@ -155,9 +155,9 @@ func TestACardWaitsUntilTheAgentSaysTheWorkIsDone(t *testing.T) {
 // never happened. The card is told so, in the CLI's own words — the terminal has
 // closed by the time anybody looks, so what it printed exists nowhere else.
 func TestACLIThatCannotStartSaysWhyOnTheCard(t *testing.T) {
-	m, writer, events, project, _ := stageManager(t, "echo 'MCP config file not found: почини логин' >&2; exit 1", nil)
+	m, writer, events, _, _ := stageManager(t, "echo 'MCP config file not found: почини логин' >&2; exit 1", nil)
 
-	events.ch <- moveEvent("cardBroken", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardBroken", "opt-backlog", "opt-agent")
 
 	waitFor(t, 20*time.Second, "the card to be told why", func() bool {
 		for _, c := range writer.cardComments("cardBroken") {
@@ -180,7 +180,7 @@ func TestACLIThatCannotStartSaysWhyOnTheCard(t *testing.T) {
 // starting while somebody is thinking out loud must open its own CLI, not type
 // the card's task into theirs — which is what one shared key did.
 func TestAStageDoesNotTakeOverTheCardsOwnConversation(t *testing.T) {
-	m, _, events, project, _ := stageManager(t, "sleep 30", nil)
+	m, _, events, _, _ := stageManager(t, "sleep 30", nil)
 
 	mine, err := m.StartCardTerminal("cardTalk", "", "")
 	if err != nil {
@@ -188,7 +188,7 @@ func TestAStageDoesNotTakeOverTheCardsOwnConversation(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = m.CloseTerminal(mine.ID) })
 
-	events.ch <- moveEvent("cardTalk", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardTalk", "opt-backlog", "opt-agent")
 
 	var stage *TerminalSession
 	waitFor(t, 20*time.Second, "the stage to open a conversation of its own", func() bool {
@@ -270,10 +270,10 @@ func TestOnlyAStageCanSayTheWorkIsFinished(t *testing.T) {
 // something inside its own interface, and nothing outside it can see what. So
 // the card says it is waiting, and the way in is the terminal itself.
 func TestACardSaysWhenItsAgentHasGoneQuiet(t *testing.T) {
-	m, _, events, project, emitter := stageManager(t, "echo working; sleep 30", nil)
+	m, _, events, _, emitter := stageManager(t, "echo working; sleep 30", nil)
 	m.terminalQuiet = 500 * time.Millisecond
 
-	events.ch <- moveEvent("cardQuiet", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardQuiet", "opt-backlog", "opt-agent")
 	term := liveStageTerminal(t, m, "cardQuiet")
 
 	waitFor(t, 15*time.Second, "the card to say it is waiting", func() bool {
@@ -329,16 +329,16 @@ func TestTheStagePromptLandsInTheBrief(t *testing.T) {
 // it, and a repeated brief reads as a fresh instruction.
 func TestAReturnedCardBriefsTheResumedConversationWithTheDelta(t *testing.T) {
 	m, _, _, _ := testManager(t, "idle", nil)
-	m.cfg.Flows = []FlowEntry{{Name: "Разработка", Nodes: []FlowNode{
+	m.cfg.Flows = []FlowEntry{{ID: "flow-dev", Name: "Разработка", Nodes: []FlowNode{
 		{ID: "opt-work", Column: "В работе"},
 		{ID: "opt-review", Column: "Ревью"},
 	}, Edges: []FlowEdge{{From: "opt-work", To: "opt-review", On: TriggerSuccess}}}}
 
 	// The card went В работе → Ревью → В работе, and the reviewer said why.
 	for _, r := range []FlowEventRecord{
-		{CardID: "card-b", Flow: "Разработка", FromNode: "", ToNode: "opt-work", On: "manual"},
-		{CardID: "card-b", Flow: "Разработка", FromNode: "opt-work", ToNode: "opt-review", On: TriggerSuccess},
-		{CardID: "card-b", Flow: "Разработка", FromNode: "opt-review", ToNode: "opt-work", On: TriggerFailure,
+		{CardID: "card-b", FlowID: "flow-dev", FromNode: "", ToNode: "opt-work", On: "manual"},
+		{CardID: "card-b", FlowID: "flow-dev", FromNode: "opt-work", ToNode: "opt-review", On: TriggerSuccess},
+		{CardID: "card-b", FlowID: "flow-dev", FromNode: "opt-review", ToNode: "opt-work", On: TriggerFailure,
 			Detail: "работа не принята", Said: "Кнопка входа всё ещё падает на пустом пароле — почини валидацию."},
 	} {
 		if err := m.store.AppendFlowEvent(r); err != nil {
@@ -373,7 +373,7 @@ func TestAStageAdoptsTheConversationAPersonOpenedOnItsNode(t *testing.T) {
 	mine, err := m.startTerminal(terminalSpec{
 		cardID: "card-adopt", nodeID: "opt-agent", columnName: "В работе", boardID: "board1",
 		title: "Починить логин", workdirPath: project,
-		agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -383,7 +383,7 @@ func TestAStageAdoptsTheConversationAPersonOpenedOnItsNode(t *testing.T) {
 	stage, err := m.startStageTerminal(&Session{
 		CardID: "card-adopt", BoardID: "board1", NodeID: "opt-agent", ColumnName: "В работе",
 		Title: "Починить логин", PromptText: "Task: Починить логин",
-		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		WorkdirPath: project, Agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -410,7 +410,7 @@ func TestAStageDoesNotAdoptAConversationStandingSomewhereElse(t *testing.T) {
 	mine, err := m.startTerminal(terminalSpec{
 		cardID: "card-drafts", nodeID: "opt-agent", columnName: "В работе", boardID: "board1",
 		title: "Починить логин",
-		agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -423,7 +423,7 @@ func TestAStageDoesNotAdoptAConversationStandingSomewhereElse(t *testing.T) {
 	stage, err := m.startStageTerminal(&Session{
 		CardID: "card-drafts", BoardID: "board1", NodeID: "opt-agent", ColumnName: "В работе",
 		Title: "Починить логин", PromptText: "Task: Починить логин",
-		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		WorkdirPath: project, Agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -547,15 +547,14 @@ func TestDeclaredReadsOpenTheBrief(t *testing.T) {
 // This is what saves registering one agent twice to have it configured two ways
 // in two columns.
 func TestAStageRunsWithTheColumnsOwnTools(t *testing.T) {
-	m, _, events, project, _ := stageManager(t, "sleep 30", func(cfg *Config) {
-		cfg.Columns = []ColumnSpec{{
-			Property: cfg.TriggerProperty, Column: cfg.TriggerColumn,
-			Action: FlowActionAgent, Agents: []string{"clauuus"},
-			MCPServers: MCPServerSet{"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}}},
-		}}
+	m, _, events, _, _ := stageManager(t, "sleep 30", func(cfg *Config) {
+		spec := workColumn(cfg.TriggerProperty, FlowActionAgent)
+		spec.AgentIDs = []string{"ag-clauuus"}
+		spec.MCPServers = MCPServerSet{"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}}}
+		cfg.Columns = []ColumnSpec{spec}
 	})
 
-	events.ch <- moveEvent("cardTools", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardTools", "opt-backlog", "opt-agent")
 	term := liveStageTerminal(t, m, "cardTools")
 
 	if term.mcpConfig == "" {

@@ -28,17 +28,29 @@ describe('utils', () => {
     })
 
     describe('createGuid', () => {
-        test('should create 27 char random id for workspace', () => {
-            expect(Utils.createGuid(IDType.Workspace)).toMatch(/^w[ybndrfg8ejkmcpqxot1uwisza345h769]{26}$/)
+        // The page makes ids rather than asking the server for one, so the
+        // format is agreed rather than issued: the same UUIDv7 the Go side
+        // writes, thirty-six characters, which is what every id column holds.
+        const uuidV7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+
+        test('makes a uuid v7 whatever kind of block asked', () => {
+            for (const type of [IDType.Workspace, IDType.Board, IDType.Card, IDType.None]) {
+                expect(Utils.createGuid(type)).toMatch(uuidV7)
+            }
         })
-        test('should create 27 char random id for board', () => {
-            expect(Utils.createGuid(IDType.Board)).toMatch(/^b[ybndrfg8ejkmcpqxot1uwisza345h769]{26}$/)
+
+        test('two ids are never the same', () => {
+            const ids = new Set(Array.from({length: 500}, () => Utils.createGuid(IDType.Card)))
+            expect(ids.size).toBe(500)
         })
-        test('should create 27 char random id for card', () => {
-            expect(Utils.createGuid(IDType.Card)).toMatch(/^c[ybndrfg8ejkmcpqxot1uwisza345h769]{26}$/)
-        })
-        test('should create 27 char random id', () => {
-            expect(Utils.createGuid(IDType.None)).toMatch(/^7[ybndrfg8ejkmcpqxot1uwisza345h769]{26}$/)
+
+        // What v7 buys over the random id it replaced: ids sort by the moment
+        // they were made, so a journal ordered by its own key is in the order
+        // things happened.
+        test('a later id sorts after an earlier one', async () => {
+            const first = Utils.createGuid(IDType.Card)
+            await new Promise((resolve) => setTimeout(resolve, 5))
+            expect(Utils.createGuid(IDType.Card) > first).toBe(true)
         })
     })
 

@@ -35,7 +35,7 @@ const triggers = [
 ]
 
 const automation: Automation = {
-    columns: [{boardId: 'board-1', optionId: 'opt-work', property: 'Статус', column: 'В работе', action: 'agent', agents: ['claude']}],
+    columns: [{boardId: 'board-1', optionId: 'opt-work', property: 'Статус', column: 'В работе', action: 'agent', agentIds: ['ag-claude']}],
     flows: [{
         name: 'Фича',
         boardId: 'board-1',
@@ -58,7 +58,7 @@ function renderEditor(overrides: Partial<Parameters<typeof AutomationEditor>[0]>
             columns={columns}
             automation={automation}
             triggers={triggers}
-            agents={[{name: 'claude'}, {name: 'codex'}]}
+            agents={[{id: 'ag-claude', name: 'claude'}, {id: 'ag-codex', name: 'codex'}]}
             deploys={[]}
             onChange={onChange}
             {...overrides}
@@ -304,10 +304,10 @@ describe('components/acp/automationEditor', () => {
         await waitFor(() => expect(onChange).toHaveBeenCalled())
         const next: Automation = onChange.mock.calls.at(-1)![0]
         const node = next.flows[0].nodes.find((n) => n.id === 'opt-work')
-        expect(node?.agentNames).toEqual(['codex'])
+        expect(node?.agentIds).toEqual(['ag-codex'])
 
         // The column's own crew is not what was edited.
-        expect(next.columns.find((c) => c.optionId === 'opt-work')?.agents).toEqual(['claude'])
+        expect(next.columns.find((c) => c.optionId === 'opt-work')?.agentIds).toEqual(['ag-claude'])
     })
 
     // The target registry moved out of the app's settings, and the deploy
@@ -450,7 +450,7 @@ describe('components/acp/automationEditor', () => {
         renderEditor({
             automation: withTest,
             focusColumnId: 'opt-review',
-            agents: [{name: 'claude'}, {name: 'codex', mcpServers: {playwright: {command: 'npx'}}}],
+            agents: [{id: 'ag-claude', name: 'claude'}, {id: 'ag-codex', name: 'codex', mcpServers: {playwright: {command: 'npx'}}}],
         })
 
         expect(screen.queryByText(/Nothing here brings a browser/)).toBeNull()

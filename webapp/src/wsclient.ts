@@ -42,7 +42,6 @@ export const ACTION_UPDATE_CLIENT_CONFIG = 'UPDATE_CLIENT_CONFIG'
 export const ACTION_UPDATE_CATEGORY = 'UPDATE_CATEGORY'
 export const ACTION_UPDATE_BOARD_CATEGORY = 'UPDATE_BOARD_CATEGORY'
 export const ACTION_UPDATE_SUBSCRIPTION = 'UPDATE_SUBSCRIPTION'
-export const ACTION_UPDATE_CARD_LIMIT_TIMESTAMP = 'UPDATE_CARD_LIMIT_TIMESTAMP'
 export const ACTION_REORDER_CATEGORIES = 'REORDER_CATEGORIES'
 
 type WSSubscriptionMsg = {
@@ -61,22 +60,11 @@ export interface Subscription {
     deleteAt?: number
 }
 
-// The Mattermost websocket client interface
-export interface MMWebSocketClient {
-    conn: WebSocket | null
-    sendMessage(action: string, data: any, responseCallback?: () => void): void /* eslint-disable-line @typescript-eslint/no-explicit-any */
-    addFirstConnectListener(callback: () => void): void
-    addReconnectListener(callback: () => void): void
-    addErrorListener(callback: (event: Event) => void): void
-    addCloseListener(callback: (connectFailCount: number) => void): void
-}
-
 type OnChangeHandler = (client: WSClient, items: any[]) => void
 type OnReconnectHandler = (client: WSClient) => void
 type OnStateChangeHandler = (client: WSClient, state: 'init' | 'open' | 'close') => void
 type OnErrorHandler = (client: WSClient, e: Event) => void
 type OnConfigChangeHandler = (client: WSClient, clientConfig: ClientConfig) => void
-type OnCardLimitTimestampChangeHandler = (client: WSClient, timestamp: number) => void
 type FollowChangeHandler = (client: WSClient, subscription: Subscription) => void
 
 export type ChangeHandlerType = 'block' | 'category' | 'blockCategories' | 'board' | 'boardMembers' | 'categoryOrder'
@@ -105,14 +93,8 @@ type Subscriptions = {
 
 class WSClient {
     ws: WebSocket|null = null
-    client: MMWebSocketClient|null = null
-    onPluginReconnect: null|(() => void) = null
     token = ''
-    pluginId = ''
-    pluginVersion = ''
     teamId = ''
-    onAppVersionChangeHandler: ((versionHasChanged: boolean) => void) | null = null
-    clientPrefix = ''
     serverUrl: string | undefined
     state: 'init'|'open'|'close' = 'init'
     onStateChange: OnStateChangeHandler[] = []
@@ -120,7 +102,6 @@ class WSClient {
     onChange: ChangeHandlers = {Block: [], Category: [], BoardCategory: [], Board: [], BoardMember: [], CategoryReorder: []}
     onError: OnErrorHandler[] = []
     onConfigChange: OnConfigChangeHandler[] = []
-    onCardLimitTimestampChange: OnCardLimitTimestampChangeHandler[] = []
     onFollowBlock: FollowChangeHandler = () => {}
     onUnfollowBlock: FollowChangeHandler = () => {}
     private notificationDelay = 100
@@ -129,7 +110,6 @@ class WSClient {
     private reopenMaxRetries = 10
     private updatedData: UpdatedData = {Blocks: [], Categories: [], BoardCategories: [], Boards: [], BoardMembers: [], CategoryOrder: []}
     private updateTimeout?: NodeJS.Timeout
-    private errorPollId?: NodeJS.Timeout
     private subscriptions: Subscriptions = {Teams: {}}
 
     private logged = false
@@ -165,14 +145,6 @@ class WSClient {
         this.serverUrl = serverUrl
     }
 
-    initPlugin(pluginId: string, pluginVersion: string, client: MMWebSocketClient): void {
-        this.pluginId = pluginId
-        this.pluginVersion = pluginVersion
-        this.clientPrefix = `custom_${pluginId}_`
-        this.client = client
-        Utils.log(`WSClient initialised for plugin id "${pluginId}"`)
-    }
-
     resetSubscriptions() {
         this.subscriptions = {Teams: {}} as Subscriptions
     }
@@ -186,12 +158,6 @@ class WSClient {
 
     sendCommand(command: WSCommand): void {
         try {
-            if (this.client !== null) {
-                const {action, ...data} = command
-                this.client.sendMessage(this.clientPrefix + action, data)
-                return
-            }
-
             this.ws?.send(JSON.stringify(command))
         } catch (e) {
             Utils.logError(`WSClient failed to send command ${command.action}: ${e}`)
@@ -322,83 +288,7 @@ class WSClient {
         }
     }
 
-    addOnCardLimitTimestampChange(handler: OnCardLimitTimestampChangeHandler): void {
-        this.onCardLimitTimestampChange.push(handler)
-    }
-
-    removeOnCardLimitTimestampChange(handler: OnCardLimitTimestampChangeHandler): void {
-        const index = this.onCardLimitTimestampChange.indexOf(handler)
-        if (index !== -1) {
-            this.onCardLimitTimestampChange.splice(index, 1)
-        }
-    }
-
     open(): void {
-        if (this.client !== null) {
-            // configure the Mattermost websocket client callbacks
-            const onConnect = () => {
-                Utils.log('WSClient in plugin mode, reusing Mattermost WS connection')
-
-                // if there are any subscriptions set by the
-                // components, send their subscribe messages
-                this.subscribe()
-
-                for (const handler of this.onStateChange) {
-                    handler(this, 'open')
-                }
-                this.state = 'open'
-            }
-
-            const onReconnect = () => {
-                Utils.logWarn('WSClient reconnected')
-
-                onConnect()
-                for (const handler of this.onReconnect) {
-                    handler(this)
-                }
-            }
-            this.onPluginReconnect = onReconnect
-
-            const onClose = (connectFailCount: number) => {
-                Utils.logError(`WSClient has been closed, connect fail count: ${connectFailCount}`)
-
-                for (const handler of this.onStateChange) {
-                    handler(this, 'close')
-                }
-                this.state = 'close'
-
-                // there is no way to react to a reconnection with the
-                // reliable websockets schema, so we poll the raw
-                // websockets client for its state directly until it
-                // reconnects
-                if (!this.errorPollId) {
-                    this.errorPollId = setInterval(() => {
-                        Utils.logWarn(`Polling websockets connection for state: ${this.client?.conn?.readyState}`)
-                        if (this.client?.conn?.readyState === 1) {
-                            onReconnect()
-                            clearInterval(this.errorPollId!)
-                            this.errorPollId = undefined
-                        }
-                    }, 500)
-                }
-            }
-
-            const onError = (event: Event) => {
-                Utils.logError(`WSClient websocket onerror. data: ${JSON.stringify(event)}`)
-
-                for (const handler of this.onError) {
-                    handler(this, event)
-                }
-            }
-
-            this.client.addFirstConnectListener(onConnect)
-            this.client.addErrorListener(onError)
-            this.client.addCloseListener(onClose)
-            this.client.addReconnectListener(onReconnect)
-
-            return
-        }
-
         const url = new URL(this.getBaseURL())
         const protocol = (url.protocol === 'https:') ? 'wss:' : 'ws:'
         const wsServerUrl = `${protocol}//${url.host}${url.pathname.replace(/\/$/, '')}/ws`
@@ -506,7 +396,7 @@ class WSClient {
     }
 
     hasConn(): boolean {
-        return this.ws?.readyState === 1 || this.client !== null
+        return this.ws?.readyState === 1
     }
 
     updateHandler(message: WSMessage): void {
@@ -536,12 +426,6 @@ class WSClient {
         }
     }
 
-    updateCardLimitTimestampHandler(action: {action: string, timestamp: number}): void {
-        for (const handler of this.onCardLimitTimestampChange) {
-            handler(this, action.timestamp)
-        }
-    }
-
     updateSubscriptionHandler(message: WSSubscriptionMsg): void {
         Utils.log('updateSubscriptionHandler: ' + message.action + '; blockId=' + message.subscription?.blockId)
 
@@ -551,41 +435,6 @@ class WSClient {
 
         const handler = message.subscription.deleteAt ? this.onUnfollowBlock : this.onFollowBlock
         handler(this, message.subscription)
-    }
-
-    setOnAppVersionChangeHandler(fn: (versionHasChanged: boolean) => void): void {
-        this.onAppVersionChangeHandler = fn
-    }
-
-    pluginStatusesChangedHandler(data: any): void {
-        if (this.pluginId === '' || !this.onAppVersionChangeHandler) {
-            return
-        }
-
-        const pluginStatusChange = data.plugin_statuses.find((s: any) => s.plugin_id === this.pluginId)
-        if (pluginStatusChange) {
-            // if the plugin version is greater than the current one,
-            // show the new version banner
-            if (Utils.compareVersions(this.pluginVersion, pluginStatusChange.version) > 0) {
-                Utils.log('Boards plugin has been updated')
-                this.onAppVersionChangeHandler(true)
-            }
-
-            // if the plugin version is greater or equal, trigger a
-            // reconnect to resubscribe in case the interface hasn't
-            // been reloaded
-            if (Utils.compareVersions(this.pluginVersion, pluginStatusChange.version) >= 0) {
-                // this is a temporal solution that leaves a second
-                // between the message and the reconnect so the server
-                // has time to register the WS handler
-                setTimeout(() => {
-                    if (this.onPluginReconnect) {
-                        Utils.log('Reconnecting after plugin update')
-                        this.onPluginReconnect()
-                    }
-                }, 1000)
-            }
-        }
     }
 
     authenticate(token: string): void {
@@ -786,11 +635,6 @@ class WSClient {
         this.onReconnect = []
         this.onStateChange = []
         this.onError = []
-
-        // if running in plugin mode, nothing else needs to be done
-        if (this.client) {
-            return
-        }
 
         try {
             ws?.close()

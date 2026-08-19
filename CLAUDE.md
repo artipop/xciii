@@ -13,8 +13,15 @@ and the same code builds a headless server (`-tags server`) that serves the boar
 a browser instead of a webview.
 
 The board server and the webapp are both forks of Mattermost's Focalboard, and
-the product no longer carries that name anywhere — not on screen, and since the
-rename, not in an import path either.
+the product no longer carries that name anywhere — not on screen, not in an
+import path, and since the store work, not in a dependency either: nothing here
+imports `mattermost/mattermost/server/public`. What that module was still
+supplying was a handful of types (`FileInfo`, `Preference`, `License`,
+`Channel`, `AppError`), three time helpers, and `ServicesAPI` — the plugin
+surface a Focalboard hosted inside Mattermost talked to its host through, an
+interface of fifty methods that nothing in this tree ever implemented or set.
+The types that survive are ours and hold the columns the tables actually have;
+the rest went with the interface. It cost 273 lines of `go.mod`/`go.sum`.
 
 Both halves are here. `webapp/` is its own npm project built with Vite, since
 rewritten from React to **SolidJS**, so upstream and this repository's early
@@ -27,13 +34,21 @@ turned out to mean the project built on exactly one machine, then a second modul
 carrying upstream's import path, and now neither. Nothing outside this repository
 is required to build it.
 
-`server/` is a fork carried, not a library consumed: patch it here, and keep
-patches small enough to explain, because there is nobody upstream to merge them.
+`server/` is **ours**, not a fork kept recognisable. The reason to stay close to
+upstream was to take its fixes, and that reason died twice over: Focalboard is
+archived, and the store work removed the last Mattermost dependency. So cutting
+it is the ordinary way to carry it — `docs/fork-shrink-removed.md` is the ledger
+of what has gone and the commit that brings each subsystem back, because "dead"
+is a judgement about today and the product's own answers have overturned it
+before. Two things it is not licence for: a removal is still one commit with its
+tests, mocks and page edit together, and nothing goes that a decision has said
+is being kept or repaired — login, public sharing and multi-team are in the
+tree on purpose.
 
 What the page needs from the Go side is described in README.md, "What this app
 requires of the frontend": the output layout `go:embed` expects, and three
 globals the page consumes, each feature-detected because the same bundle also runs
-in a browser and as a Mattermost plugin.
+in a browser.
 
 ## Build & run
 
@@ -52,9 +67,8 @@ in a browser and as a Mattermost plugin.
   `mattn/go-sqlite3` swaps itself for `static_mock.go`, which registers the
   `sqlite3` driver name and answers every `Open` with "Binary was compiled with
   'CGO_ENABLED=0' […] This is a stub". Nothing is wrong with the binary until it
-  touches the database. Only two other packages in the tree use cgo at all —
-  `prometheus/client_golang` for a Darwin memory collector and
-  `tailscale/certstore` — and both fall back to pure Go, so SQLite and Wails are
+  touches the database. One other package in the tree uses cgo at all —
+  `tailscale/certstore` — and it falls back to pure Go, so SQLite and Wails are
   the whole of the requirement.
 - **A packaged app is not a child of a shell**, and that is the other difference
   `wails3 dev` hides. launchd hands the `.app` `PATH=/usr/bin:/bin:/usr/sbin:/sbin`
@@ -79,7 +93,29 @@ in a browser and as a Mattermost plugin.
   the headless build, which has its own files. `./...` also walks
   `webapp/node_modules`, where an npm package happens to ship Go sources; that is
   cosmetic, and a nested `go.mod` would not fix it — `go:embed` cannot cross a
-  module boundary, and `webapp/pack` is what it embeds.
+  module boundary, and `webapp/pack` is what it embeds. The suite is green. It
+  was not for a long time — `TestPermissionsGetTeamTemplates` failed on every
+  run against a hard-coded count of the shipped templates that the archive had
+  outgrown — on all three vendors alike — and it now asks the store instead.
+  Two suites used to be *flaky* on top of that — `server/integrationtests`,
+  where which permission tests failed changed between runs, and
+  `internal/boardadapter` about one run in four — and they are not any more:
+  the cause was composite writes going through without a transaction on
+  SQLite, which is fixed (below). What is left is rarer and not
+  understood: `TestPatchBoard` in `server/app` failed twice in a day of
+  full-tree runs and passes on its own every time, and
+  `TestASessionAsksTheCardForAToolOutsideThePolicy` failed once the same way.
+  Blame a change only after re-running the package alone.
+- **`wails3 task test:db DB=postgres`** (or `mysql`, `sqlite3`; `test:db:all`
+  for all three) — the store and API suites against one vendor. The container is
+  started by the tests themselves (`internal/dbtest`, testcontainers-go), so
+  this is one environment variable and a Docker daemon: there is no compose file
+  to keep in step and nothing to stop afterwards. `FOCALBOARD_STORE_TEST_DB_TYPE`
+  is the whole contract, and setting `FOCALBOARD_STORE_TEST_DOCKER_PORT` still
+  points the tests at a database of your own instead.
+- `go generate ./tools/schemagen` — after any change to the application's own
+  tables. It rewrites the migration for all three dialects; `go test
+  ./tools/schemagen` is what fails when somebody forgets.
 
 `webapp/pack` must never stop existing, even for a moment: `go mod tidy` resolves
 the `go:embed all:` pattern under every build tag and runs in parallel with the
@@ -92,7 +128,7 @@ installers are native-tool jobs (AppImage shells out to `ldd`, NSIS is `makensis
 
 ## Architecture
 
-Ten ideas hold this together. Read them before changing anything structural.
+Eleven ideas hold this together. Read them before changing anything structural.
 
 ### The front door owns the origin
 
@@ -602,10 +638,11 @@ board's own properties, in the board database, which is why a live board and a
 template are the same two keys and why a template can carry automation at all.
 `internal/acp` keeps the registry in memory because the engine reads it on every
 card move, but every edit is written through to the board it belongs to
-(`persistBoardLocked` in `boardseed.go`), and `config.json` keeps only what the
-machine owns. An install that predates this moves over once, at startup
-(`moveAutomationToBoards`); a board that refuses the write keeps its entries in
-the file until one gets through, which is what makes the move safe to retry.
+(`persistBoardLocked` in `boardseed.go`), and `config.json` does not carry it at
+all: `Columns`, `Flows` and `BoardPrompts` are `json:"-"`, working copies fed
+from the boards themselves. A board that refuses the write keeps its entries in
+the registry for the run and the next edit tries again — the file is not a
+fallback any more, which is the trade the move onto the board bought.
 
 **A setting lives where its owner does**, and that is the rule the whole
 settings surface is sorted by. The registries are the machine's — agents,
@@ -614,7 +651,7 @@ agent waiting may interrupt, and the archive that carries every board in and
 out — so they are `settings/appSettingsDialog.tsx`, one dialog of panels
 opened from `sidebarSettingsButton.tsx`, reachable with no board open. Deploy
 targets are the one registry whose *door* is elsewhere: the list is still the
-machine's (`config.json`, shared by every board that deploys), but a Dokku
+machine's (the `deploy_target` table, shared by every board that deploys), but a Dokku
 host only means anything to a board whose automation has a deploy stage, so
 the panel is a fold of that board's `automationDialog.tsx` (`usesDeploys`) and
 no other surface offers it — a settings section put a Dokku form one click
@@ -625,9 +662,8 @@ localStorage forgot everything on every launch. `main.tsx` hydrates
 localStorage from it before the first render — the theme and the language
 have to be right on the first paint — and `UserSettings.set` writes through;
 `installKept` in `userSettings.ts` names the keys that travel, and the
-session token deliberately is not one of them. In a plain browser or as a
-Mattermost plugin there is no Go side, and localStorage stays the whole
-memory there. **The theme and the language are settings like the rest of them**,
+session token deliberately is not one of them. In a plain browser there is no Go side, and
+localStorage stays the whole memory there. **The theme and the language are settings like the rest of them**,
 and are `settings/appPanel.tsx` with the link to the manual: they spent a while
 in the corner of the board on the grounds that they are changed while looking at
 it, and what that cost was two icon menus and a question mark standing in for
@@ -1528,6 +1564,154 @@ startup**, which predates editions (`importTemplates`) and is what makes
 installing base over lifetime take the two extra templates away. Boards made
 from them are the person's and are untouched.
 
+### One database, and the schema is written once
+
+Everything this application knows is about a card or a board, and both of those
+are rows in the board's database. So our tables are in it too — `conversation`,
+`agent_session`, `flow_state`, `card_stall`, `stage_queue`, `workdir_claim`,
+`source_item` and the rest — rather than in files beside it, which is where they
+began (`acp.db`, `sources.db`). `internal/acp` and `internal/sources` take a
+`*sql.DB` (`NewStore(db)`) and create nothing; `server.NewStore` hands
+back both the store and the handle under it, and `runServerWithLogger` carries
+the pair as `board{srv, db}`.
+
+**The reason is a leak rather than tidiness.** Deleting a card is a real
+`DELETE FROM blocks`, and this side never heard about it — `BlockChanged`
+handles only `notify.Update` — so a deleted card left its conversations, its
+place on a route, its stall and its queue slot behind for ever. A foreign key
+onto `blocks(id)` is the fix, and it cannot be added later: SQLite's
+`ALTER TABLE` has no `ADD CONSTRAINT`, so a key is written in `CREATE TABLE` or
+never. The keys are written **and enforced**: `foreign_keys` travels in the DSN
+rather than as a `PRAGMA`, being a per-connection setting — a pragma run once
+is silently off on the next connection — and the parameter's spelling depends
+on which SQLite driver the build tag chose (`sqlite_dsn_cgo.go` /
+`sqlite_dsn_pure.go`, and `internal/appschema` spells it for the driver it
+itself imports). What SQLite does not do is check rows that were already
+hanging when the setting went on; the one-time sweep for those is still owed
+(`docs/deferred.md`, «Одна база: хвосты плана»).
+
+**The schema is Go data, and the SQL is generated.** `tools/schemagen` holds
+every table once with dialect-neutral types, and `ariga.io/atlas` renders
+`000041_app_tables.{up,down}.sql` for SQLite, MySQL and Postgres. Writing three
+dialects by hand is what the fork's other eighty migrations do, and every
+`{{if .postgres}}JSON{{else}}TEXT{{end}}` is a place somebody has to remember
+three answers to one question — here the question is asked once and one table of
+types answers it. Atlas is a build-time dependency: what ships is the SQL, in
+the repository, and `go test ./tools/schemagen` fails when the two disagree.
+**Transactions work on SQLite**, and getting there is a chain worth knowing.
+`@withTransaction` was switched off for SQLite because turning it on failed with
+`UNIQUE constraint failed: blocks_history.id, blocks_history.insert_at`: the
+history tables keyed on `(id, insert_at)`, `insert_at` comes from the database's
+own clock, and inside a transaction SQLite hands every statement the same
+instant. So the fork's composite operations — insert a block, write its history,
+touch the board — ran as separate statements on the database everyone actually
+uses, and a failure halfway left the database half-changed. That is what made
+two test suites flaky, and it is why deleting a board and undeleting it at once
+returned a 500 about a third of the time. The fix is that **`insert_at` comes
+from Go** — `utils.NextInsertAt`, a per-process clock that never returns a
+millisecond it has already given out — written at each of the eleven places a
+history row is made, two of which are `INSERT … SELECT` and carry the stamp as a
+literal in the projection. The keys stay, and one reader depends on them:
+`undeleteBlockChildren` picks each block's latest history row by
+`max(insert_at)`, so two rows sharing an instant hand it the same block twice and
+it violates `blocks.id` on the way back in. The SQLite branch is gone from
+`generators/transactional_store.go.tmpl`. What monotonicity does not cover is two
+processes on one database; nothing here does that, and the honest answer when
+something does is a key of the row's own rather than a clock.
+
+**A closed set is a `CHECK`, a growing one is not.** `checkout.mode`,
+`workspace_board.mode`, `agent_session.status`, `board_setup.status` and
+`source_event.outcome` are constrained in the schema, because what they may
+hold is closed by the model — there is no fourth way to work a folder. An agent
+kind is a vendor CLI, a `session_event` kind is an event name, and a
+`workspace` kind is meant to grow past `git` to a drive or a machine over ssh:
+those have no check, because SQLite cannot `ALTER` one in, so a check on a
+growing set buys a table rebuild every time somebody adds a value.
+`TestAValueOutsideAClosedSetIsRefused` is the guard, and it covers the case
+worth naming: a difference in *case* is refused too.
+
+**The three dialects are checked, not assumed** (`internal/dbtest`,
+`.github/workflows/test.yml`). The fork's fixture could always be handed a MySQL
+or a Postgres on a port, and nothing ever handed it one — no compose file, no CI
+job — so every run took the SQLite branch and went green, which is the worst
+kind of green. `FOCALBOARD_STORE_TEST_DB_TYPE=postgres go test …` now starts the
+container it needs (testcontainers-go, from the tests themselves, so there is no
+second description of the containers to drift), and `wails3 task test:db:all`
+runs the three in turn. What the first real run found, in order: **the MySQL DDL
+would not execute at all** — a key column declared NULL, which SQLite permits
+and MySQL refuses outright, so `build()` now forces NOT NULL on every key column
+and the golden test carries that as a declared departure; `DEFAULT "NOW(6)"`
+written as a *string* because atlas quotes any raw expression on a time column
+that does not begin with `current_timestamp`; **board search by property name
+had never worked on Postgres**, since `properties` is a text column and `->` has
+no text overload; and the last data migration read the collation of a table
+called `Channels` — Mattermost's — and took the whole open down with it. Every
+one of those is a thing that only exists on the vendor nobody ran.
+
+**golang-migrate still runs it**: this is a generator, not a migration engine,
+and the engine already knows about versions, dirty marks and the record the
+previous one kept. `go generate ./tools/schemagen` after any schema change.
+
+**The ladder is one rung.** `000001_init` is the whole schema — the fork's tables
+and ours — where there used to be eighty-one files of archaeology leading to it
+(`{{if doesColumnExist "boards" "minimum_role"}}`, `ALTER TABLE blocks DROP
+PRIMARY KEY`, three data migrations interleaved at particular versions to repair
+rows the next step would refuse). None of it means anything to a database made
+today. What made deleting it safe is that the result is *checkable*: the
+generator can print the schema as plain SQLite DDL, and a test compares it —
+column, type, nullability, default, key and index — against a snapshot of what
+the ladder actually built (`tools/schemagen/testdata/`). Column widths are
+checked separately, because SQLite ignores them and atlas therefore does not
+emit them, so a `varchar(64)` narrowed to `varchar(32)` is invisible to the
+first check and silently truncates data on the two dialects nothing here can
+run. A database built by the old ladder is refused with a message saying to
+delete it: there is no release, so the only ones that exist belong to whoever is
+working on this.
+
+**No table carries a prefix.** `{{.prefix}}` in the migration, `s.tablePrefix`
+at a hundred and thirty query sites, `DBTablePrefix` in the config and the
+`{in braces}` our own queries were written with all named the same thing: the
+namespace Focalboard's tables needed when they lived inside a Mattermost
+database as a plugin. This application never set it — the default was `""` and
+nothing overrode it — and the two places that did were tests, which get a
+database of their own anyway. It went, and the migration's template actions went
+with it except the three `{{if .sqlite}}` that pick a dialect. So did the
+helpers those migrations were rendered with: `addColumnIfNeeded`,
+`doesColumnExist`, `renameTableIfNeeded` and six more, four hundred lines of
+per-dialect SQL string building that the collapsed ladder calls from nowhere.
+
+Two consequences worth knowing before touching a query. **Absence is NULL**
+wherever a key looks: a planning conversation has no card, and `''` is a card
+id that does not exist; the reads say `COALESCE(...,'')` because in Go absence
+here is the zero value. And **no
+journal has an autoincrement** any more — `session_event`, `flow_event` and
+`source_event` take UUIDv7, which sorts by the moment it was made, so
+`ORDER BY id` still means "as it happened" and three spellings of
+`AUTO_INCREMENT` are gone. `session_event.seq` went with them.
+
+A test needs that schema and must not carry a copy of the DDL, because a copy
+drifts — the exact bug all of this is about. `internal/appschema` renders the
+same migration out of the same embedded filesystem onto a scratch file; that is
+the only thing it is for, and the running application never touches it.
+
+`conversation` and `agent_session` stay two tables on purpose. **A conversation
+outlives every process that drew it** — it is resumed, `claude --continue`, and
+the row is the conversation while the pty under it has changed three times —
+where a session is one run and one verdict. `docs/deferred.md` records the rest.
+
+**The registry's name is applied in the schema, and not yet in the code.** The
+tables say it: **`workspace`** is the named place, carrying the git *settings* —
+`kind`, `base_branch`, `branch_prefix`, the per-board mode — and **`checkout`**
+is what it hands one owner — dir, branch, base, mode, the git *state* — in a
+table of that name instead of `workdir_claim`. That reads as what it already is,
+because a plain folder records no row at all: `ClaimWorkspace` creates and
+writes nothing for `WorkModePlain`, so the table only ever held git copies. The
+Go side still says `WorkdirEntry`, and the stored keys still say `project`
+(`projects`, `xciiiProjectProperty`, `project_path`) — they are other people's
+saved data. Not `project` in anything new: that word was removed for a product
+reason which has not changed — a folder of household notes is not a project,
+and it made every board of shopping lists look like it was missing one.
+
 ## Conventions
 
 - **Comments say why, not what.** The code says what. A comment earns its place by
@@ -1587,16 +1771,28 @@ from them are the person's and are untouched.
   the Russian a person reads. The one deliberate exception is
   `NormalizeVerdict`, which meets an agent's free text halfway in both languages
   and maps it onto `pass`/`fail`/`blocked`.
-- **Where the model is written down.** `docs/db-erd.md` is what is stored where,
-  `docs/model-graph.md` is how one thing finds another — and what is still found
-  by name rather than by id — and `docs/store-plan.md` is the work that follows
-  from it: our tables into the board's database, registries out of `config.json`
-  and into tables, one base instead of three files and a JSON; the target schema
-  itself is `docs/schema/app.hcl` (Atlas) and `docs/schema/ent.md` (the same as
-  ent entities), neither applied. The rule those
-  three are kept to: **a reference is a foreign key** — everything referable
-  lives in one database and has an id, the settings file holds only what nothing
-  points at, and nothing at all is found by name.
+- **Where the model is written down.** `docs/schema/erd.md` is the schema drawn
+  — every table and column, as a mermaid ER diagram — and `docs/schema/app.hcl`
+  is the same schema as Atlas HCL, for pointing Atlas's own tooling at. **Both
+  are generated** by `go generate ./tools/schemagen` out of the Go data the
+  migration comes from, and a test fails when either is stale: a picture of a
+  schema maintained by hand is a second description of it, and the second one
+  goes wrong. Which tables are drawn together is the one hand-written part
+  (`erdGroups`), because that is a judgement rather than something the schema
+  knows. `python3 tools/schemapage.py` dresses the same markdown as
+  `docs/schema/erd.html` — a page to open in a browser, presentation only, and
+  nothing in the Go build calls it. `docs/db-erd.md` is what is stored where in words,
+  `docs/model-graph.md` is how one thing finds another — every reference by id
+  now, with the nine that were not written up where a new one can be checked
+  against them — `docs/db-schema-review.md` is the decisions
+  behind it, and
+  `docs/sql-dialects.md` is the inventory of what is still written per vendor —
+  fifteen branches in the queries, ten of them the same upsert, two of them
+  functions only a test calls. `docs/sql-plan.md` is that half's plan and its
+  history. `docs/schema/ent.md` is why ent was weighed and turned down. The rule they are kept to: **a
+  reference is a foreign key** — everything referable lives in one database and
+  has an id, the settings file holds only what nothing points at, and nothing at
+  all is found by name.
 - **A rework is not finished until `docs/` says what is now true.** The rule
   below is about a feature somebody uses; this one is about the shape of the
   code. When something structural moves — a layer replaced, a plan carried out,

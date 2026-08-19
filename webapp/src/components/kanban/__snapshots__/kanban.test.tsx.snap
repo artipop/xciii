@@ -317,7 +317,6 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
             
           </button>
         </div>
-        
       </div>
     </div>
     
@@ -814,7 +813,6 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
             
           </button>
         </div>
-        
       </div>
     </div>
     
@@ -1133,7 +1131,6 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
             
           </button>
         </div>
-        
       </div>
     </div>
     
@@ -1384,7 +1381,6 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
             
           </button>
         </div>
-        
       </div>
     </div>
     

@@ -15,7 +15,6 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/filestore"
 	"github.com/artipop/xciii/server/services/filestore/mocks"
-	mm_model "github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -267,7 +266,7 @@ func TestGetFileInfo(t *testing.T) {
 	th, _ := SetupTestHelper(t)
 
 	t.Run("should return file info", func(t *testing.T) {
-		fileInfo := &mm_model.FileInfo{
+		fileInfo := &model.FileInfo{
 			Id:       "file_info_id",
 			Archived: false,
 		}
@@ -286,7 +285,7 @@ func TestGetFileInfo(t *testing.T) {
 	})
 
 	t.Run("should return archived file info", func(t *testing.T) {
-		fileInfo := &mm_model.FileInfo{
+		fileInfo := &model.FileInfo{
 			Id:       "file_info_id",
 			Archived: true,
 		}
@@ -311,7 +310,7 @@ func TestGetFileInfo(t *testing.T) {
 func TestGetFile(t *testing.T) {
 	th, _ := SetupTestHelper(t)
 	t.Run("happy path, no errors", func(t *testing.T) {
-		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&mm_model.FileInfo{
+		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&model.FileInfo{
 			Id:   "fileInfoID",
 			Path: testPath,
 		}, nil)
@@ -345,7 +344,7 @@ func TestGetFile(t *testing.T) {
 	})
 
 	t.Run("when FileExists returns false", func(t *testing.T) {
-		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&mm_model.FileInfo{
+		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&model.FileInfo{
 			Id:   "fileInfoID",
 			Path: testPath,
 		}, nil)
@@ -360,7 +359,7 @@ func TestGetFile(t *testing.T) {
 		assert.Nil(t, seeker)
 	})
 	t.Run("when FileReader throws error", func(t *testing.T) {
-		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&mm_model.FileInfo{
+		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&model.FileInfo{
 			Id:   "fileInfoID",
 			Path: testPath,
 		}, nil)
@@ -381,7 +380,7 @@ func TestGetFilePath(t *testing.T) {
 	th, _ := SetupTestHelper(t)
 
 	t.Run("when FileInfo exists", func(t *testing.T) {
-		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&mm_model.FileInfo{
+		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&model.FileInfo{
 			Id:   "fileInfoID",
 			Path: testPath,
 		}, nil)
@@ -402,7 +401,7 @@ func TestGetFilePath(t *testing.T) {
 	})
 
 	t.Run("when FileInfo exists but FileInfo.Path is not set", func(t *testing.T) {
-		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&mm_model.FileInfo{
+		th.Store.EXPECT().GetFileInfo("fileInfoID").Return(&model.FileInfo{
 			Id:   "fileInfoID",
 			Path: "",
 		}, nil)
@@ -437,7 +436,7 @@ func TestCopyCard(t *testing.T) {
 	})
 
 	t.Run("Board exists, image block, with FileInfo", func(t *testing.T) {
-		fileInfo := &mm_model.FileInfo{
+		fileInfo := &model.FileInfo{
 			Id:   "imageBlock",
 			Path: testPath,
 		}
@@ -475,7 +474,7 @@ func TestCopyCard(t *testing.T) {
 			BoardID:    "boardID",
 		}
 
-		fileInfo := &mm_model.FileInfo{
+		fileInfo := &model.FileInfo{
 			Id:   "attachmentBlock",
 			Path: testPath,
 		}
@@ -532,7 +531,7 @@ func TestCopyAndUpdateCardFiles(t *testing.T) {
 	}
 
 	t.Run("Board exists, image block, with FileInfo", func(t *testing.T) {
-		fileInfo := &mm_model.FileInfo{
+		fileInfo := &model.FileInfo{
 			Id:   "imageBlock",
 			Path: testPath,
 		}

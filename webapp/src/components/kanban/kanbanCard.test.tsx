@@ -15,7 +15,6 @@ import KanbanCard from './kanbanCard'
 
 vi.mock('../../mutator')
 vi.mock('../../utils')
-vi.mock('../../telemetry/telemetryClient')
 const mockedUtils = vi.mocked(Utils)
 const mockedMutator = vi.mocked(Mutator)
 

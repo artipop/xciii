@@ -16,13 +16,10 @@ import (
 //     «Настройки → Агенты». It holds on every board this machine has, because
 //     it is about the agent rather than about any board.
 //
-// There is deliberately no third. A text per (board, agent) was built and
-// taken out again: it is the only one of them that belongs to no single thing
-// a person can point at — a cell of a table rather than a setting of the board
-// or of the agent — and what a *folder* wants said is already said in the
-// folder, by the AGENTS.md/CLAUDE.md its own CLI reads. Two prompts with one
-// owner each is the whole of the rule, and it fits in the sentence the dialog
-// prints.
+// There is deliberately no third: a text per (board, agent) belongs to no single
+// thing a person can point at — a cell of a table rather than a setting — and
+// what a *folder* wants said is already in the folder's own AGENTS.md. Two
+// prompts with one owner each fits in the sentence the dialog prints.
 
 // promptLead is those two, in the order the agent gets them: the board's
 // words, then the agent's own, then whatever the caller appends — the card's

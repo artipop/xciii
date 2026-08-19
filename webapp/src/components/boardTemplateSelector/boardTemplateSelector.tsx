@@ -19,7 +19,6 @@ import {getTemplates, getCurrentBoardId} from '../../store/boards'
 import {getCurrentTeam, Team} from '../../store/teams'
 import {getGlobalTemplates} from '../../store/globalTemplates'
 import {useAppSelector, useAppStore} from '../../store/hooks'
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 
 import './boardTemplateSelector.scss'
 import {OnboardingBoardTitle} from '../cardDetail/cardDetail'
@@ -40,7 +39,6 @@ type Props = {
     title?: JSX.Element
     description?: JSX.Element
     onClose?: () => void
-    channelId?: string
 }
 
 // Of the templates that come with the install, only these are offered: the rest
@@ -49,9 +47,8 @@ type Props = {
 // makes a board from it run without any setup — an upstream template would land
 // here as a board the automation knows nothing about.
 //
-// A template the user made is a different matter and is always offered,
-// whatever it carries: it is theirs, they can see what is in it, and hiding it
-// is how "Create new template" used to lead nowhere at all.
+// A template the user made is always offered, whatever it carries: it is
+// theirs, and hiding it would make "Create new template" lead nowhere.
 //
 // They are named by the marker each one carries rather than by its title. The
 // title is Russian prose somebody may reword, and a filter keyed on it would
@@ -126,7 +123,6 @@ const BoardTemplateSelector = (props: Props) => {
     })
 
     const onBoardTemplateDelete = (template: Board) => {
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteBoardTemplate, {board: template.id})
         mutator.deleteBoard(
             template,
             intl.formatMessage({id: 'BoardTemplateSelector.delete-template', defaultMessage: 'Delete'}),
@@ -179,8 +175,6 @@ const BoardTemplateSelector = (props: Props) => {
     })
 
     const resetTour = async () => {
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.StartTour)
-
         const user = me()
         if (!user) {
             return
@@ -215,13 +209,7 @@ const BoardTemplateSelector = (props: Props) => {
 
     const handleUseTemplate = async () => {
         const template = activeTemplate()
-        if (template.teamId === '0') {
-            TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateBoardViaTemplate, {boardTemplateId: template.properties.trackingTemplateId as string, channelID: props.channelId})
-        }
-
-        const boardsAndBlocks = await mutator.addBoardFromTemplate(currentTeam()?.id || Constants.globalTeamId, intl, showBoard, () => showBoard(currentBoardId()), template.id, currentTeam()?.id)
-        const board = boardsAndBlocks.boards[0]
-        await mutator.updateBoard({...board, channelId: props.channelId || ''}, board, 'linked channel')
+        await mutator.addBoardFromTemplate(currentTeam()?.id || Constants.globalTeamId, intl, showBoard, () => showBoard(currentBoardId()), template.id, currentTeam()?.id)
         if (template.title === OnboardingBoardTitle) {
             resetTour()
         }
@@ -306,9 +294,7 @@ const BoardTemplateSelector = (props: Props) => {
                                     size={'medium'}
                                     icon={<CompassIcon icon='kanban'/>}
                                     onClick={async () => {
-                                        const boardsAndBlocks = await mutator.addEmptyBoard(currentTeam()?.id || '', intl, showBoard, () => showBoard(currentBoardId()))
-                                        const board = boardsAndBlocks.boards[0]
-                                        await mutator.updateBoard({...board, channelId: props.channelId || ''}, board, 'linked channel')
+                                        await mutator.addEmptyBoard(currentTeam()?.id || '', intl, showBoard, () => showBoard(currentBoardId()))
                                     }}
                                 >
                                     <FormattedMessage

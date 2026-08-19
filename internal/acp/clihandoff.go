@@ -10,19 +10,14 @@ import (
 // from claude.ai or the phone) is a flag of the CLI and nothing in ACP, so the
 // capability probe cannot find it and never will.
 //
-// The adapter does provide a door, and documents it in its own types: session/new
-// takes `_meta.claudeCode.options` — the Claude Agent SDK's Options — and passes
-// `extraArgs` through to the CLI it spawns. That is the whole mechanism here: an
-// agent may carry extra CLI arguments, and they are handed over in `_meta` under
-// the namespace its adapter reads.
+// The adapter documents a door: session/new takes `_meta.claudeCode.options`
+// and passes `extraArgs` through to the CLI it spawns.
 //
-// It is deliberately a hand-typed field rather than a list of features of ours.
-// We do not know what the CLI takes, and it is not our business to keep such a
-// list in step with somebody else's releases; what we owe the user is that the
-// arguments arrive and that a mistake is loud. Both hold: an argument the CLI
-// does not know fails session/new with the CLI's own message ("unknown option
-// '--nonsense'"), so a typo is seen when the agent is saved, not an hour later
-// on a card.
+// Deliberately a hand-typed field rather than a list of features of ours: we do
+// not know what the CLI takes and will not keep such a list in step with
+// somebody else's releases. A mistake is loud — an unknown argument fails
+// session/new with the CLI's own message, so a typo is seen when the agent is
+// saved rather than an hour later on a card.
 
 // sdkOptionsMeta is the `_meta` namespace an adapter reads its CLI options from,
 // per kind. Only claude has one — codex drives its CLI over that CLI's own

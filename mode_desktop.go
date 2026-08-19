@@ -75,17 +75,11 @@ func (o *origin) ServeAssets(assetHandler http.Handler) error {
 	return nil
 }
 
-// frontDoorDrain is how long the front door waits for requests in flight before
-// it goes anyway. Bounded on purpose, and the reason is not politeness.
-//
-// Shutdown waits for every request that is not finished, and this runs on the
-// main thread inside the framework's own cleanup — so one request that never
-// returns hangs the quit for ever, with the process still alive and the app
-// gone from the screen. Measured: asking the app to quit *through* the front
-// door (the runtime's own /wails/runtime call) makes Shutdown wait for that
-// very request, which cannot return until Shutdown does. Nothing here is worth
-// a hung process; a socket cut mid-answer is a page that reconnects to an app
-// that is closing anyway.
+// frontDoorDrain bounds the wait for requests in flight, because Shutdown runs
+// on the main thread inside the framework's cleanup: one request that never
+// returns hangs the quit for ever, process alive and app gone from the screen.
+// Quitting *through* the front door is exactly that case — Shutdown waits for
+// the very request asking it to quit.
 const frontDoorDrain = 2 * time.Second
 
 func (o *origin) Stop() error {
@@ -120,19 +114,14 @@ const mainWindowName = "main"
 
 // The app outlives its windows.
 //
-// Closing the board is not quitting: the agents go on working, a stage of a
-// route that was running goes on running, and the icon in the menu bar is what
-// says so and what leads back. Without this the icon was a decoration on a
-// window — it died with the last one, and every conversation died with it,
-// which is the reason a stage cut off by a shutdown needed a state of its own
-// on the card at all.
+// Closing the board is not quitting: the agents go on working, a running stage
+// goes on running, and the icon in the menu bar is what says so and what leads
+// back.
 //
 // Two mechanisms, because the platforms disagree about whose question this is.
-// macOS asks whether to terminate once the last window has closed;
-// Windows and Linux call Options.ShouldQuit from their own teardown. And on
-// those two `App.Quit()` goes through the *same* check, so this cannot simply
-// answer "never" — «Выйти» in the menu would then do nothing at all. Hence a
-// flag rather than a constant: no until somebody asks to go.
+// macOS asks whether to terminate once the last window closed; Windows and
+// Linux call Options.ShouldQuit from a teardown that App.Quit() also goes
+// through — so a constant "never" would make «Выйти» do nothing. Hence a flag.
 var quitting atomic.Bool
 
 // requestQuit is a person asking to leave, from the one place left to ask once
@@ -145,15 +134,11 @@ func requestQuit(wapp *application.App) {
 // appShouldQuit answers Wails' «may we go now?», and which question that is
 // depends on the platform — getting it wrong costs ⌘Q.
 //
-// Windows and Linux ask this from their teardown, which both the last window
-// closing and App.Quit() go through, so there the honest answer is the flag.
-// macOS asks it from applicationShouldTerminate and from nowhere else — the
-// last window closing is settled separately, by
-// ApplicationShouldTerminateAfterLastWindowClosed — so answering with the flag
-// there refuses ⌘Q, the Dock's own Quit and everything else a person would
-// reach for, leaving «Выход» in the menu bar icon as the only way out of the
-// application. Measured: the runtime's own Quit came back 200 and the process
-// stayed up.
+// Windows and Linux ask from a teardown both the last window closing and
+// App.Quit() go through, so the flag is the honest answer there. macOS asks from
+// applicationShouldTerminate alone (the last window is settled by
+// ApplicationShouldTerminateAfterLastWindowClosed), so the flag there refuses
+// ⌘Q and the Dock's Quit as well.
 func appShouldQuit() bool { return runtime.GOOS == "darwin" || quitting.Load() }
 
 // watchDockReopen brings the board back when the app is activated with nothing
@@ -286,13 +271,11 @@ func openShareWindow(wapp *application.App, url string) {
 // closeShareWindow shuts the dialog once it has said what happened — and goes
 // with it, when the dialog is all there was.
 //
-// Sharing a link may be the only reason this app was launched at all: the
-// window it opens is deliberately not the board (openShareWindow). That used to
-// end by itself, because the last window closing ended the app; now the app
-// outlives its windows, and a person who shared a link would be left running one
-// they never asked to open, for ever. So the rule is what it always was in
-// effect — nothing but the dialog open means nothing to stay for. A board window
-// that somebody merely closed is hidden rather than gone, so it still counts.
+// Sharing a link may be the only reason the app was launched, and the window it
+// opens is deliberately not the board (openShareWindow) — so with the app
+// outliving its windows, nothing but the dialog open means nothing to stay for.
+// A board window somebody closed is hidden rather than gone, so it still
+// counts.
 func closeShareWindow(wapp *application.App) {
 	if existing, ok := wapp.Window.GetByName(shareWindowName); ok {
 		existing.Close()

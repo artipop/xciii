@@ -36,6 +36,7 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
             {boardId: 'board-1', optionId: 'opt-work', property: 'Статус', column: 'В работе', action: 'agent'},
         ])),
         ListFlows: vi.fn().mockResolvedValue(JSON.stringify([{
+            id: 'flow-1',
             name: 'Фича',
             boardId: 'board-1',
             property: 'Статус',
@@ -131,7 +132,9 @@ describe('components/acp/automationDialog', () => {
         userEvent.click(await screen.findByRole('button', {name: 'Delete this route'}))
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
 
-        await waitFor(() => expect(bindings.RemoveFlow).toHaveBeenCalledWith('board-1', 'Фича'))
+        // By id: a route being deleted is the one on screen, and its name is not
+        // what identifies it (docs/model-graph.md, contradiction 4).
+        await waitFor(() => expect(bindings.RemoveFlow).toHaveBeenCalledWith('board-1', 'flow-1'))
     })
 
     test('a refused save says why and keeps the dialog open', async () => {

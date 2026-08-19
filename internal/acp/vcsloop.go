@@ -22,10 +22,10 @@ func (m *Manager) SetWatchers(w ...vcs.Watcher) { m.watchers = w }
 // always, and GitHub — which only spends a request when a route actually waits
 // for a pull request. Its token is optional: public folders answer without
 // one, at a rate limit low enough that the watcher paces itself.
-func defaultWatchers(cfg Config) []vcs.Watcher {
+func (m *Manager) defaultWatchers() []vcs.Watcher {
 	return []vcs.Watcher{
-		&vcs.Git{Remote: cfg.GitRemote},
-		&vcs.GitHub{Remote: cfg.GitRemote, Token: cfg.GithubTokenValue()},
+		&vcs.Git{Remote: m.cfg.GitRemote},
+		&vcs.GitHub{Remote: m.cfg.GitRemote, Token: m.githubToken()},
 	}
 }
 
@@ -64,8 +64,8 @@ func (m *Manager) PollVCS() {
 			events, err := w.Poll(ctx, target)
 			cancel()
 			if err != nil {
-				m.log.Warn("acp: project poll failed", "watcher", w.Name(),
-					"project", ft.WorkdirPath, "branch", ft.Branch, "err", err)
+				m.log.Warn("acp: folder poll failed", "watcher", w.Name(),
+					"workdir", ft.WorkdirPath, "branch", ft.Branch, "err", err)
 			}
 			for _, e := range events {
 				m.deliverVCSEvent(e)
@@ -78,8 +78,12 @@ func (m *Manager) PollVCS() {
 // reports the state it sees, not a change: a merged branch stays merged, and
 // without this the card would move on every poll.
 func (m *Manager) deliverVCSEvent(e vcs.Event) {
-	if m.store != nil {
-		fresh, err := m.store.ClaimVCSEvent(e.WorkdirPath, e.Branch, e.Kind, e.Marker)
+	// The latch belongs to the workspace, not to where it happens to be: a
+	// folder somebody moved used to keep its latches and go on ignoring events
+	// it had never acted on. A folder outside the registry cannot latch, and
+	// nothing polls one — the watcher's targets come from the registry.
+	if workspaceID := m.workspaceID(e.WorkdirPath); m.store != nil && workspaceID != "" {
+		fresh, err := m.store.ClaimVCSEvent(workspaceID, e.Branch, e.Kind, e.Marker)
 		if err != nil {
 			m.log.Error("acp: vcs dedup failed", "err", err)
 			return
@@ -88,7 +92,7 @@ func (m *Manager) deliverVCSEvent(e vcs.Event) {
 			return
 		}
 	}
-	m.log.Info("acp: project event", "kind", e.Kind, "project", e.WorkdirPath, "branch", e.Branch)
+	m.log.Info("acp: folder event", "kind", e.Kind, "workdir", e.WorkdirPath, "branch", e.Branch)
 	m.OnVCSEvent(VCSEvent{Kind: e.Kind, WorkdirPath: e.WorkdirPath, Branch: e.Branch, Detail: e.Detail})
 }
 

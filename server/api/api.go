@@ -9,7 +9,6 @@ import (
 
 	"github.com/artipop/xciii/server/app"
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/services/permissions"
 	"github.com/artipop/xciii/server/web"
 
@@ -40,7 +39,6 @@ type API struct {
 	singleUserToken string
 	MattermostAuth  bool
 	logger          mlog.LoggerIFace
-	audit           *audit.Audit
 }
 
 func NewAPI(
@@ -49,7 +47,6 @@ func NewAPI(
 	authService string,
 	permissions permissions.PermissionsService,
 	logger mlog.LoggerIFace,
-	audit *audit.Audit,
 ) *API {
 	return &API{
 		app:             app,
@@ -57,7 +54,6 @@ func NewAPI(
 		authService:     authService,
 		permissions:     permissions,
 		logger:          logger,
-		audit:           audit,
 	}
 }
 
@@ -78,27 +74,19 @@ func (a *API) RegisterRoutes(r *web.Router) {
 	a.registerAchivesRoutes(apiv2)
 	a.registerSubscriptionsRoutes(apiv2)
 	a.registerFilesRoutes(apiv2)
-	a.registerOnboardingRoutes(apiv2)
 	a.registerSearchRoutes(apiv2)
 	a.registerConfigRoutes(apiv2)
 	a.registerBoardsAndBlocksRoutes(apiv2)
-	a.registerChannelsRoutes(apiv2)
 	a.registerTemplatesRoutes(apiv2)
 	a.registerBoardsRoutes(apiv2)
 	a.registerBlocksRoutes(apiv2)
 	a.registerContentBlocksRoutes(apiv2)
-	a.registerStatisticsRoutes(apiv2)
-	a.registerComplianceRoutes(apiv2)
 
 	// V3 routes
 	a.registerCardsRoutes(apiv2)
 
 	// System routes are outside the /api/v2 path
 	a.registerSystemRoutes(r)
-}
-
-func (a *API) RegisterAdminRoutes(r *web.Router) {
-	r.HandleFunc("POST /api/v2/admin/users/{username}/password", a.adminRequired(a.handleAdminSetPassword))
 }
 
 func getUserID(r *http.Request) string {

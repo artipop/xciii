@@ -84,3 +84,30 @@ tasks:
     summary: Runs the application in server mode
     cmds:
       - task: common:run:server
+
+  test:db:
+    summary: Runs the store and API suites against one vendor (DB=sqlite3|mysql|postgres)
+    # "The same code works on three databases" is checked, not assumed. The
+    # container is started by the tests themselves (internal/dbtest), so this
+    # task is one environment variable — there is no compose file to keep in
+    # step, and nothing to stop afterwards. Needs a Docker daemon for the two
+    # that are not SQLite.
+    #
+    # The whole suite is `go test ./...`; this is the narrower one, because
+    # only the packages that speak SQL have anything vendor-specific to say.
+    vars:
+      DB: '{{.DB | default "postgres"}}'
+    env:
+      FOCALBOARD_STORE_TEST_DB_TYPE: '{{.DB}}'
+    cmds:
+      - go test -count=1 -tags "json1,sqlite3" ./server/services/store/... ./server/integrationtests/...
+
+  test:db:all:
+    summary: Runs that suite against all three vendors in turn
+    cmds:
+      - task: test:db
+        vars: {DB: sqlite3}
+      - task: test:db
+        vars: {DB: postgres}
+      - task: test:db
+        vars: {DB: mysql}

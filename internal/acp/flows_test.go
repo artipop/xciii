@@ -2,21 +2,30 @@ package acp
 
 import (
 	"encoding/json"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+// sampleFlowOn is sampleFlow claimed by a board, for the cases about two boards
+// holding routes of the same name.
+func sampleFlowOn(boardID string) FlowEntry {
+	f := sampleFlow()
+	f.BoardID = boardID
+	return f
+}
 
 // sampleFlow is the route the engine tests walk: agent → review → deploy.
 func sampleFlow() FlowEntry {
 	return FlowEntry{
 		Name:     "feature",
 		Property: "Status",
+		// With the option ids flowEvent sends: a stage is its option, and the
+		// column's name decides nothing (contradiction 5).
 		Nodes: []FlowNode{
-			{ID: "work", Column: "To Agent", Action: FlowActionAgent},
-			{ID: "review", Column: "Review", Action: FlowActionNone},
-			{ID: "blocked", Column: "Blocked", Action: FlowActionNone},
+			{ID: "work", Column: "To Agent", OptionID: "opt-to agent", Action: FlowActionAgent},
+			{ID: "review", Column: "Review", OptionID: "opt-review", Action: FlowActionNone},
+			{ID: "blocked", Column: "Blocked", OptionID: "opt-blocked", Action: FlowActionNone},
 		},
 		Edges: []FlowEdge{
 			{From: "work", To: "review", On: TriggerSuccess},
@@ -27,8 +36,8 @@ func sampleFlow() FlowEntry {
 }
 
 func TestValidateFlow(t *testing.T) {
-	workdirs := []WorkdirEntry{{Name: "webapp", Path: "/projects/webapp"}}
-	agents := []AgentEntry{{Name: "claude-1", Kind: AgentKindClaude}}
+	workdirs := []WorkdirEntry{{ID: "ws-webapp", Name: "webapp", Path: "/projects/webapp"}}
+	agents := []AgentEntry{{ID: "ag-claude-1", Name: "claude-1", Kind: AgentKindClaude}}
 	deploys := []DeployEntry{deployEntry("prod")}
 
 	if _, err := validateFlow(sampleFlow(), workdirs, agents, deploys); err != nil {
@@ -48,9 +57,13 @@ func TestValidateFlow(t *testing.T) {
 		"два перехода по одному событию": func(f *FlowEntry) {
 			f.Edges = append(f.Edges, FlowEdge{From: "work", To: "blocked", On: TriggerSuccess})
 		},
-		"неизвестный проект": func(f *FlowEntry) { f.WorkdirName = "nosuchproject" },
-		"неизвестный агент":  func(f *FlowEntry) { f.Nodes[0].AgentName = "nosuchagent" },
-		"неизвестная цель":   func(f *FlowEntry) { f.Nodes[0].DeployName = "nosuchtarget" },
+		"неизвестная папка": func(f *FlowEntry) { f.WorkspaceID = "nosuchworkspace" },
+		"неизвестный агент": func(f *FlowEntry) { f.Nodes[0].AgentIDs = []string{"nosuchagent"} },
+		"неизвестная цель":  func(f *FlowEntry) { f.Nodes[0].DeployID = "nosuchtarget" },
+		// A name that could not be bound to an id is refused here, which is what
+		// keeps the board's own copy of the route untouched (rememberUnadopted).
+		"неразрешённое имя агента": func(f *FlowEntry) { f.Nodes[0].AgentNames = []string{"nosuchagent"} },
+		"неразрешённое имя цели":   func(f *FlowEntry) { f.Nodes[0].DeployName = "nosuchtarget" },
 		"пустое условие":     func(f *FlowEntry) { f.Edges[0].If = &EdgeCond{} },
 		"условие про оба сразу": func(f *FlowEntry) {
 			f.Edges[0].If = &EdgeCond{Property: "Приоритет", Value: "Высокий", CommentContains: "готово"}
@@ -76,11 +89,10 @@ func TestValidateFlow(t *testing.T) {
 
 	// References that do exist are accepted, and an empty action defaults to none.
 	f := sampleFlow()
-	f.WorkdirName = "WEBAPP"
-	// A stage that named one agent becomes a stage with a crew of one.
-	f.Nodes[0].AgentName = "claude-1"
-	// And an empty action is kept as it is: the stage does whatever its column
-	// does, which is not the same as doing nothing.
+	f.WorkspaceID = "ws-webapp"
+	f.Nodes[0].AgentIDs = []string{"ag-claude-1"}
+	// An empty action is kept as it is: the stage does whatever its column does,
+	// which is not the same as doing nothing.
 	f.Nodes[1].Action = ""
 	got, err := validateFlow(f, workdirs, agents, deploys)
 	if err != nil {
@@ -89,8 +101,8 @@ func TestValidateFlow(t *testing.T) {
 	if got.Nodes[1].Action != "" {
 		t.Fatalf("an empty action must stay empty: %+v", got.Nodes[1])
 	}
-	if len(got.Nodes[0].AgentNames) != 1 || got.Nodes[0].AgentNames[0] != "claude-1" || got.Nodes[0].AgentName != "" {
-		t.Fatalf("the old single agent was not folded into the crew: %+v", got.Nodes[0])
+	if got.ID == "" {
+		t.Error("a route was accepted without being given an id")
 	}
 
 	// Several conditional edges on one event are the point of conditions: the
@@ -116,7 +128,9 @@ func TestAddUpdateRemoveFlowPersists(t *testing.T) {
 		t.Error("duplicate name accepted")
 	}
 
-	updated := sampleFlow()
+	// Read back rather than rebuilt: an edit finds its route by the id the
+	// registry gave it, and a copy built from scratch has none.
+	updated := m.Flows()[0]
 	updated.Nodes[1].Column = "Ревью"
 	if _, err := m.UpdateFlow(updated); err != nil {
 		t.Fatal(err)
@@ -125,15 +139,14 @@ func TestAddUpdateRemoveFlowPersists(t *testing.T) {
 		t.Error("update of an unknown flow accepted")
 	}
 
-	loaded, err := LoadConfig(cfgPath, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(loaded.Flows) != 1 || loaded.Flows[0].Nodes[1].Column != "Ревью" {
-		t.Fatalf("config did not persist the update: %+v", loaded.Flows)
+	// A route is the board's, not the machine's, so what has to hold it is the
+	// registry this run reads. Where it is written through to is
+	// boardstore_test.go; a flow with no board — this one — has nowhere to go.
+	if flows := m.Flows(); len(flows) != 1 || flows[0].Nodes[1].Column != "Ревью" {
+		t.Fatalf("the update did not reach the registry: %+v", flows)
 	}
 
-	if err := m.RemoveFlow("", "FEATURE"); err != nil {
+	if err := m.RemoveFlow("", m.Flows()[0].ID); err != nil {
 		t.Fatal(err)
 	}
 	if len(m.Flows()) != 0 {
@@ -155,10 +168,11 @@ func TestFlowsAreScopedToTheirBoard(t *testing.T) {
 	second := sampleFlow()
 	second.BoardID = "board-2"
 	second.Nodes[1].Column = "Ревью"
-	if _, err := m.AddFlow(second); err != nil {
+	second, err := m.AddFlow(second)
+	if err != nil {
 		t.Fatalf("another board cannot have a route of the same name: %v", err)
 	}
-	if _, err := m.AddFlow(second); err == nil {
+	if _, err := m.AddFlow(sampleFlowOn("board-2")); err == nil {
 		t.Error("the same board took the same name twice")
 	}
 
@@ -168,7 +182,7 @@ func TestFlowsAreScopedToTheirBoard(t *testing.T) {
 	if _, err := m.UpdateFlow(edited); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.RemoveFlow("board-2", edited.Name); err != nil {
+	if err := m.RemoveFlow("board-2", edited.ID); err != nil {
 		t.Fatal(err)
 	}
 	left := m.Flows()
@@ -201,11 +215,14 @@ func TestBoardAutomationIsExportedWithoutTheBoard(t *testing.T) {
 
 func TestResolveFlow(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: "/projects/webapp"}}
+	m.cfg.Workdirs = []WorkdirEntry{{ID: "ws-webapp", Name: "webapp", Path: "/projects/webapp"}}
 	feature := sampleFlow()
+	feature.ID = "flow-feature"
 	hotfix := sampleFlow()
+	hotfix.ID = "flow-hotfix"
 	hotfix.Name = "hotfix"
-	hotfix.WorkdirName = "webapp"
+	// The route names its folder by the registry's id, not by the folder's name.
+	hotfix.WorkspaceID = "ws-webapp"
 	m.cfg.Flows = []FlowEntry{feature, hotfix}
 
 	// 1. A card option naming a flow wins.
@@ -278,18 +295,19 @@ func TestTriggerMetadata(t *testing.T) {
 	}
 }
 
-func TestTemplateFlowsUseTheConfigsOwnColumns(t *testing.T) {
+// The routes the editor offers a board that has none. They used to be built
+// from five column-name keys in the machine's settings — which is how the
+// settings of one machine came to name the columns of everybody's board — and
+// the names are the templates' own now.
+func TestTheOfferedRoutesAreValidAndStandOnTheTemplateColumns(t *testing.T) {
 	cfg := DefaultConfig(t.TempDir())
-	cfg.TriggerColumn = "К агенту"
-	cfg.TestColumn = "На тест"
-	cfg.TestPassColumn = "Проверено"
-
 	flows := TemplateFlows(cfg)
 	if len(flows) < 2 {
 		t.Fatalf("a template with one route offers no choice: %+v", flows)
 	}
-	// Every seeded route must be one the engine would accept from the editor.
 	for _, f := range flows {
+		// Every offered route has to be one the engine would accept from the
+		// editor: offering a route that cannot be saved is offering nothing.
 		if _, err := validateFlow(f, nil, nil, nil); err != nil {
 			t.Fatalf("template flow %q is invalid: %v", f.Name, err)
 		}
@@ -298,77 +316,30 @@ func TestTemplateFlowsUseTheConfigsOwnColumns(t *testing.T) {
 		}
 	}
 
-	feature := flows[0]
-	if feature.Name != TemplateFlowFeature {
-		t.Fatalf("the full route should come first: %q", feature.Name)
+	feature, ok := flowNamed(flows, TemplateFlowFeature)
+	if !ok {
+		t.Fatalf("no %q route among %+v", TemplateFlowFeature, flows)
 	}
-	if n, ok := feature.NodeByColumn("К агенту"); !ok || n.Action != FlowActionAgent {
-		t.Fatalf("agent stage: %+v", n)
-	}
-	if n, _, ok := feature.Next("qa", TriggerSuccess, nil, ""); !ok || n.Column != "Проверено" {
-		t.Fatalf("QA success edge: %+v", n)
-	}
-	// A failed check goes back to the agent rather than to a person.
-	if n, _, ok := feature.Next("qa", TriggerFailure, nil, ""); !ok || n.Column != "К агенту" {
-		t.Fatalf("QA failure edge: %+v", n)
-	}
-	// Waiting for the merge needs no token: it is the local git watcher.
-	if !IsVCSTrigger(TriggerBranchMerged) || IsGitHubTrigger(TriggerBranchMerged) {
-		t.Fatal("the seeded routes must work without GitHub credentials")
-	}
-	if n, _, ok := feature.Next("review", TriggerBranchMerged, nil, ""); !ok || n.Column != cfg.DeployColumn {
-		t.Fatalf("review edge: %+v", n)
-	}
-
-	// A column the config does not name produces no stage, and the transitions
-	// that would have led there go with it.
-	cfg.DeployColumn = ""
-	for _, f := range TemplateFlows(cfg) {
-		if _, ok := f.NodeByColumn("Deploy"); ok {
-			t.Fatalf("%s: an empty deployColumn should not become a stage", f.Name)
-		}
-		if _, err := validateFlow(f, nil, nil, nil); err != nil {
-			t.Fatalf("%s: dropping a column left a dangling edge: %v", f.Name, err)
+	for _, column := range []string{TemplateWorkColumn, TemplateDeployColumn, TemplateTestColumn} {
+		if _, ok := feature.NodeByColumn(column); !ok {
+			t.Errorf("the feature route has no stage on %q", column)
 		}
 	}
 }
 
-func TestLoadConfigSeedsAndRespectsAnEmptyRegistry(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-
-	// A config written before flows existed gets the template routes.
-	if err := os.WriteFile(path, []byte(`{"triggerColumn":"К агенту","testColumn":"На тест"}`), 0o600); err != nil {
-		t.Fatal(err)
+func flowNamed(flows []FlowEntry, name string) (FlowEntry, bool) {
+	for _, f := range flows {
+		if f.Name == name {
+			return f, true
+		}
 	}
-	cfg, err := LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfg.Flows) != len(TemplateFlows(cfg)) || len(cfg.Flows) == 0 {
-		t.Fatalf("template flows not seeded: %+v", cfg.Flows)
-	}
-	if _, ok := cfg.Flows[0].NodeByColumn("К агенту"); !ok {
-		t.Fatalf("the seeded flows ignored the config's own columns: %+v", cfg.Flows[0])
-	}
-	// Seeding several routes also means no card is silently adopted by one:
-	// resolveFlow's single-entry fallback only fires when there is exactly one.
-	if len(cfg.Flows) < 2 {
-		t.Fatalf("a single seeded route would adopt every card: %+v", cfg.Flows)
-	}
-
-	// Deleting every route is a decision and must survive a restart.
-	if err := os.WriteFile(path, []byte(`{"flows":[]}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	cfg, err = LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfg.Flows) != 0 {
-		t.Fatalf("an empty registry was re-seeded: %+v", cfg.Flows)
-	}
+	return FlowEntry{}, false
 }
+
+// What used to stand here: a test that LoadConfig seeded the template routes
+// into the machine's settings for an install that predated routes, and that an
+// emptied list survived a restart. Both went with the seeding
+// (docs/model-graph.md, contradiction 9): a board carries its own routes.
 
 func TestFlowEntryJSONRoundTrip(t *testing.T) {
 	b, err := json.Marshal(sampleFlow())

@@ -48,11 +48,10 @@ func oauthProvider(t *testing.T) *httptest.Server {
 func connectManager(t *testing.T, provider *httptest.Server) (*Manager, secrets.Store) {
 	t.Helper()
 	dir := t.TempDir()
-	store, err := OpenStore(filepath.Join(dir, "sources.db"))
+	store, err := newTestStore(t, filepath.Join(dir, "sources.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { store.Close() })
 
 	vault := secrets.NewFileStore(filepath.Join(dir, "secrets.json"))
 	m := NewManager(Config{

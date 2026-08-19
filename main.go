@@ -41,6 +41,28 @@ func appDataDir(name string, perm os.FileMode) (string, error) {
 	return dir, nil
 }
 
+// openAgentStore hands the agent integration the board's database, after
+// carrying over whatever an `acp.db` from before the move still holds. The
+// import is at startup and happens once: it renames the file when it is done.
+func openAgentStore(brd board, dir string) (*acp.Store, error) {
+	if n, err := acp.ImportLegacyStore(brd.db, filepath.Join(dir, "acp.db")); err != nil {
+		return nil, err
+	} else if n > 0 {
+		log.Printf("acp: %d rows carried over from acp.db, which is now acp.db.migrated", n)
+	}
+	return acp.NewStore(brd.db), nil
+}
+
+// openSourceStore does the same for `sources.db`.
+func openSourceStore(brd board, dir string) (*sources.Store, error) {
+	if n, err := sources.ImportLegacyStore(brd.db, filepath.Join(dir, "sources.db")); err != nil {
+		return nil, err
+	} else if n > 0 {
+		log.Printf("sources: %d rows carried over from sources.db, which is now sources.db.migrated", n)
+	}
+	return sources.NewStore(brd.db), nil
+}
+
 // acpDataDir returns the ACP integration's own state directory.
 func acpDataDir() (string, error) { return appDataDir("acp", 0o750) }
 
@@ -130,10 +152,11 @@ func main() {
 		backends = append(backends, events)
 	}
 
-	srv, err := runServerWithLogger(logger, port, sessionToken, backends)
+	brd, err := runServerWithLogger(logger, port, sessionToken, backends)
 	if err != nil {
 		log.Fatalf("failed to start the server: %v", err)
 	}
+	srv := brd.srv
 
 	// The templates this app offers are its own (internal/boardadapter/
 	// templates); the server module's are the upstream's examples and carry no
@@ -192,6 +215,16 @@ func main() {
 		log.Fatalf("failed to open the front door: %v", err)
 	}
 
+	// Where a credential the app has to *present* is kept. The environment comes
+	// first, so a token given from outside wins without anybody deleting
+	// anything; then the platform keychain; then a 0600 file where there is no
+	// keychain. The keychain service is this install's name, not the product's,
+	// so a development build and the real app cannot reach each other's tokens.
+	//
+	// Built here rather than in the sources block below: the agent integration
+	// reads it too, and neither half implies the other.
+	vault := openVault()
+
 	// Sources are wired independently of the agent integration, and on purpose:
 	// cards from a phone are useful on a board that runs no agents at all.
 	// Anything that goes wrong here costs the sources and nothing else.
@@ -209,7 +242,7 @@ func main() {
 		log.Printf("sources: disabled, no data dir: %v", err)
 	} else if cfg, err := sources.LoadConfig(filepath.Join(dir, "sources.json")); err != nil {
 		log.Printf("sources: disabled, config error: %v", err)
-	} else if sourceStore, err = sources.OpenStore(filepath.Join(dir, "sources.db")); err != nil {
+	} else if sourceStore, err = openSourceStore(brd, dir); err != nil {
 		log.Printf("sources: disabled, store error: %v", err)
 		sourceStore = nil
 	} else {
@@ -236,23 +269,7 @@ func main() {
 		if len(manifests) > 0 {
 			log.Printf("sources: %d манифест(ов) из %s", len(manifests), filepath.Join(dir, sources.ManifestsDir))
 		}
-		// Where a credential the app has to *present* is kept — an MCP server's
-		// API token, an OAuth access token. The environment comes first so a
-		// token given from outside wins over a stored one without anybody
-		// having to delete anything, then the platform's own keychain, and the
-		// file only where there is no keychain to have: it keeps values in
-		// plain text at 0600 and says so.
-		// The keychain service is this install's name, not the product's: a
-		// token stored by a development build must not be handed to the app,
-		// and a real token must not be reachable from whatever is being tried
-		// out at the time.
-		store := secrets.Chain{secrets.Env{Prefix: "XCIII_SECRET_"}}
-		if keychain, ok := secrets.OpenKeychain(appDirName); ok {
-			store = append(store, keychain)
-		} else {
-			store = append(store, secrets.NewFileStore(filepath.Join(dir, "secrets.json")))
-		}
-		sourceMgr.SetSecrets(store)
+		sourceMgr.SetSecrets(vault)
 		// Plugins come up here and go down in shutdown below. A source fed over
 		// ingest needs none of this; a source with a plugin is a process, and
 		// this is where it starts.
@@ -270,7 +287,7 @@ func main() {
 	if acpEnabled {
 		events.SetApp(srv.App())
 		dir, _ := acpDataDir()
-		store, err := acp.OpenStore(filepath.Join(dir, "acp.db"))
+		store, err := openAgentStore(brd, dir)
 		if err != nil {
 			log.Printf("acp: disabled, store error: %v", err)
 		} else {
@@ -278,6 +295,10 @@ func main() {
 			mgr = acp.NewManager(acpCfg, filepath.Join(dir, "config.json"), store, writer, emitter, nil)
 			// Lets the UI open a console on a card without moving it.
 			mgr.SetBoardReader(events)
+			// Where the GitHub token for pull-request polling comes from. It
+			// was `githubToken` in config.json, which is a credential in a
+			// settings file people edit by hand and paste into issues.
+			mgr.SetSecrets(vault)
 			mgr.SetBoardMeta(events)
 			// Keeps a card's place on its route on the card, so it travels
 			// with the board rather than staying on this machine.
@@ -303,7 +324,7 @@ func main() {
 				if sourcePlugins != nil {
 					sourcePlugins.SetAgentRunner(inboxAgentRunner{mgr})
 				}
-				log.Printf("acp: enabled (trigger %q/%q)", acpCfg.TriggerProperty, acpCfg.TriggerColumn)
+				log.Printf("acp: enabled (columns on %q)", acpCfg.TriggerProperty)
 			}
 		}
 	}
@@ -324,9 +345,8 @@ func main() {
 		if sourcePlugins != nil {
 			sourcePlugins.Stop(5 * time.Second)
 		}
-		if sourceStore != nil {
-			_ = sourceStore.Close()
-		}
+		// The stores are not closed here: their tables are in the board's
+		// database, and closing that is the board's own shutdown below.
 		_ = srv.Shutdown()
 	}
 
@@ -435,4 +455,21 @@ func (r inboxAgentRunner) RunForSource(ctx context.Context, run sources.AgentRun
 		Prompt:  run.Prompt,
 		Servers: servers,
 	})
+}
+
+// openVault is the credential store, built the same way whether or not this
+// install has sources or agents. The file fallback lives beside the sources
+// registry for history's sake: it was written there first, and moving it would
+// take somebody's stored tokens with it for no gain.
+func openVault() secrets.Store {
+	store := secrets.Chain{secrets.Env{Prefix: "XCIII_SECRET_"}}
+	if keychain, ok := secrets.OpenKeychain(appDirName); ok {
+		return append(store, keychain)
+	}
+	dir, err := sourcesDataDir()
+	if err != nil {
+		log.Printf("secrets: no data dir, only the environment is read: %v", err)
+		return store
+	}
+	return append(store, secrets.NewFileStore(filepath.Join(dir, "secrets.json")))
 }

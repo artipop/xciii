@@ -106,7 +106,6 @@ func (a *App) Login(username, email, password, mfaToken string) (string, error) 
 		var err error
 		user, err = a.store.GetUserByUsername(username)
 		if err != nil && !model.IsErrNotFound(err) {
-			a.metrics.IncrementLoginFailCount(1)
 			return "", errors.Wrap(err, "invalid username or password")
 		}
 	}
@@ -115,18 +114,15 @@ func (a *App) Login(username, email, password, mfaToken string) (string, error) 
 		var err error
 		user, err = a.store.GetUserByEmail(email)
 		if err != nil && model.IsErrNotFound(err) {
-			a.metrics.IncrementLoginFailCount(1)
 			return "", errors.Wrap(err, "invalid username or password")
 		}
 	}
 
 	if user == nil {
-		a.metrics.IncrementLoginFailCount(1)
 		return "", errors.New("invalid username or password")
 	}
 
 	if !auth.ComparePassword(user.Password, password) {
-		a.metrics.IncrementLoginFailCount(1)
 		a.logger.Debug("Invalid password for user", mlog.String("userID", user.ID))
 		return "", errors.New("invalid username or password")
 	}
@@ -148,8 +144,6 @@ func (a *App) Login(username, email, password, mfaToken string) (string, error) 
 		return "", errors.Wrap(err, "unable to create session")
 	}
 
-	a.metrics.IncrementLoginCount(1)
-
 	// TODO: MFA verification
 	return session.Token, nil
 }
@@ -160,8 +154,6 @@ func (a *App) Logout(sessionID string) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to delete the session")
 	}
-
-	a.metrics.IncrementLogoutCount(1)
 
 	return nil
 }

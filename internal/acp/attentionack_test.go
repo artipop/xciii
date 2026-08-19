@@ -137,10 +137,10 @@ func TestTheAcknowledgementDoesNotOutliveTheStage(t *testing.T) {
 // watcher honours it, because the watcher is what was announcing every
 // forty-five seconds.
 func TestTheWatcherDoesNotAnnounceAWaitTwice(t *testing.T) {
-	m, _, events, project, emitter := stageManager(t, "echo working; sleep 30", nil)
+	m, _, events, _, emitter := stageManager(t, "echo working; sleep 30", nil)
 	m.terminalQuiet = 500 * time.Millisecond
 
-	events.ch <- moveEvent("cardQuiet", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardQuiet", "opt-backlog", "opt-agent")
 	term := liveStageTerminal(t, m, "cardQuiet")
 
 	waitFor(t, 15*time.Second, "the card to say it is waiting", func() bool {

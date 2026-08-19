@@ -1,9 +1,6 @@
 package acp
 
-import (
-	"strings"
-	"time"
-)
+import "time"
 
 // What a card can say about itself: which route it is on, where along it it
 // stands, and what it is waiting for. The card shows this instead of making
@@ -43,7 +40,7 @@ func (m *Manager) CardFlowFor(cardID string) (*CardFlow, error) {
 	if err != nil || !ok {
 		return nil, err
 	}
-	flow, found := m.FlowByName(st.Flow)
+	flow, found := m.FlowByID(st.FlowID)
 	if !found {
 		return nil, nil
 	}
@@ -71,21 +68,21 @@ func (m *Manager) CardFlowFor(cardID string) (*CardFlow, error) {
 	for _, n := range flow.Nodes {
 		action := n.Action
 		if action == "" {
-			if spec, ok := m.columnByName(flow.PropertyOr(m.triggerProperty()), n.Column); ok {
+			if spec, ok := m.columnOf(n, flow.PropertyOr(m.triggerProperty())); ok {
 				action = spec.Action
 			}
 		}
 		crew := n.Crew()
 		if len(crew) == 0 {
-			if spec, ok := m.columnByName(flow.PropertyOr(m.triggerProperty()), n.Column); ok {
-				crew = spec.Agents
+			if spec, ok := m.columnOf(n, flow.PropertyOr(m.triggerProperty())); ok {
+				crew = spec.AgentIDs
 			}
 		}
 		out.Stages = append(out.Stages, CardFlowStage{
 			NodeID:  n.ID,
 			Column:  n.Column,
 			Action:  action,
-			Crew:    crew,
+			Crew:    m.crewNames(crew),
 			Current: n.ID == st.NodeID,
 			Done:    visited[n.ID] && n.ID != st.NodeID,
 		})
@@ -113,7 +110,7 @@ func (m *Manager) cardIsQueued(cardID string) bool {
 	if err != nil || !ok {
 		return false
 	}
-	flow, found := m.FlowByName(st.Flow)
+	flow, found := m.FlowByID(st.FlowID)
 	if !found {
 		return false
 	}
@@ -121,7 +118,7 @@ func (m *Manager) cardIsQueued(cardID string) bool {
 	if !found {
 		return false
 	}
-	spec, found := m.columnByName(flow.PropertyOr(m.triggerProperty()), node.Column)
+	spec, found := m.columnOf(node, flow.PropertyOr(m.triggerProperty()))
 	if !found {
 		return false
 	}
@@ -129,14 +126,22 @@ func (m *Manager) cardIsQueued(cardID string) bool {
 	return err == nil && ok && q.CardID == cardID
 }
 
-// columnByName finds a configured column the way a flow node names one.
-func (m *Manager) columnByName(property, column string) (ColumnSpec, bool) {
+// columnOf finds the configured column a route's stage stands on, by the
+// stage's option id and by nothing else. Matching one by the column's name is
+// what let renaming a column silently rearrange a route; a stage with no option
+// id is one the board could not bind (bindToBoardOptions), and no card can
+// stand on it.
+//
+// The property argument is what the callers already had in hand and is no
+// longer consulted.
+func (m *Manager) columnOf(node FlowNode, _ string) (ColumnSpec, bool) {
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
-	for _, c := range m.cfg.Columns {
-		if strings.EqualFold(c.Column, column) &&
-			(property == "" || c.Property == "" || strings.EqualFold(c.Property, property)) {
-			return c, true
+	if node.OptionID != "" {
+		for _, c := range m.cfg.Columns {
+			if c.OptionID != "" && c.OptionID == node.OptionID {
+				return c, true
+			}
 		}
 	}
 	return ColumnSpec{}, false
@@ -187,7 +192,7 @@ func (m *Manager) BoardFlowOverview(boardID string) ([]FlowOverview, error) {
 			counts[n.ID] = &FlowStageCount{NodeID: n.ID}
 		}
 		for _, st := range states {
-			if !strings.EqualFold(st.Flow, flow.Name) {
+			if st.FlowID != flow.ID {
 				continue
 			}
 			if boardID != "" && st.BoardID != "" && st.BoardID != boardID {

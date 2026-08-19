@@ -105,8 +105,8 @@ export function useUpdateState(): Accessor<UpdateState> {
 
 // isUpdatesAvailable answers whether this deployment can update itself at all.
 // Feature-detected rather than assumed: the same bundle is served in a plain
-// browser and as a Mattermost plugin, where there is no Go side to ask, and by
-// the headless server build, which is not distributed as a release.
+// browser, where there is no Go side to ask, and by the headless server build,
+// which is not distributed as a release.
 export function isUpdatesAvailable(): boolean {
     return Boolean(agentBindings()?.GetUpdateState)
 }

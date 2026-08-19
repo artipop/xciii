@@ -79,8 +79,8 @@ func boardWithCards(t *testing.T) (*Manager, *fakeWriter) {
 	m, writer, _, _ := testManager(t, "idle", func(cfg *Config) {
 		cfg.TriggerProperty = "Статус"
 		cfg.Columns = append(cfg.Columns,
-			ColumnSpec{BoardID: "board-1", Property: "Статус", Column: "К агенту", Action: "session"},
-			ColumnSpec{BoardID: "board-1", Property: "Статус", Column: "Ревью"},
+			ColumnSpec{BoardID: "board-1", PropertyID: "p", OptionID: "opt-toagent", Property: "Статус", Column: "К агенту", Action: "session"},
+			ColumnSpec{BoardID: "board-1", PropertyID: "p", OptionID: "opt-review", Property: "Статус", Column: "Ревью"},
 		)
 	})
 	m.SetBoardReader(&fakeReader{cards: []CardMoved{
@@ -221,8 +221,8 @@ func TestBoardToolsDescribeTheBoardsRoutes(t *testing.T) {
 		Name:    "Обычный",
 		BoardID: "board-1",
 		Nodes: []FlowNode{
-			{ID: "n1", Column: "К агенту"},
-			{ID: "n2", Column: "Ревью"},
+			{ID: "n1", Column: "К агенту", OptionID: "opt-toagent"},
+			{ID: "n2", Column: "Ревью", OptionID: "opt-review"},
 		},
 		Edges: []FlowEdge{{From: "n1", To: "n2", On: TriggerSuccess}, {From: "n2", To: "n1", On: TriggerBranchMerged}},
 	}); err != nil {
@@ -392,5 +392,49 @@ func TestStageServersSurviveWithoutAGrant(t *testing.T) {
 	}
 	if !strings.Contains(string(raw), "playwright") || strings.Contains(string(raw), "\"board\"") {
 		t.Errorf("config: %s", raw)
+	}
+}
+
+// A board says which field carries its columns, and the grant takes that answer
+// rather than the machine's. The config's TriggerProperty is one name for every
+// board this install ever opens, and its default is the Russian «Статус» — so a
+// board in another language, or one where somebody renamed the field, used to
+// hand the agent a property that does not exist there and every write bounced.
+func TestTheGrantTakesTheColumnPropertyFromTheBoard(t *testing.T) {
+	m, writer, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.TriggerProperty = "Статус"
+	})
+	m.SetBoardMeta(&fakeBoardMeta{props: map[string]any{
+		BoardPropColumnProperty: "prop-workflow",
+	}})
+
+	if _, err := m.CreateCardFromTools(t.Context(), m.GrantBoardTools("board-1", "", ""),
+		NewCard{Title: "Задача", Column: "К агенту"}); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(writer.created) != 1 {
+		t.Fatalf("board writes: %d, want 1", len(writer.created))
+	}
+	if got := writer.created[0].Property; got != "prop-workflow" {
+		t.Errorf("column property %q, want the one the board records", got)
+	}
+}
+
+// A board made before that record exists says nothing, and the machine's
+// configured name is the only answer there is.
+func TestTheGrantFallsBackToTheConfiguredColumnProperty(t *testing.T) {
+	m, writer, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.TriggerProperty = "Статус"
+	})
+	m.SetBoardMeta(&fakeBoardMeta{props: map[string]any{}})
+
+	if _, err := m.CreateCardFromTools(t.Context(), m.GrantBoardTools("board-1", "", ""),
+		NewCard{Title: "Задача", Column: "К агенту"}); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := writer.created[0].Property; got != "Статус" {
+		t.Errorf("column property %q, want the configured fallback", got)
 	}
 }

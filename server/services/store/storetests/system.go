@@ -9,11 +9,12 @@ import (
 
 // these system settings are created when running the data migrations,
 // so they will be present after the tests setup.
-var dataMigrationSystemSettings = map[string]string{
-	"UniqueIDsMigrationComplete":            "true",
-	"CategoryUuidIdMigrationComplete":       "true",
-	"DeDuplicateCategoryBoardTableComplete": "true",
-}
+// A freshly migrated database has nothing in system_settings. It used to have
+// three rows — the markers the interleaved data migrations left to say they had
+// run — and those went with the migrations when the ladder was collapsed into
+// one step. A database made today has none of the
+// rows they repaired, so there is nothing to mark.
+var dataMigrationSystemSettings = map[string]string{}
 
 func addBaseSettings(m map[string]string) map[string]string {
 	r := map[string]string{}

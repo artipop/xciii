@@ -17,6 +17,16 @@ import "strings"
 // renaming triggerColumn renames the stage with it; the two stages with no
 // config key of their own are named here.
 const (
+	// The columns a template route stands on. They live here, with the thing
+	// that creates boards, rather than in the machine's settings — where they
+	// used to be five keys naming the columns of anybody's board and matching
+	// them by name (contradiction 9 of docs/model-graph.md).
+	TemplateWorkColumn     = "В работе"
+	TemplateDeployColumn   = "Деплой"
+	TemplateTestColumn     = "QA"
+	TemplateTestPassColumn = "Проверено"
+	TemplateTestFailColumn = "Не прошло"
+
 	TemplateReviewColumn  = "На ревью"
 	TemplateBlockedColumn = "Заблокировано"
 	TemplateDoneColumn    = "Готово 🙌"
@@ -63,8 +73,9 @@ func (b *flowBuilder) edge(from, to, on string) {
 	b.flow.Edges = append(b.flow.Edges, FlowEdge{From: from, To: to, On: on})
 }
 
-// TemplateFlows builds the routes seeded on first run, from the config's own
-// column names.
+// TemplateFlows builds the routes the editor offers a board that has none. The
+// column names are the templates' own; the property is the machine's default,
+// which is the last thing here that is still a name rather than an id.
 func TemplateFlows(cfg Config) []FlowEntry {
 	var out []FlowEntry
 	for _, f := range []FlowEntry{featureFlow(cfg), hotfixFlow(cfg), reviewFlow(cfg)} {
@@ -80,12 +91,12 @@ func TemplateFlows(cfg Config) []FlowEntry {
 // rather than to a person — that loop is the point of the whole thing.
 func featureFlow(cfg Config) FlowEntry {
 	b := newFlow(TemplateFlowFeature, cfg.TriggerProperty)
-	agent := b.node("agent", cfg.TriggerColumn, FlowActionAgent)
+	agent := b.node("agent", TemplateWorkColumn, FlowActionAgent)
 	review := b.node("review", TemplateReviewColumn, FlowActionNone)
-	deploy := b.node("deploy", cfg.DeployColumn, FlowActionDeploy)
-	qa := b.node("qa", cfg.TestColumn, FlowActionTest)
-	qaPassed := b.node("qa-passed", cfg.TestPassColumn, FlowActionNone)
-	failed := b.node("failed", cfg.TestFailColumn, FlowActionNone)
+	deploy := b.node("deploy", TemplateDeployColumn, FlowActionDeploy)
+	qa := b.node("qa", TemplateTestColumn, FlowActionTest)
+	qaPassed := b.node("qa-passed", TemplateTestPassColumn, FlowActionNone)
+	failed := b.node("failed", TemplateTestFailColumn, FlowActionNone)
 	blocked := b.node("blocked", TemplateBlockedColumn, FlowActionNone)
 
 	b.edge(agent, review, TriggerSuccess)
@@ -105,10 +116,10 @@ func featureFlow(cfg Config) FlowEntry {
 // pass. What it buys is speed, and it says so by having nowhere to check.
 func hotfixFlow(cfg Config) FlowEntry {
 	b := newFlow(TemplateFlowHotfix, cfg.TriggerProperty)
-	agent := b.node("agent", cfg.TriggerColumn, FlowActionAgent)
-	deploy := b.node("deploy", cfg.DeployColumn, FlowActionDeploy)
+	agent := b.node("agent", TemplateWorkColumn, FlowActionAgent)
+	deploy := b.node("deploy", TemplateDeployColumn, FlowActionDeploy)
 	done := b.node("done", TemplateDoneColumn, FlowActionNone)
-	failed := b.node("failed", cfg.TestFailColumn, FlowActionNone)
+	failed := b.node("failed", TemplateTestFailColumn, FlowActionNone)
 	blocked := b.node("blocked", TemplateBlockedColumn, FlowActionNone)
 
 	b.edge(agent, deploy, TriggerSuccess)
@@ -122,7 +133,7 @@ func hotfixFlow(cfg Config) FlowEntry {
 // document, a spike. It ends when the branch lands in the main one.
 func reviewFlow(cfg Config) FlowEntry {
 	b := newFlow(TemplateFlowReview, cfg.TriggerProperty)
-	agent := b.node("agent", cfg.TriggerColumn, FlowActionAgent)
+	agent := b.node("agent", TemplateWorkColumn, FlowActionAgent)
 	review := b.node("review", TemplateReviewColumn, FlowActionNone)
 	done := b.node("done", TemplateDoneColumn, FlowActionNone)
 	blocked := b.node("blocked", TemplateBlockedColumn, FlowActionNone)

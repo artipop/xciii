@@ -304,12 +304,12 @@ func (g *GitHub) get(ctx context.Context, path string, out any) error {
 	case resp.StatusCode == http.StatusNotFound:
 		// A private project without a token looks exactly like a missing one.
 		if g.Token == "" {
-			return fmt.Errorf("GitHub отвечает 404 на %s — для приватного проекта нужен токен (githubToken в конфиге или GITHUB_TOKEN)", path)
+			return fmt.Errorf("GitHub отвечает 404 на %s — для приватного проекта нужен токен (GITHUB_TOKEN в окружении или XCIII_SECRET_GITHUB_TOKEN)", path)
 		}
 		return fmt.Errorf("GitHub: 404 на %s", path)
 	case resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests:
 		if g.Token == "" {
-			return fmt.Errorf("GitHub исчерпал лимит запросов без токена (60 в час) — задай githubToken в конфиге или GITHUB_TOKEN")
+			return fmt.Errorf("GitHub исчерпал лимит запросов без токена (60 в час) — задай GITHUB_TOKEN в окружении")
 		}
 		return fmt.Errorf("GitHub отклонил запрос %s: %s", path, resp.Status)
 	case resp.StatusCode >= 300:

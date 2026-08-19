@@ -39,7 +39,6 @@ describe('component/content/FileBlock', () => {
         createAt: 0,
         updateAt: 0,
         deleteAt: 0,
-        limited: false,
         isUploading: false,
         uploadingPercent: 0,
     }

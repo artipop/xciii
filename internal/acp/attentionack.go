@@ -7,34 +7,18 @@ import (
 
 // Having been told once is enough.
 //
-// A wait says itself in a notification, because a card's amber button is only
-// seen by somebody already looking at the board. The notification interrupts, so
-// it must be possible to be finished with it — and it was not: the ✕ and the
-// «Открыть терминал» button both put it away in the page that drew it, keyed by
-// when the wait was raised, and the wait was raised again every time the silence
-// broke and came back.
+// The ack is kept here rather than in the page, so it holds for every window and
+// for the phone at once — the page that drew the notification is not the only
+// one that drew it — and survives a reload.
 //
-// Which is a loop, and one the person's own act closes. A stage's wait is
-// silence (AttentionTerminal); opening the terminal to look at it tells the CLI
-// how big the window is; a TUI redraws itself when it is resized; the redraw is
-// output, so the wait ends and is raised afresh forty-five seconds later, with a
-// new timestamp the page had never dismissed. Look at it again and it comes back
-// again. The card was right — the agent really is still waiting — and the
-// notification was noise, since the person had just been there.
+// It is dropped by the CLI drawing something that is *not* the redraw our own
+// looking provoked (workedAt): going to look at an agent resizes its terminal,
+// a TUI repaints when resized, and counting that as work made every wait come
+// back a minute after somebody checked it. An agent that revives, does a turn
+// and stops again is asking something new, which is worth saying.
 //
-// So the ack lives here rather than in the page. Three things follow. It holds
-// for every window at once, and for the phone, which is what a person means by
-// "do not tell me this again" — the page that drew the notification is not the
-// only one that drew it. It survives a reload, because a wait a person answered
-// is not new to them because the board was refreshed. And it is dropped by the
-// one thing that makes the wait worth announcing again: the CLI drawing
-// something that is not the redraw our own looking provoked (workedAt). An agent
-// that revives, does a turn and stops again is asking a *new* question, and that
-// is a notification a person wants.
-//
-// Ends are the other way out. A wait that stops waiting takes its ack with it
-// (emitAttentionRecord clears on Awaiting false), so an answered question and a
-// finished stage leave nothing behind to suppress the next one.
+// A wait that ends takes its ack with it (emitAttentionRecord clears on Awaiting
+// false), so nothing is left behind to suppress the next one.
 
 // ackedWaits is the acknowledgements, keyed by Attention.Key and holding when
 // the person made them — the time is what workedAt is compared against.

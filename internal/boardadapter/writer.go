@@ -310,9 +310,13 @@ func cardPatchFor(schema model.PropSchema, edit acp.CardEdit) (*model.CardPatch,
 
 // findSelectOption resolves a (property name, option name) pair to the ids the
 // card actually stores. Matching is case-insensitive, like the trigger columns.
-func findSelectOption(schema model.PropSchema, propertyName, optionName string) (propID, optionID string, ok bool) {
+// The property may be named or identified. A name is what the config and an
+// agent's own words carry; an id is what a board records for itself
+// (BoardPropColumnProperty), and it is the answer that survives a rename and a
+// board in another language.
+func findSelectOption(schema model.PropSchema, property, optionName string) (propID, optionID string, ok bool) {
 	for id, def := range schema {
-		if def.Type != "select" || !strings.EqualFold(def.Name, propertyName) {
+		if def.Type != "select" || (id != property && !strings.EqualFold(def.Name, property)) {
 			continue
 		}
 		for oid, opt := range def.Options {

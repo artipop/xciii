@@ -21,7 +21,7 @@ import (
 // what we start, and the arguments go on its command line (terminalCommand).
 func TestCLIArgsReachTheAgentThroughSessionMeta(t *testing.T) {
 	script := writeFakeAgent(t, fakeClaudeHappy)
-	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name:            "remote",
 			Kind:            "claude",
@@ -31,8 +31,8 @@ func TestCLIArgsReachTheAgentThroughSessionMeta(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardRemote", project, "opt-backlog", "opt-agent")
-	ev.OptionNames = []string{"remote"}
+	ev := moveEvent("cardRemote", "opt-backlog", "opt-agent")
+	ev.OptionNames = append(ev.OptionNames, "remote")
 	events.ch <- ev
 
 	waitFor(t, 15*time.Second, "session done", func() bool {
