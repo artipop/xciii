@@ -233,12 +233,44 @@ func TestTheGuardRefusesARequestWithNoSession(t *testing.T) {
 		{"a live session", &http.Cookie{Name: sessionCookie, Value: "live"}, http.StatusTeapot},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/wails/runtime.js", nil)
+			// The call, not the script: the module itself is open (below).
+			req := httptest.NewRequest(http.MethodPost, "/wails/runtime", nil)
 			if tc.cookie != nil {
 				req.AddCookie(tc.cookie)
 			}
 			rec := httptest.NewRecorder()
 			guarded.ServeHTTP(rec, req)
+			if rec.Code != tc.want {
+				t.Fatalf("got %d, want %d", rec.Code, tc.want)
+			}
+		})
+	}
+}
+
+// The runtime module is the one thing behind the guard a page without a session
+// must still be able to fetch: it carries no authority, and refusing it left a
+// login page unable to become a logged-in one — the browser caches a rejected
+// dynamic import, and logging in does not reload the page.
+func TestTheRuntimeModuleIsServedToAPageWithNoSessionYet(t *testing.T) {
+	controller, _ := teamAt(t)
+
+	guarded := requireSession(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusTeapot)
+	}), controller.sessionValid)
+
+	for _, tc := range []struct {
+		name   string
+		method string
+		path   string
+		want   int
+	}{
+		{"the runtime module", http.MethodGet, "/wails/runtime.js", http.StatusTeapot},
+		{"a call made through it", http.MethodPost, "/wails/runtime", http.StatusUnauthorized},
+		{"anything else under it", http.MethodGet, "/wails/events", http.StatusUnauthorized},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			guarded.ServeHTTP(rec, httptest.NewRequest(tc.method, tc.path, nil))
 			if rec.Code != tc.want {
 				t.Fatalf("got %d, want %d", rec.Code, tc.want)
 			}
@@ -255,7 +287,7 @@ func TestWithNoTeamTheGuardStandsAside(t *testing.T) {
 	}), nil)
 
 	rec := httptest.NewRecorder()
-	guarded.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/wails/runtime.js", nil))
+	guarded.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/wails/runtime", nil))
 	if rec.Code != http.StatusTeapot {
 		t.Fatalf("got %d, want the handler to have run", rec.Code)
 	}
@@ -267,5 +299,15 @@ func TestTheBootstrapWritesTheCookieTheGuardReads(t *testing.T) {
 	script := bootstrapScript("su-token")
 	if !strings.Contains(script, sessionCookie+"=") {
 		t.Fatalf("the bootstrap script writes no %q cookie", sessionCookie)
+	}
+}
+
+// A page that could not load the runtime once has to be able to try again: the
+// module map caches a rejected import, so the page has to drop its own handle
+// on it or one bad moment lasts as long as the page does.
+func TestTheBootstrapForgetsARuntimeImportThatFailed(t *testing.T) {
+	script := bootstrapScript("")
+	if !strings.Contains(script, "runtimePromise = null;") {
+		t.Fatal("a failed runtime import is kept, so a bound call can never recover")
 	}
 }

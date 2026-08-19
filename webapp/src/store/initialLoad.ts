@@ -3,6 +3,7 @@ import {reconcile} from 'solid-js/store'
 
 import {Subscription} from '../wsclient'
 import {ErrorId} from '../errors'
+import {forgetSession} from '../session'
 import {Board} from '../blocks/board'
 import {parseUserProps} from '../user'
 
@@ -50,6 +51,13 @@ export const createInitialLoadActions = (ctx: StoreContext) => {
 
                 // if no me, normally user not logged in
                 if (!me) {
+                    // And the session that was being offered is gone, so it is
+                    // thrown away rather than kept and retried. The board's
+                    // socket reopens every three seconds and re-runs this load
+                    // each time — with a token the server no longer knows, that
+                    // is a loop that never ends and never logs in. Forgetting it
+                    // is what turns the next attempt into the login page.
+                    forgetSession()
                     throw new Error(ErrorId.NotLoggedIn)
                 }
 

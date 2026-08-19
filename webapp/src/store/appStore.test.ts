@@ -6,6 +6,7 @@
 import {createRenderEffect, createRoot} from 'solid-js'
 
 import {ErrorId} from '../errors'
+import {rememberSession, sessionToken} from '../session'
 import {Card} from '../blocks/card'
 import {Board} from '../blocks/board'
 import {OctoClient} from '../octoClient'
@@ -82,6 +83,18 @@ describe('createAppStore', () => {
 
         await expect(store.actions.load.initialLoad()).rejects.toThrow(ErrorId.NotLoggedIn)
         expect(getGlobalError(store.state)).toBe(ErrorId.NotLoggedIn)
+    })
+
+    // A token the server no longer knows is not worth keeping: the board's
+    // socket reopens every three seconds and re-runs this load with whatever is
+    // stored, so a session that has gone would be offered for ever and never
+    // become a login page.
+    test('initialLoad throws away a session the server does not know', async () => {
+        rememberSession('a-token-from-a-database-that-is-gone')
+        const store = createAppStore({client: fakeClient({getMe: vi.fn(async () => undefined)} as Partial<OctoClient>)})
+
+        await expect(store.actions.load.initialLoad()).rejects.toThrow(ErrorId.NotLoggedIn)
+        expect(sessionToken()).toBe('')
     })
 
     test('an effect over a selector re-runs when an action changes its input', () => {

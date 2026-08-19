@@ -58,16 +58,21 @@ func bootstrapScript(sessionToken string) string {
     }
   } catch (e) {}
 
-  // One import of the v3 runtime, started now so the module is ready by the
-  // time the app's first binding call is made.
+  // One import of the v3 runtime, kept for the life of the page — but a failed
+  // one is not kept. A dynamic import that rejects would otherwise be the
+  // page's answer for ever: the module map caches the failure, and logging in
+  // navigates without reloading, so every bound call after it would fail with
+  // an error about the *module* rather than about the session.
   var runtimePromise = null;
   function wailsRuntime() {
     if (!runtimePromise) {
-      runtimePromise = import('/wails/runtime.js');
+      runtimePromise = import('/wails/runtime.js').catch(function (err) {
+        runtimePromise = null;
+        throw err;
+      });
     }
     return runtimePromise;
   }
-  wailsRuntime();
 
   // Anything read off the App object is a bound method; 'then' is excluded so
   // the object is never mistaken for a promise by an accidental await.

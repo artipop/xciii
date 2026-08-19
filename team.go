@@ -313,6 +313,10 @@ func requireSession(next http.Handler, valid func(string) bool) http.Handler {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if openToEverybody(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
 		cookie, err := r.Cookie(sessionCookie)
 		if err != nil || !valid(cookie.Value) {
 			http.Error(w, "not logged in", http.StatusUnauthorized)
@@ -320,4 +324,21 @@ func requireSession(next http.Handler, valid func(string) bool) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// openToEverybody is the one thing behind the guard that a page without a
+// session still has to be able to fetch: the runtime module itself.
+//
+// It carries no authority — it is a script, and every capability it offers goes
+// through the POST below it, which stays guarded. Refusing it was refusing the
+// login page the ability to *become* a logged-in page: the bootstrap imports
+// the module as the page loads, a rejected dynamic import is cached by the
+// browser's module map, and logging in navigates without reloading — so every
+// bound call for the rest of that page's life failed with "Failed to fetch
+// dynamically imported module", long after the session existed.
+func openToEverybody(r *http.Request) bool {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		return false
+	}
+	return r.URL.Path == "/wails/runtime.js"
 }

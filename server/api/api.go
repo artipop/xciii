@@ -171,8 +171,14 @@ func (a *API) userIsGuest(userID string) (bool, error) {
 // Response helpers
 
 func (a *API) errorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	a.logger.Error(err.Error())
 	errorResponse := model.ErrorResponse{Error: err.Error()}
+
+	// What the caller did wrong is the caller's news, not this server's. Every
+	// answer used to be logged at ERROR, so an ordinary page sitting on /login
+	// — which asks for /users/me without a token — printed one error line per
+	// request, and a client holding a session that no longer exists printed a
+	// wall of them. The one case that is genuinely ours keeps ERROR, below.
+	a.logger.Debug("API refused a request", mlog.Err(err), mlog.String("api", r.URL.Path))
 
 	switch {
 	case model.IsErrBadRequest(err):
