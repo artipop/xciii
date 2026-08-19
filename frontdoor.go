@@ -4,7 +4,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -93,9 +92,12 @@ func requestLog(next http.Handler) http.Handler {
 // loopback for the window, TLS on the tailnet for a phone. The guard is about
 // which *site* is calling, and that is the host.
 func sameOrigin(next http.Handler, allowedHost string) http.Handler {
-	allowedPort := portOf(allowedHost)
+	allowed := map[string]bool{
+		"http://" + allowedHost:  true,
+		"https://" + allowedHost: true,
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if origin := r.Header.Get("Origin"); origin != "" && !originAllowed(origin, allowedHost, allowedPort) {
+		if origin := r.Header.Get("Origin"); origin != "" && !allowed[origin] {
 			http.Error(w, "cross-origin request refused", http.StatusForbidden)
 			return
 		}
@@ -105,27 +107,6 @@ func sameOrigin(next http.Handler, allowedHost string) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
-}
-
-// originAllowed accepts the authority the front door was published under, and
-// the loopback names that mean the same machine on the same port — the same
-// answer hostAllowed gives the Host header, and for the same reason.
-//
-// It was an exact match against two strings, and that made `localhost:8080` and
-// `127.0.0.1:8080` two different sites: a person who typed the other one got a
-// page that loaded and an app where every bound method answered 403, with
-// nothing on screen saying why.
-func originAllowed(origin, allowedHost, allowedPort string) bool {
-	parsed, err := url.Parse(origin)
-	if err != nil {
-		return false
-	}
-	// A page is served over one of these two, and an origin with any other
-	// scheme is not one of ours whatever its host says.
-	if parsed.Scheme != "http" && parsed.Scheme != "https" {
-		return false
-	}
-	return hostAllowed(parsed.Host, allowedHost, allowedPort)
 }
 
 // hostGuard refuses a request whose Host is not the authority the front door
